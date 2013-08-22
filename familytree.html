@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<META http-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8" />
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+<META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+<META NAME="ROBOTS" CONTENT="NONE">
+<title>Family Tree</title>
+
+<!-- CSS Files -->
+<link type="text/css" href="/w/skins/common/familytree.10.css" rel="stylesheet" />
+
+</head>
+
+<body>
+<div class="map-control">
+   <img src="/w/skins/common/images/map-controls.png"/>
+   <div id="mapControlUp" style="z-index:2; position:absolute; left:16px; top:0; height:12px; width:16px; cursor:pointer;" title="Pan up">&nbsp;&nbsp;&nbsp;</div>
+   <div id="mapControlDown" style="z-index:2; position:absolute; left:16px; top:36px; height:12px; width:16px; cursor:pointer;" title="Pan down">&nbsp;&nbsp;&nbsp;</div>
+   <div id="mapControlLeft" style="z-index:2; position:absolute; left:0; top:16px; height:16px; width:12px; cursor:pointer;" title="Pan left">&nbsp;&nbsp;</div>
+   <div id="mapControlRight" style="z-index:2; position:absolute; left:36px; top:16px; height:16px; width:12px; cursor:pointer;" title="Pan right">&nbsp;&nbsp;</div>
+   <div id="mapControlCenter" style="z-index:2; position:absolute; left:16px; top:16px; height:16px; width:16px; cursor:pointer;" title="Center">&nbsp;&nbsp;&nbsp;</div>
+   <div id="mapControlZoomIn" style="z-index:2; position:absolute; left:16px; top:57px; height:16px; width:16px; cursor:pointer;" title="Zoom in">&nbsp;&nbsp;&nbsp;</div>
+   <div id="mapControlZoomOut" style="z-index:2; position:absolute; left:16px; top:77px; height:16px; width:16px; cursor:pointer;" title="Zoom out">&nbsp;&nbsp;&nbsp;</div>
+</div>
+<div id="infovis"></div>
+
+<script id="personNodeTemplate" type="text/x-jQuery-tmpl">
+   <div><a class="popup-anchor" href="${data.url}">${name}</a>
+      {{if data.yearrange}}
+         <span class="node-yearrange">${data.yearrange}</span>
+      {{/if}}
+   </div>
+</script>
+
+<script id="personPopupTemplate" type="text/x-jQuery-tmpl">
+   <table><tr>
+      <td class="popup-image">{{html data.thumb}}</td>
+      <td class="popup-content">
+         <div class="popup-fullname"><a class="popup-anchor" href="${data.url}">${name}</a></div>
+         {{if data.birthdate || data.birthplace}}
+            <div class="popup-event">${data.birthlabel}. <span class="popup-date">${data.birthdate}</span> <span class="popup-place">${data.birthplace}</span></div>
+         {{/if}}
+         {{if data.deathdate || data.deathplace}}
+            <div class="popup-event">${data.deathlabel}. <span class="popup-date">${data.deathdate}</span> <span class="popup-place">${data.deathplace}</span></div>
+         {{/if}}
+         <div class="popup-links"><a class="popup-newwindow" href="${data.url}">Open in new tab</a><a class="popup-setroot" href="${data.url}">Set as root</a></div>
+      </td>
+   </tr></table>
+</script>
+
+<script id="familyPopupTemplate" type="text/x-jQuery-tmpl">
+   <div>
+      <table><tr>
+         {{if data.thumb}}
+            <td class="popup-image">{{html data.thumb}}</td>
+         {{/if}}
+         <td class="popup-content">
+            <div class="popup-fullname"><a class="popup-anchor" href="${data.url}">Family</a></div>
+            {{if data.husbandname}}
+               <div class="popup-spouse">H.
+                  <span class="popup-spousename">
+                  {{if data.husbandurl}}
+                     <a class="popup-anchor" href="${data.husbandurl}">${data.husbandname}</a>
+                  {{else}}
+                     ${data.husbandname}
+                  {{/if}}
+                  </span>
+                  <span class="popup-yearrange">${data.husbandyearrange}</span>
+               </div>
+            {{/if}}
+            {{if data.wifename}}
+               <div class="popup-spouse">W.
+                  <span class="popup-spousename">
+                  {{if data.wifeurl}}
+                     <a class="popup-anchor" href="${data.wifeurl}">${data.wifename}</a>
+                  {{else}}
+                     ${data.wifename}
+                  {{/if}}
+                  </span>
+                  <span class="popup-yearrange">${data.wifeyearrange}</span>
+               </div>
+            {{/if}}
+            {{if data.marriagedate || data.marriageplace}}
+               <div class="popup-marriage">m.&nbsp; <span class="popup-date">${data.marriagedate}</span> <span class="popup-place">${data.marriageplace}</span></div>
+            {{/if}}
+         </td>
+      </tr></table>
+      {{if data.children.length}}
+         <div class="popup-children">
+            {{each data.children}}
+            <div class="popup-child">
+               ${$index+1}. <a class="popup-anchor" href="${$value.url}">${$value.name}</a>
+               <span class="popup-yearrange">${$value.yearrange}</span>
+            </div>
+            {{/each}}
+         </div>
+      {{/if}}
+      {{if data.morechildren}}
+      <div class="popup-more">(more)</div>
+      {{/if}}
+      <div class="popup-links">
+         <a class="popup-newwindow" href="${data.url}">Open in new tab</a><a class="popup-setroot" href="${data.url}">Set as root</a>
+      </div>
+   </div>
+</script>
+
+<!-- JQ and plugins-->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+<script language="javascript" type="text/javascript" src="/w/jquery.poshytip.min.js"></script>
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/w/excanvas.min.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="/w/jit-st.min.6.js"></script>
+<script language="javascript" type="text/javascript" src="/w/familytree.min.14.js"></script>
+</body>
+</html>
