@@ -83,7 +83,6 @@
 	Alias /wiki /var/www/w/index.php
 	Alias /index.php /var/www/w/index.php
 	Alias /index.html /var/www/w/index.php
-	Alias /search /var/www/htdocs/w/index.php?title=Special:Search
 	Alias /images /mnt/images
 
    ErrorLog ${APACHE_LOG_DIR}/error.log

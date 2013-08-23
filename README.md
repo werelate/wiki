@@ -3,7 +3,7 @@ Source code for the WeRelate.org wiki
 To install:
 * download a skeleton wiki database from http://public.werelate.org.s3.amazonaws.com/wikidb.sql
 * create a database in mysql and import the skeleton
-* copy the files in this project to your htdocs root
+* copy the files in this project to a *w* directory under your htdocs root
 * create an apache site file from conf/apache2.sample and copy it to your apache2/sites-available directory as *sitename*
     * you will need to fill in or modify the values in apache2.sample based upon your environment
 * enable the site; e.g., `a2ensite` *sitename*
