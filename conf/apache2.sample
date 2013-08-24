@@ -24,7 +24,7 @@
 	SetEnv GOOGLE_MAP_KEY
 	SetEnv USE_GOOGLE_ANALYTICS true
 	SetEnv DELETED_IMAGES_DIR /mnt/deleted-images
-	SetEnv LOG_DIR /mnt/logs
+	SetEnv LOG_DIR /var/log/mediawiki
 	SetEnv USE_MEMCACHED true
 	SetEnv MEMCACHED_SERVER 127.0.0.1:11211
 	SetEnv PROXY_KEY
