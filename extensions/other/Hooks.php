@@ -509,28 +509,29 @@ END
 function wrAddCaptcha(&$template) {
    global $wrRecaptchaPublicKey;
 
-   $template->set('captcha', '<tr><td></td><td>'.recaptcha_get_html($wrRecaptchaPublicKey).'</td></tr>');
+   if ($wrRecaptchaPublicKey) {
+      $template->set('captcha', '<tr><td></td><td>'.recaptcha_get_html($wrRecaptchaPublicKey).'</td></tr>');
+   }
 }
 
 function wrValidateUser($user, &$errorMsg, $email) {
    global $wrRecaptchaPrivateKey;
 
-   $resp = recaptcha_check_answer($wrRecaptchaPrivateKey,
-                                $_SERVER["REMOTE_ADDR"],
-                                $_POST["recaptcha_challenge_field"],
-                                $_POST["recaptcha_response_field"]);
-   if (!$resp->is_valid) {
-      $errorMsg = "The reCAPTCHA wasn't entered correctly. Please try again.";
-      return false;
+   if ($wrRecaptchaPrivateKey) {
+      $resp = recaptcha_check_answer($wrRecaptchaPrivateKey,
+                                   $_SERVER["REMOTE_ADDR"],
+                                   $_POST["recaptcha_challenge_field"],
+                                   $_POST["recaptcha_response_field"]);
+      if (!$resp->is_valid) {
+         $errorMsg = "The reCAPTCHA wasn't entered correctly. Please try again.";
+         return false;
+      }
    }
+
    if ($email == '') {
 		$errorMsg = wfMsg( 'emailrequired' );
 		return false;
 	}
-//	if (strlen($email) > 8 && (substr_compare($email, '@mail.ru', -8, 8) == 0 || substr_compare($email, '@list.ru', -8, 8) == 0)) {
-//		$errorMsg = 'System busy - please try again later.';
-//		return false;
-//	}
    if (mb_strpos($user->getName(), '@') !== false) {
       $errorMsg = wfMsg('invalidusername');
       return false;
