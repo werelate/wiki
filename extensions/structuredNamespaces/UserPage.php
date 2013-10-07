@@ -254,7 +254,7 @@ class UserPage extends StructuredData {
 //             }
 //             if ($ret) $values[] = $ret;
              if ($surname) {
-                $values[] = '[http://www.werelate.org/wiki/Special:Search?ns=User&s='.$surname.' '.$surname.']';
+                $values[] = '[http://'.$wrHostName.'/wiki/Special:Search?ns=User&s='.$surname.' '.$surname.']';
              }
           }
           $researching = $this->getLV('Users Researching', array_unique($values));

@@ -198,7 +198,7 @@ function wrExhibitMapAddOverlays(self, itemID) {
 }
 
 function wrExhibitColorMarkerGenerator(color) {
-	var baseURL = 'http://www.werelate.org/w/skins/common/images/maps/balloon';
+	var baseURL = '/w/skins/common/images/maps/balloon';
 	var balloonSize = 20;
 
 	elmt = document.createElement('img');
@@ -208,7 +208,7 @@ function wrExhibitColorMarkerGenerator(color) {
 }
 
 function wrExhibitMakeIcon(shape, color, iconSize, label, iconURL, settings) {
-	var baseURL = 'http://www.werelate.org/w/skins/common/images/maps/balloon';
+	var baseURL = '/w/skins/common/images/maps/balloon';
 	var balloonSize = 48;
 	var pinSize = 6;
 

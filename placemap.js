@@ -124,11 +124,11 @@ function addMapOverlays(size, points) {
 		   icon.iconAnchor = new google.maps.Point(9,34);
 		   icon.infoWindowAnchor = new google.maps.Point(9, 2);
 		   icon.infoShadowAnchor = new google.maps.Point(18,25);
-		   icon.shadow = "http://www.werelate.org/w/skins/common/images/maps/shadow.png";
-//		   icon.transparent = "http://www.werelate.org/w/skins/common/images/maps/lolly/transp.png";
-	      icon.image = "http://www.werelate.org/w/skins/common/images/maps/marker.png";
-	      icon.printImage = "http://www.werelate.org/w/skins/common/images/maps/marker.gif";
-	      icon.mozPrintImage = "http://www.werelate.org/w/skins/common/images/maps/marker.gif";
+		   icon.shadow = "/w/skins/common/images/maps/shadow.png";
+//		   icon.transparent = "/w/skins/common/images/maps/lolly/transp.png";
+	      icon.image = "/w/skins/common/images/maps/marker.png";
+	      icon.printImage = "/w/skins/common/images/maps/marker.gif";
+	      icon.mozPrintImage = "/w/skins/common/images/maps/marker.gif";
 	   }
 	   else {
 		   icon.iconSize = new google.maps.Size(12, 20);
@@ -136,11 +136,11 @@ function addMapOverlays(size, points) {
 		   icon.iconAnchor = new google.maps.Point(6, 20);
 		   icon.infoWindowAnchor = new google.maps.Point(5, 1);
 		   icon.infoShadowAnchor = new google.maps.Point(9, 12);
-		   icon.shadow = "http://www.werelate.org/w/skins/common/images/maps/mm_20_shadow.png";
-//		   icon.transparent = "http://www.werelate.org/w/skins/common/images/maps/lolly/transp.png";
-	      icon.image = "http://www.werelate.org/w/skins/common/images/maps/mm_20_red.png";
-	      icon.printImage = "http://www.werelate.org/w/skins/common/images/maps/mm_20_red.gif";
-	      icon.mozPrintImage = "http://www.werelate.org/w/skins/common/images/maps/mm_20_red.gif";
+		   icon.shadow = "/w/skins/common/images/maps/mm_20_shadow.png";
+//		   icon.transparent = "/w/skins/common/images/maps/lolly/transp.png";
+	      icon.image = "/w/skins/common/images/maps/mm_20_red.png";
+	      icon.printImage = "/w/skins/common/images/maps/mm_20_red.gif";
+	      icon.mozPrintImage = "/w/skins/common/images/maps/mm_20_red.gif";
 	   }
       return icon;
 	}

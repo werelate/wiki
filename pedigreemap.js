@@ -58,19 +58,19 @@ function addMapOverlays() {
    baseBaseIcon.iconAnchor = new GPoint(10,31);
    baseBaseIcon.infoWindowAnchor = new GPoint(10, 2);
    var baseIcon = new GIcon(baseBaseIcon);
-   baseIcon.shadow = "http://www.werelate.org/w/skins/common/images/maps/lolly/shadow2.png";
+   baseIcon.shadow = "/w/skins/common/images/maps/lolly/shadow2.png";
    baseIcon.shadowSize = new GSize(26,32);
-   baseIcon.transparent = "http://www.werelate.org/w/skins/common/images/maps/lolly/transp.png";
+   baseIcon.transparent = "/w/skins/common/images/maps/lolly/transp.png";
    icons['b']['base'] = baseIcon;
    baseIcon = new GIcon(baseBaseIcon);
-   baseIcon.shadow = "http://www.werelate.org/w/skins/common/images/maps/heart/shadow2.png";
+   baseIcon.shadow = "/w/skins/common/images/maps/heart/shadow2.png";
    baseIcon.shadowSize = new GSize(29,32);
-   baseIcon.transparent = "http://www.werelate.org/w/skins/common/images/maps/heart/transp.png";
+   baseIcon.transparent = "/w/skins/common/images/maps/heart/transp.png";
    icons['m']['base'] = baseIcon;
    baseIcon = new GIcon(baseBaseIcon);
-   baseIcon.shadow = "http://www.werelate.org/w/skins/common/images/maps/grave/shadow2.png";
+   baseIcon.shadow = "/w/skins/common/images/maps/grave/shadow2.png";
    baseIcon.shadowSize = new GSize(25,32);
-   baseIcon.transparent = "http://www.werelate.org/w/skins/common/images/maps/grave/transp.png";
+   baseIcon.transparent = "/w/skins/common/images/maps/grave/transp.png";
    icons['d']['base'] = baseIcon;
 
    // group points
@@ -195,9 +195,9 @@ function addMapOverlays() {
    	else if (type == 'd') {
    	   typeString = 'grave';
    	}
-      icon.image = "http://www.werelate.org/w/skins/common/images/maps/" + typeString + "/" + color + ".png";
-      icon.printImage = "http://www.werelate.org/w/skins/common/images/maps/" + typeString + "/" + color + ".gif";
-      icon.mozPrintImage = "http://www.werelate.org/w/skins/common/images/maps/" + typeString + "/" + color + ".gif";
+      icon.image = "/w/skins/common/images/maps/" + typeString + "/" + color + ".png";
+      icon.printImage = "/w/skins/common/images/maps/" + typeString + "/" + color + ".gif";
+      icon.mozPrintImage = "/w/skins/common/images/maps/" + typeString + "/" + color + ".gif";
       return icon;
 	}
 }

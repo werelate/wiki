@@ -81,6 +81,8 @@ function userMailer( $to, $from, $subject, $body, $replyto=false ) {
 	global $wgUser, $wgSMTP, $wgOutputEncoding, $wgErrorString;
 
 	// WERELATE - if mail from WeRelate system, set to WeRelate donotreply@werelate.org; otherwise set to {name} werelate-user@werelate.org
+	// this is done because Amazon SES requires validating all sender emails, and we don't want to do that for each user
+	// TODO: this needs to be parameterized so other websites can enter their own from addresses
    if (substr($from->address, -13) === '@werelate.org' && ($from->name === 'WeRelateAdmin' || !$from->name)) {
       $replyto = '';
       $from = new MailAddress('donotreply@werelate.org', 'WeRelate');

@@ -121,7 +121,7 @@ function initialSort(){
 	// This function takes a user, and returns a list of their active trees.
 	function getTreeList(user){
 // need the www so we pick up the sign-in cookie
-		var jsonURL = 'http://www.werelate.org/w/index.php?action=ajax&rs=wfGetTrees&user=' + user + '&callback=?';
+		var jsonURL = '/w/index.php?action=ajax&rs=wfGetTrees&user=' + user + '&callback=?';
 		$.getJSON(jsonURL,function(json){
 		// Create the initial select box
 		$("#treeFilter").append('<label>Tree: </label><select id="treeSelect" name="treeSelect" multiple="multiple"></select>')
@@ -169,7 +169,7 @@ function initialSort(){
 		// Masks the div, and puts up a loading image
 		$("#myGrid").mask("Loading...");
 // need the www so we pick up the sign-in cookie
-		var jsonURL = 'http://www.werelate.org/w/index.php?action=ajax&rs=wfGetWatchlist&user=' + user + '&callback=?';
+		var jsonURL = '/w/index.php?action=ajax&rs=wfGetWatchlist&user=' + user + '&callback=?';
 		$.getJSON(jsonURL,function(json){
 	var items = [];
 	// Go through each item and put it into the data object
@@ -181,7 +181,7 @@ function initialSort(){
 				// This is used for searching, not display
 // surname and given name may be missing; default to "" like other fields
 				d["name"] = (val.surname||"") + ", " + (val.given||"");
-				d["linkedName"] = '<a href="http://www.werelate.org/wiki/Person:' + val.title + '">' + (val.surname||"") + ', ' + (val.given||"") + '</a>'||"";
+				d["linkedName"] = '<a href="/wiki/Person:' + val.title + '">' + (val.surname||"") + ', ' + (val.given||"") + '</a>'||"";
 				d["gender"] = val.gender||"";
 				d["birthDate"] = val.birthDate||"";
 				d["birthDateKey"] = getDateKey(val.birthDate||"");
