@@ -41,8 +41,7 @@ $wrAdCode = getenv('AD_CODE');
 $wgUseImageMagick = getenv('USE_IMAGE_MAGICK');
 $wgImageMagickConvertCommand = getenv('IMAGE_MAGICK_CONVERT_COMMAND');
 $wgDiff3 = getenv('DIFF3_COMMAND');
-
-$wrBotUserID = 48;
+$wrBotUserID = getenv('BOT_USER_ID');
 
 # If PHP's memory limit is very low, some operations may fail.
 # let php.ini control the memory
