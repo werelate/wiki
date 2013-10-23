@@ -617,7 +617,7 @@ END;
      * Create edit fields from xml property
      */
    protected function toEditFields(&$textbox1) {
-		global $wgOut, $wgScriptPath, $wgUser, $wgRequest;
+		global $wgOut, $wgScriptPath, $wgUser, $wgRequest, $wrAdminUserName;
 
       $result = '';
       $target = $wgRequest->getVal('target');
@@ -687,7 +687,7 @@ END;
       if (StructuredData::isRedirect($textbox1)) {
          if ($this->getContainedPlacesElements()) {
             $sk = $wgUser->getSkin();
-            $link = $sk->makeLink("User:Dallan", "Dallan");
+            $link = $sk->makeLink("User:$wrAdminUserName", "$wrAdminUserName");
             $result .= "<p><font color=red>Places with contained places can't be redirected; (rename contained places first or leave a message for $link)</font></p>";
          }
       }

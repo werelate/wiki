@@ -32,6 +32,7 @@
 	SetEnv IMAGE_MAGICK_CONVERT_COMMAND /usr/bin/convert
 	SetEnv DIFF3_COMMAND /usr/bin/diff3
 	SetEnv BOT_USER_ID 1
+	SetEnv ADMIN_USER_NAME WikiSysop
 	SetEnv AD_CODE
 
 	#Far Future Expires Header

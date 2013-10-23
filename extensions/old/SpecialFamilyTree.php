@@ -174,9 +174,9 @@ class SpecialFamilyTree {
    }
 
    private function deleteTree() {
-   	global $wgUser;
+   	global $wgUser, $wrAdminUserName;
 
-	   if ($this->user && $wgUser->getName() == 'Dallan') {
+	   if ($this->user && $wgUser->getName() == $wrAdminUserName) {
 	   	$userName = $this->user;
 	   }
 	   else {

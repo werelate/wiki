@@ -26,7 +26,7 @@ function wfSpecialUnsubscribe($par) {
 class SpecialUnsubscribe {
 
 	public function execute($par) {
-      global $wgUser, $wgCommandLineMode, $wgLang, $wgOut;
+      global $wgUser, $wgCommandLineMode, $wgLang, $wgOut, $wrAdminUserName;
 
 		if( wfReadOnly() ) {
 			$wgOut->readOnlyPage();
@@ -34,7 +34,7 @@ class SpecialUnsubscribe {
 		}
 
 		if ($wgUser->isLoggedIn()) {
-			if ($wgUser->getName() == 'Dallan') {
+			if ($wgUser->getName() == $wrAdminUserName) {
 				$user = User::newFromName($par);
 			}
 			else {
@@ -65,7 +65,7 @@ class SpecialUnsubscribe {
    }
 
    private function show($msg) {
-   	global $wgOut;
+   	global $wgOut, $wgPasswordSender;
 
 		$wgOut->setPageTitle( 'Unsubscribe' );
 		$wgOut->setRobotpolicy( 'noindex,nofollow' );
@@ -85,7 +85,7 @@ class SpecialUnsubscribe {
 <li>E-mail me when my user talk page is changed
 <li>Enable e-mail from other users
 </ul></p>
-<p>If you would like to remove your account at WeRelate, please send email to <a href="mailto:dallan@werelate.org">dallan@werelate.org</a>.</p>
+<p>If you would like to remove your account at WeRelate, please send email to <a href="mailto:$wgPasswordSender">$wgPasswordSender</a>.</p>
 END;
 			$wgOut->addHTML($result);
 		}

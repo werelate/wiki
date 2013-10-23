@@ -226,9 +226,9 @@ class SpecialTrees {
    }
 
    private function deleteTree() {
-   	global $wgUser, $wrHostName;
+   	global $wgUser, $wrHostName, $wrAdminUserName;
 
-	   if ($this->user && $wgUser->getName() == 'Dallan') {
+	   if ($this->user && $wgUser->getName() == $wrAdminUserName) {
 	   	$userName = $this->user;
 	   }
 	   else {
