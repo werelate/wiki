@@ -292,6 +292,8 @@ function wrLogEmail( $to, $from, $subject, $text ) {
 }
 
 function wrAddNewAccount( $user = NULL ) {
+   global $wgUser, $wrBotUserID;
+
 	// log new users
 //	wfDebug("wrLogNewUser ". $user->getName() . ":" . $user->getUserPage()->getPrefixedText() . "\n");
 	$log = new LogPage( 'newuser', false );
@@ -302,6 +304,24 @@ function wrAddNewAccount( $user = NULL ) {
 //	wfDebug("wrCreateDefaultTree " . $user->getName() . "\n");
 	$db =& wfGetDB( DB_MASTER );
 	FamilyTreeUtil::createFamilyTree($db, $user->getName(), 'Default');
+
+   // add a welcome message
+   // read the text from Template:Welcome1
+   $title = Title::newFromText('Welcome1', NS_TEMPLATE);
+   if ($title && $title->exists()) {
+      $article = new Article($user->getTalkPage(), 0);
+      $talkContents = '';
+      if ($article) {
+         $talkContents = $article->fetchContent();
+         if ($talkContents) {
+            $talkContents = rtrim($talkContents) . "\n\n";
+         }
+      }
+      $saveUser = $wgUser;
+      $wgUser = User::newFromName(User::whoIs($wrBotUserID));
+      $article->doEdit($talkContents . '{{Subst:Welcome1}}', 'Welcome!');
+      $wgUser = $saveUser;
+   }
 
 	return true;
 }
