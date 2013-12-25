@@ -83,7 +83,7 @@ class SpecialPlaceMap {
 		
       $mapData = str_replace("'", "\'", $mapData);
 		return 
-			"<script type=\"text/javascript\" src=\"$wgScriptPath/placemap.6.js\"></script>".
+			"<script type=\"text/javascript\" src=\"$wgScriptPath/placemap.7.js\"></script>".
 			"<script type=\"text/javascript\">/*<![CDATA[*/$(document).ready(function() { initGoogleLoader('$wgGoogleMapKey','loadMaps',$size); });/*]]>*/</script>".
 			"<script type=\"text/javascript\">/*<![CDATA[*/function getPlaceData() { return '<places>$mapData</places>'; }/*]]>*/</script>";
 	}
