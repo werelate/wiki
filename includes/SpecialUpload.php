@@ -292,7 +292,7 @@ class UploadForm {
 	 */
 	function UploadForm( &$request ) {
 // WERELATE - clean filename so we don't error when creating thumbnails
-		$this->mDestFile          = cleanFilename($request->getText( 'wpDestFile' ));
+		$this->mDestFile          = $this->cleanFilename($request->getText( 'wpDestFile' ));
 // WERELATE - add target and id and people and families
 		$this->mTarget				  = $request->getText( 'target');
 		$this->mId					  = $request->getText( 'id');
