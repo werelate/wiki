@@ -1105,6 +1105,8 @@ abstract class StructuredData {
 	   foreach ($surnames as $surname) {
 	      $s = (string)$surname;
 	      if ($s) {
+            // add an entry for the entire surname as well as separate entries for each piece
+	         $wrStdSurnames[] = StructuredData::standardizeNameCase($s);
 	         $surnamePieces = StructuredData::parseSurnamePieces($s);
 	         foreach ($surnamePieces as $surnamePiece) {
 	            $wrStdSurnames[] = StructuredData::standardizeNameCase($surnamePiece);
