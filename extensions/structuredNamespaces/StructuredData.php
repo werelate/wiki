@@ -156,7 +156,18 @@ abstract class StructuredData {
       }
 		return $ret;
    }
-   
+
+   public static function parseSurnamePieces($surname) {
+      $result = array();
+      $pieces = mb_split(' ', $surname);
+      foreach ($pieces as $piece) {
+         if (!isset(StructuredData::$NAME_WORDS[mb_strtolower($piece)])) {
+            $result[] = $piece;
+         }
+      }
+      return $result;
+   }
+
    public static function purgeTitle($title, $fudgeSeconds=0) {
       global $wgUseSquid, $wrPurgingTitles;
 
@@ -1094,7 +1105,10 @@ abstract class StructuredData {
 	   foreach ($surnames as $surname) {
 	      $s = (string)$surname;
 	      if ($s) {
-	         $wrStdSurnames[] = StructuredData::standardizeNameCase($s);
+	         $surnamePieces = StructuredData::parseSurnamePieces($s);
+	         foreach ($surnamePieces as $surnamePiece) {
+	            $wrStdSurnames[] = StructuredData::standardizeNameCase($surnamePiece);
+	         }
 	      }
 	   }
 	   $wrStdSurnames = array_unique($wrStdSurnames);
