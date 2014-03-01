@@ -316,6 +316,7 @@ require_once("$IP/extensions/structuredNamespaces/Family.php");
 require_once("$IP/extensions/structuredNamespaces/SDImage.php");
 require_once("$IP/extensions/structuredNamespaces/SpecialPlaceMap.php");
 require_once("$IP/extensions/structuredNamespaces/ESINHandler.php");
+require_once("$IP/extensions/familytree/FamilyTree.php");
 require_once("$IP/extensions/familytree/FamilyTreeAjaxFunctions.php");
 require_once("$IP/extensions/familytree/FamilyTreePropagator.php");
 require_once("$IP/extensions/familytree/SpecialShowFamilyTree.php");
