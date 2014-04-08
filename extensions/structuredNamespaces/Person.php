@@ -473,7 +473,8 @@ class Person extends StructuredData {
                      $conjunction = @Family::$EVENT_CONJUNCTIONS[(string)$eventFact['type']];
                      $marriageDesc .= $conjunction.' '.join(' or ',$spouseLinks);
                      $marriageEvents[] = array('type' => (string)$eventFact['type'], 'date' => (string)$eventFact['date'],
-                        'place' => (string)$eventFact['place'], 'desc' => $marriageDesc, 'no_citation_needed' => true);
+                        'place' => (string)$eventFact['place'], 'desc' => $marriageDesc,
+                        'sources' => (string)$eventFact['sources'], 'no_citation_needed' => true);
                   }
                }
             }
@@ -590,6 +591,24 @@ END;
              '|'.StructuredData::removePreBar($deathFound ? $deathPlace : $burPlace);
    }
 
+   public static function constructFARLink($place, $date, $tag, $label) {
+      // remove | from place
+		$pos = mb_strpos($place, '|');
+		if ($pos !== false) {
+			$place = mb_substr($place, 0, $pos);
+		}
+      // $yearRange
+		$yearRange = '';
+		if ($date) {
+         $date = StructuredData::getDateKey($date, false);
+         if (strlen($date) >= 4) {
+            $year = (int)substr($date, 0, 4);
+            $yearRange = '&from='.($year-2).'&to='.($year+2);
+         }
+      }
+      return '<wr_a>http://findarecord.com/search#s='.urlencode($place).$yearRange.'&t='.$tag.'|'.$label.'|_blank</wr_a>';
+   }
+
 	/**
 	 * Create wiki text from xml property
 	 */
@@ -654,12 +673,14 @@ END;
          $birthDate = $birthPlace = $deathDate = $deathPlace = '';
          $chrDate = $chrPlace = $burDate = $burPlace = '';
          $birthFound = $deathFound = $chrFound = $burFound = false;
+         $birthSource = $deathSource = false;
          if (isset($this->xml->event_fact)) {
             foreach ($this->xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Birth') {
                   $birthFound = true;
                   $birthDate = (string)$eventFact['date'];
                   $birthPlace = (string)$eventFact['place'];
+                  $birthSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Christening' || $eventFact['type'] == 'Baptism') {
                   $chrFound = true;
@@ -670,6 +691,7 @@ END;
                   $deathFound = true;
                   $deathDate = (string)$eventFact['date'];
                   $deathPlace = (string)$eventFact['place'];
+                  $deathSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Burial') {
                   $burFound = true;
@@ -701,8 +723,8 @@ END;
             $deathDate = $burDate;
             $deathPlace = $burPlace;
          }
-         $birthPlace = Person::formatPlace($birthPlace);
-         $deathPlace = Person::formatPlace($deathPlace);
+         $fmtBirthPlace = Person::formatPlace($birthPlace);
+         $fmtDeathPlace = Person::formatPlace($deathPlace);
 
          $result = <<<END
 <div class="wr-infobox wr-infobox-person clearfix">
@@ -711,12 +733,11 @@ END;
    </div>
    <div class="wr-infobox-content">
       <div class="wr-infobox-fullname">$fullname</div>
-      <div class="wr-infobox-event">$birthLabel<span class="wr-infobox-date">$birthDate</span> <span class="wr-infobox-place">$birthPlace</span></div>
-      <div class="wr-infobox-event">$deathLabel<span class="wr-infobox-date">$deathDate</span> <span class="wr-infobox-place">$deathPlace</span></div>
+      <div class="wr-infobox-event">$birthLabel<span class="wr-infobox-date">$birthDate</span> <span class="wr-infobox-place">$fmtBirthPlace</span></div>
+      <div class="wr-infobox-event">$deathLabel<span class="wr-infobox-date">$deathDate</span> <span class="wr-infobox-place">$fmtDeathPlace</span></div>
 
    </div>
 </div>
-<div id="wr_familytreelink"><span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span></div>
 END;
          $familybadges = '';
          $marriageEvents = array();
@@ -749,6 +770,34 @@ END;
             $sort[$key*50+$ix] = $text;
             $ix++;
          }
+
+         // find a record
+         $farBirthLink = '';
+         $farMarriageLink = '';
+         $farDeathLink = '';
+         if ($birthFound && $birthPlace && !$birthSource) {
+            $farBirthLink = Person::constructFARLink($birthPlace, $birthDate, 'birth', 'birth');
+         }
+         if ($deathFound && $deathPlace && !$deathSource) {
+            $farDeathLink = Person::constructFARLink($deathPlace, $deathDate, 'death', 'death');
+         }
+         foreach ($marriageEvents as $marriageEvent) {
+            if ((string)$marriageEvent['place'] && !(string)$marriageEvent['sources']) {
+               $farMarriageLink = Person::constructFARLink((string)$marriageEvent['place'], (string)$marriageEvent['date'], 'marriage', 'marriage');
+            }
+         }
+         $farLinks = '';
+         if ($farBirthLink || $farMarriageLink || $farDeathLink) {
+            $farLinks = '<span><strong>Find records:</strong> '
+               .join(" ",array($farBirthLink, $farMarriageLink, $farDeathLink))
+               .'</span>';
+         }
+         $result .= '<div style="margin-top:2px" class="clearfix"><div id="wr_familytreelink" style="float:left">'
+        .'<span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span>'
+        .'</div><div style="float:right; margin-right:10px;">'
+        .$farLinks
+        .'</div></div>';
+
          ksort($sort, SORT_NUMERIC);
          foreach ($sort as $key => $text) {
             $familybadges .= $text;
