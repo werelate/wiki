@@ -474,7 +474,7 @@ class Person extends StructuredData {
                      $marriageDesc .= $conjunction.' '.join(' or ',$spouseLinks);
                      $marriageEvents[] = array('type' => (string)$eventFact['type'], 'date' => (string)$eventFact['date'],
                         'place' => (string)$eventFact['place'], 'desc' => $marriageDesc,
-                        'sources' => (string)$eventFact['sources'], 'no_citation_needed' => true);
+                        'srcs' => (string)$eventFact['sources'], 'no_citation_needed' => true);
                   }
                }
             }
@@ -726,19 +726,6 @@ END;
          $fmtBirthPlace = Person::formatPlace($birthPlace);
          $fmtDeathPlace = Person::formatPlace($deathPlace);
 
-         $result = <<<END
-<div class="wr-infobox wr-infobox-person clearfix">
-   <div class="wr-infobox-image">
-      $imageText
-   </div>
-   <div class="wr-infobox-content">
-      <div class="wr-infobox-fullname">$fullname</div>
-      <div class="wr-infobox-event">$birthLabel<span class="wr-infobox-date">$birthDate</span> <span class="wr-infobox-place">$fmtBirthPlace</span></div>
-      <div class="wr-infobox-event">$deathLabel<span class="wr-infobox-date">$deathDate</span> <span class="wr-infobox-place">$fmtDeathPlace</span></div>
-
-   </div>
-</div>
-END;
          $familybadges = '';
          $marriageEvents = array();
          $parentFamilies = array();
@@ -782,7 +769,7 @@ END;
             $farDeathLink = Person::constructFARLink($deathPlace, $deathDate, 'death', 'death');
          }
          foreach ($marriageEvents as $marriageEvent) {
-            if ((string)$marriageEvent['place'] && !(string)$marriageEvent['sources']) {
+            if ((string)$marriageEvent['place'] && !(string)$marriageEvent['srcs']) {
                $farMarriageLink = Person::constructFARLink((string)$marriageEvent['place'], (string)$marriageEvent['date'], 'marriage', 'marriage');
             }
          }
@@ -792,11 +779,25 @@ END;
                .join(" ",array($farBirthLink, $farMarriageLink, $farDeathLink))
                .'</span>';
          }
-         $result .= '<div style="margin-top:2px" class="clearfix"><div id="wr_familytreelink" style="float:left">'
-        .'<span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span>'
-        .'</div><div style="float:right; margin-right:10px;">'
-        .$farLinks
-        .'</div></div>';
+
+         $result = <<<END
+<div class="wr-infobox wr-infobox-person clearfix">
+   <div style="clear:right; float:right; margin:2px 6px;">$farLinks</div>
+   <div class="wr-infobox-image">
+      $imageText
+   </div>
+   <div class="wr-infobox-content">
+      <div class="wr-infobox-fullname">$fullname</div>
+      <div class="wr-infobox-event">$birthLabel<span class="wr-infobox-date">$birthDate</span> <span class="wr-infobox-place">$fmtBirthPlace</span></div>
+      <div class="wr-infobox-event">$deathLabel<span class="wr-infobox-date">$deathDate</span> <span class="wr-infobox-place">$fmtDeathPlace</span></div>
+
+   </div>
+</div>
+<div style="margin-top:2px" class="clearfix"><div id="wr_familytreelink" style="float:left">
+<span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span>
+</div><div style="float:right; margin-right:10px;">
+</div></div>
+END;
 
          ksort($sort, SORT_NUMERIC);
          foreach ($sort as $key => $text) {
