@@ -5,9 +5,8 @@ require_once("$IP/extensions/familytree/FamilyTreeQueryPage.php");
 $wgExtensionFunctions[] = "wfSpecialTreeCountWatchersSetup";
 
 function wfSpecialTreeCountWatchersSetup() {
-	global $wgMessageCache, $wgSpecialPages;
-	
-	$wgMessageCache->addMessages( array( "treecountwatchers" => "Count Watchers" ) );
+	global $wgSpecialPages;
+
 	$wgSpecialPages['TreeCountWatchers'] = array('SpecialPage','TreeCountWatchers');
 }
 
@@ -24,7 +23,7 @@ class TreeCountWatchersPage extends FamilyTreeQueryPage {
 	}
 
 	function getPageHeader() {
-		return "<h3>Number of people watching the pages in the tree</h3>".
+        return "<h3>".wfMsg('treecountwatchersheader')."</h3>".
 				parent::getPageHeader();
 	}
 	
@@ -47,7 +46,7 @@ class TreeCountWatchersPage extends FamilyTreeQueryPage {
 		
 		$fpTitle = Title::makeTitleSafe( $result->fp_namespace, $result->fp_title );
 		$fpLink = $skin->makeKnownLinkObj($fpTitle);
-		$watchers = $result->watchers . ($result->watchers > 1 ? " people watching" : " person watching");
+        $watchers = $result->watchers . ' ' . ($result->watchers > 1 ? wfMsg('peoplewatching') : wfMsg('personwatching'));
 		
 		return "$fpLink ($watchers)";
 	}

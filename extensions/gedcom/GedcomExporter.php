@@ -574,9 +574,9 @@ class GedcomExporter {
 			$dateIssued = (string)$this->xml->date_issued;
 			if ($dateIssued) $pubFacts .= "$dateIssued. ";
 			$pages = (string)$this->xml->pages;
-			if ($pages) $pubFacts .= "volume / film# / pages $pages. ";
+            if ($pages) $pubFacts .= wfMsg('volumefilmpages', $pages);
 			$references = (string)$this->xml->references;
-			if ($references) $pubFacts .= "references / cites: $references. ";
+			if ($references) $pubFacts .= wfMsg('referencescities', $references);
 			$pubInfo = (string)$this->xml->publication_info;
 			if ($pubInfo) $pubFacts .= "$pubInfo. ";
 			$ending = mb_substr($pubFacts, mb_strlen($pubFacts)-2);
@@ -598,7 +598,7 @@ class GedcomExporter {
 
 		$this->wl("0 @S1@ SOUR");
 		$this->wl("1 TITL WeRelate.org");
-		$this->writeText(1, "TEXT", "Text content at WeRelate.org is available under the Creative Commons Attribution/Share-Alike License: http://creativecommons.org/licenses/by-sa/3.0\n");
+		$this->writeText(1, "TEXT", wfMsg('textavailableunderccbysa'));
 //								"Additional terms may apply.  See http://werelate.org/wiki/WeRelate:Terms_of_Use for details.");
 //								$gfdlText);
 	}

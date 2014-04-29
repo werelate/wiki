@@ -303,6 +303,7 @@ $wgSortedNamespaces =
 # extensions
 # order is important! Source and UserPage contain names and places so they
 # must precede Name and Place
+require_once("$IP/extensions/werelate/WeRelate.php");
 require_once("$IP/extensions/structuredNamespaces/Source.php");
 require_once("$IP/extensions/structuredNamespaces/MySource.php");
 require_once("$IP/extensions/structuredNamespaces/Repository.php");
@@ -323,12 +324,15 @@ require_once("$IP/extensions/familytree/SpecialShowFamilyTree.php");
 require_once("$IP/extensions/familytree/SpecialTreeRelated.php");
 require_once("$IP/extensions/familytree/SpecialTreeDeletionImpact.php");
 require_once("$IP/extensions/familytree/SpecialTreeCountWatchers.php");
+require_once("$IP/extensions/gedcom/Gedcom.php");
 require_once("$IP/extensions/gedcom/GedcomAjaxFunctions.php");
 require_once("$IP/extensions/gedcom/SpecialGedcomPage.php");
 require_once("$IP/extensions/gedcom/SpecialGedcoms.php");
 require_once("$IP/extensions/gedcom/GedcomExportJob.php");
+require_once("$IP/extensions/names/Names.php");
 require_once("$IP/extensions/names/SpecialNames.php");
 require_once("$IP/extensions/names/SpecialNamesLog.php");
+require_once("$IP/extensions/other/Other.php");
 require_once("$IP/extensions/other/SpecialDashboard.php");
 require_once("$IP/extensions/other/SpecialShowPedigree.php");
 require_once("$IP/extensions/other/GetPedigreeData.php");
@@ -354,4 +358,5 @@ require_once("$IP/extensions/cite/Cite.php");
 #require_once("$IP/extensions/NewUserNotif/NewUserNotif.php");
 #require_once("$IP/extensions/SpamBlacklist/SpamBlacklist.php"); calls parser twice, which messes up Cite
 require_once("$IP/extensions/RenameUser/SpecialRenameuser.php");
+require_once("$IP/extensions/structuredNamespaces/StructuredNamespaces.php");
 ?>

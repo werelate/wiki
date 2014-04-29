@@ -8,8 +8,7 @@
 $wgExtensionFunctions[] = "wfSpecialShowFamilyTreeSetup";
 
 function wfSpecialShowFamilyTreeSetup() {
-   global $wgMessageCache, $wgSpecialPages;
-   $wgMessageCache->addMessages( array( "showfamilytree" => "ShowFamilyTree" ) );
+   global $wgSpecialPages;
    $wgSpecialPages['ShowFamilyTree'] = array('SpecialPage','ShowFamilyTree');
 }
 

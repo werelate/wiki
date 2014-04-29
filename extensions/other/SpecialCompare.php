@@ -38,16 +38,14 @@ function wfSpecialCompare( $par=NULL, $specialPage ) {
 	else {
 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/compare.7.js\"></script>");
 		$isGedcom = $compareForm->isGedcom();
-		$sideText = '<p>'.($isGedcom ? 'Matching GEDCOM families' : 'Merge').' is a two-step process.  In this compare step, check the boxes above the matching pages.</p>'.
-						($compareForm->getNamespace() == 'Family' ? '<p>To match children, choose the child number to match with.</p>' : '').
-						($isGedcom ? '<p>Then scroll to the bottom of the page and click "Match" to match this family.</p>' .
-											'<p>In the next step you\'ll be given a chance to update the matched pages with information from your GEDCOM</p>'
-									  : '<p>Then click "Prepare to merge" at the bottom of the page.</p>'.
-									  		'<p>In the next step you\ll be given a chance to decide what information to keep on the merged page.</p>').
-						'<p><font color="green">Green</font> boxes mean the information is specific and matches exactly.</p>'.
-						'<p><font color="yellow">Yellow</font> boxes mean the information is non-specific (missing some pieces) or is a partial match.</p>'.
-						'<p><font color="red">Red</font> boxes mean the information differs.</p>'.
-						'<p>(<a href="/wiki/Help:Merging_pages">more help</a>)</p>';
+		$sideText = '<p>'.($isGedcom ? wfMsg('matchinggedcomfam') : wfMsg('merge')).wfMsg('comparestepcheckboxes'). '</p>'.
+						($compareForm->getNamespace() == 'Family' ? wfMsg('comparestep2mchildren')  : '').
+						($isGedcom ? wfMsg('scrollmatchfamily')
+									  : wfMsg('thenclickp2m')).
+                        wfMsg('greenmeans').
+                        wfMsg('yellowmeans').
+                        wfMsg('redmeans').
+                        '<p>(<a href="/wiki/Help:Merging_pages">more help</a>)</p>';
 		$results = $compareForm->getCompareResults();
 	}
 
@@ -149,10 +147,10 @@ class CompareForm {
    public static function getSemiprotectedMessage($isTrusted) {
 		$output = '<p>Some of the pages are <font color="red"><b>semi-protected</b></font>';
 		if ($isTrusted) {
-			$output .= '.  As someone who is trusted you can go ahead and update them, but please remember that semi-protected pages are likely to have good content already.';
+			$output .= wfMsg('semiprotectedistrusted');
 		}
 		else {
-			$output .= ", meaning they cannot be changed here. You can match them, but if you want to add information to them you will need to edit them later.";
+			$output .= wfMsg('semiprotectedisnottrusted');
 		}
 		$output .= '</p>';
 		return $output;
@@ -1005,7 +1003,7 @@ if (!is_array($data[$t][$pfx.'Nomerge'])) error_log("nomerge not array: t=$t c=$
 		$mergeChildSelectOptions = array();
 		for($c = 0; $c < $maxChildren; $c++) {
 			$c1 = $c+1;
-			$mergeChildSelectOptions[$c == $childNumber ? "Child $c1" : "Match with child $c1"] = $c1;
+			$mergeChildSelectOptions[$c == $childNumber ? wfMsg('child', $c1) : wfMsg('matchwithchild', $c1)] = $c1;
 		}
 		$mergeChildSelectOptions["Not a match"] = 0;
 		return $mergeChildSelectOptions;
@@ -1223,7 +1221,7 @@ if (!is_array($data[$t][$pfx.'Nomerge'])) error_log("nomerge not array: t=$t c=$
 							}
 							$nomergeTitles = $this->getNomergeTitleMatches($compareData, $t, -1, $relative, '<br>');
 							if ($nomergeTitles) {
-								$output .= '<br><b>Do not merge with</b><br>'.$nomergeTitles;
+								$output .= wfMsg('donotmergew').$nomergeTitles;
 							}
 							if ((!$this->gedcomDataString || $i > 0) && !$compareData[$t][$relative.'Updatable']) {
 								$output .= "<br><font color=\"red\">Semi-protected</font> (see below)";
@@ -1305,16 +1303,16 @@ if (!is_array($data[$t][$pfx.'Nomerge'])) error_log("nomerge not array: t=$t c=$
 //									else if (@$compareChildren[$this->compareTitles[0]][$c][$label][0] != $compareChildren[$t][$c][$label][0]) { // don't allow merge if same title
 //										$mergeChild = (count(@$compareChildren[$this->compareTitles[0]][$c][$label]) == 1 ? $c+1 : 0);
 										$mergeChild = $c+1;
-										$extra = ($i == 0 ? '' : 'disabled');
+										$extra = ($i == 0 ? '' : wfMsg('disabled'));
 										$mergeChildSelectOptions = $this->getMergeChildSelectOptions($c, $maxChildren);
 										$output .= '<br>'.StructuredData::addSelectToHtml(0, "mcr_{$i}_$c", $mergeChildSelectOptions, $mergeChild, $extra, false);
 									}
 									$nomergeTitles = $this->getNomergeTitleMatches($compareChildren, $t, $c, 'child', '<br>');
 									if ($nomergeTitles) {
-										$output .= '<br><b>Do not merge with</b><br>'.$nomergeTitles;
+										$output .= wfMsg('donotmergew').$nomergeTitles;
 									}
 									if ((!$this->gedcomDataString || $i > 0) && !$compareChildren[$t][$c]['childUpdatable']) {
-										$output .= "<br><font color=\"red\">Semi-protected</font> (see below)";
+										$output .= wfMsg('semiprotectedbelow');
 										$semiProtected = true;
 									}
 								}
@@ -1328,23 +1326,26 @@ if (!is_array($data[$t][$pfx.'Nomerge'])) error_log("nomerge not array: t=$t c=$
 			}
 		}
 		if ($this->gedcomDataString) {
-			$mergeLabel = 'Prepare to update';
+			$mergeLabel = wfMsg('preparetoupdate');
 			$mergeFunction = 'doGedcomPrepareToMerge()';
 			$notMatchFunction = 'doGedcomNotMatch()';
-			$notMatchTitle = 'GEDCOM family does not match any of the families shown';
+			$notMatchTitle = wfMsg('GEDfamnotmatch');
 		}
 		else {
-			$mergeLabel = 'Prepare to merge';
+			$mergeLabel = wfMsg('preparetomerge');
 			$mergeFunction = 'doPrepareToMerge()';
 			$notMatchFunction = 'doNotMatch()';
-			$notMatchTitle = 'Notify others not to merge the selected '.($this->namespace == 'Family' ? 'families' : 'people');
+			$notMatchTitle = wfMsg('notifynottomerge').($this->namespace == 'Family' ? wfMsg('families') : wfMsg('peopleintext'));
 		}
-		$mergeTitle = 'Prepare to combine the selected '.($this->namespace == 'Family' ? 'families' : 'people');
+        $notamatch = wfMsg('notamatch');
+        $matchGEDfam = wfMsg('matchGEDfam');
+        $match = wfMsg('match');
+		$mergeTitle = wfMsg('preparetocombineselected').($this->namespace == 'Family' ? wfMsg('families') : wfMsg('people'));
 		$output .= '<tr><td align=right colspan="'.(count($this->compareTitles)+1).'"><input type="hidden" name="formAction">'.
-					($this->gedcomDataString ? '<input type="button" title="Match people in your GEDCOM to people in the selected family" value="Match" onClick="doGedcomMatch()"/> &nbsp; ' : '').
+					($this->gedcomDataString ? "<input type=\"button\" title=\"$matchGEDfam\" value=\"$match\" onClick=\"doGedcomMatch()\"/> &nbsp; " : '').
 					($this->gedcomDataString ? '' : "<input type=\"button\" title=\"$mergeTitle\" value=\"$mergeLabel\" onClick=\"$mergeFunction\"/> &nbsp; ").
 					//($this->gedcomDataString ? '<input type="button" title="Match the selected family and all matching related families automatically" value="Match Related" onClick="doGedcomMatchAll()"/> &nbsp; ' : '').
-					"<input type=\"button\" title=\"$notMatchTitle\" value=\"Not a match\" onClick=\"$notMatchFunction\"/>";
+					"<input type=\"button\" title=\"$notMatchTitle\" value=$notamatch onClick=\"$notMatchFunction\"/>";
 					'</td></tr></table></form>';
 		if ($semiProtected) {
 			$output .= CompareForm::getSemiprotectedMessage(CompareForm::isTrustedMerger($wgUser, $this->gedcomDataString));
@@ -1362,19 +1363,26 @@ if (!is_array($data[$t][$pfx.'Nomerge'])) error_log("nomerge not array: t=$t c=$
 			$inputFields .= "<tr><td><input type=\"text\" size=\"50\" name=\"compare_$i\"/></td></tr>";
 		}
 
+        $comparefamilies = wfMsg('comparefamilies');
+        $enterfamilycompare = wfMsg('enterfamilycompare');
+        $familyintext = wfMsg('family');
+        $or = wfMsg('or');
+        $comparepeople = wfMsg('comparepeople');
+        $entertitlescompare = wfMsg('entertitlescompare');
+
 		return <<<END
-<H3>Compare Families</H3>
-<p>Enter the titles of Family pages to compare:</p>
+<H3>$comparefamilies</H3>
+<p>$enterfamilycompare</p>
 <form name="compareFamilies" action="/wiki/Special:Compare" method="post">
-<input type="hidden" name="ns" value="Family"/>
+<input type="hidden" name="ns" value="$familyintext"/>
 <table>
 $inputFields
 <tr><td align="right"><input type="submit" name="formAction" value="Compare"/></td></tr>
 </table>
 </form>
-<H2>Or</H2>
-<H3>Compare People</H3>
-<p>Enter the titles of Person pages to compare:</p>
+<H2>$or</H2>
+<H3>$comparepeople</H3>
+<p>$entertitlescompare</p>
 <form name="comparePeople" action="/wiki/Special:Compare" method="post">
 <input type="hidden" name="ns" value="Person"/>
 <table>

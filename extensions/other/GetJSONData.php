@@ -28,7 +28,7 @@ function wfSpecialGetJSONData() {
 	if ($titleText) {
 		$title = Title::newFromText($titleText);
 		if (is_null($title) || ($title->getNamespace() != NS_PERSON && $title->getNamespace() != NS_FAMILY) || !$title->exists()) {
-			$error = 'Please enter the title of a person or family page (include the "Person:" or "Family:")';
+			$error = wfMsg('missingtitle');
 		}
 		else {
 			$wgOut->disable();
@@ -45,11 +45,13 @@ function wfSpecialGetJSONData() {
 	}
 
 	$queryBoxStyle = 'width:100%;text-align:center;';
+    $personorfampagetitle = wfMsg('personorfamilypagetitle');
+    $go = wfMsg('go');
 	$form = <<< END
 <form name="search" action="/wiki/Special:GetJSONData" method="get">
 <div id="searchFormDiv" style="$queryBoxStyle">
-Person or Family page title: <input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
-<input type="submit" value="Go" />
+$personorfampagetitle <input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
+<input type="submit" value="$go" />
 </div>
 </form>
 END;

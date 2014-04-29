@@ -75,17 +75,9 @@ class SpecialUnsubscribe {
 			$wgOut->addHtml('<font color="red">'.$msg.'</font>');
 		}
 		else {
+            $unsubscribedtext = wfMsg('unsubscribedemailtext', htmlspecialchars($wgPasswordSender));
 			$result = <<< END
-<h2>You have been Unsubscribed</h2>
-<p>You will no longer receive email notifications of changes to your Talk page or the pages on your watchlist, and other WeRelate users will not be able to send you email.</p>
-<p>You can still see which pages have changed since you last visited them by clicking on <b>MyRelate</b> in the blue menu bar, then on <b>Watchlist</b>.</p>
-<p>If you want to turn email back on, you can do so by clicking on <b>MyRelate</b>, then on <b>Preferences</b>, and checking the boxes for 
-<ul>
-<li>E-mail me when a page I'm watching is changed
-<li>E-mail me when my user talk page is changed
-<li>Enable e-mail from other users
-</ul></p>
-<p>If you would like to remove your account at WeRelate, please send email to <a href="mailto:$wgPasswordSender">$wgPasswordSender</a>.</p>
+            $unsubscribedtext
 END;
 			$wgOut->addHTML($result);
 		}

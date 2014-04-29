@@ -226,9 +226,10 @@ class FamilyTreeUtil {
    
    public static function generateHiddenTreeCheckboxes($allTrees, $checkedTreeIds) {
    	$result = '';
+    $onintext = wfMsg('on');
    	foreach ($allTrees as $tree) {
    		if (in_array($tree['id'], $checkedTreeIds)) {
-   			$result .= '<input type="hidden" name="'.htmlspecialchars(FamilyTreeUtil::toInputName($tree['name'])).'" value="on"/>';
+   			$result .= '<input type="hidden" name="'.htmlspecialchars(FamilyTreeUtil::toInputName($tree['name']))."\" value=\"$onintext\"/>";
    		}
    	}
    	return $result;

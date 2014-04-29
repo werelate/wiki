@@ -10,7 +10,7 @@ $wgExtensionFunctions[] = "wfSpecialAddPageSetup";
 
 function wfSpecialAddPageSetup() {
    global $wgMessageCache, $wgSpecialPages, $wgParser;
-   $wgMessageCache->addMessages( array( "addpage" => "Add Page" ) );
+   $wgMessageCache->addMessages( array( "addpage" => wfMsg('addpage') ) );
    $wgSpecialPages['AddPage'] = array('SpecialPage','AddPage');
 }
 
@@ -179,7 +179,7 @@ class AddPageForm {
 		
 		if ($this->namespace == NS_PLACE || $this->namespace == NS_SOURCE || $this->namespace == NS_MYSOURCE ||
           $this->namespace == NS_PERSON || $this->namespace == NS_FAMILY) {
-			return 'Step 1. Enter what you know';
+			return wfMsg('addpageinstructionsstep01');
 		}
 		else {
 			return '';
@@ -192,16 +192,16 @@ class AddPageForm {
 	  	if (strlen($this->namespace) > 0) {
 		   $nsText = $wgLang->getFormattedNsText($this->namespace);
 		   if (!$nsText) {
-		   	$nsTitle = 'an Article';
+		   	$nsTitle = wfMsg('addpagetitlearticle');
 		   }
 		   else {
-		   	$nsTitle = "a $nsText";
+		   	$nsTitle = wfMsg('addpagetitleother', $nsText);
 		   }
 	  	}
 	  	else {
-	  		$nsTitle = 'a page';
+	  		$nsTitle = wfMsg('addpagetitlepage');
 	  	}
- 		return "Add $nsTitle";
+ 		return wfMsg('addpagetitle', $nsTitle);
 	}
 	
 	public function getMessageId() {
@@ -429,13 +429,14 @@ END;
 				$hiddenField = "<input type=\"hidden\" name=\"namespace\" value=\"{$this->namespace}\"/>";
 				$namespaceselect = '';
 			}
-			
+
+          $titlewithcolon = wfMsg('personorfamilypagetitle');
 	      $result = <<< END
 <form name="search" action="/wiki/Special:AddPage" method="get">
 <input type="hidden" name="confirm" value="true"/>
 $hiddenField
 <table class="searchform">
-$namespaceselect<tr id="title_row"><td align="right">Title:</td><td align="left"><input id="titleinput" type="text" name="t" size="40" maxlength="160" value="$title" />
+$namespaceselect<tr id="title_row"><td align="right">$titlewithcolon</td><td align="left"><input id="titleinput" type="text" name="t" size="40" maxlength="160" value="$title" />
 </td><td><input type="submit" name="add" value="$buttonValue"/>
 </td></tr></table></form>
 END;

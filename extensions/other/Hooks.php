@@ -634,12 +634,13 @@ function wrAddSubpage( $input, $argv, $parser) {
    if (!$super) {
       $super = $wgTitle->getPrefixedText();
    }
-
+    $add = wfMsg('add');
+    $titleintext = wfMsg('title');
    return <<<END
 <form name="search" action="/wiki/Special:AddSubpage" method="get">
 <input type="hidden" name="super" value="$super"/>
-<label for="sub">Title </label><input id="input_sub" type="text" name="sub" size="40" value=""/>
-<input type="submit" value="Add"/>
+<label for="sub">$titleintext </label><input id="input_sub" type="text" name="sub" size="40" value=""/>
+<input type="submit" value="$add"/>
 </form>
 END;
 }
@@ -738,10 +739,14 @@ function wrListSubpages( $input, $argv, $parser) {
    }
 
    // construct table
+   $title = wfMsg('title');
+   $created = wfMsg('created');
+   $lastmodified = wfMsg('lastmodified');
+   $by = wfMsg('by');
    $twoWeeksAgo = new DateTime();
    $twoWeeksAgo->modify('-2 weeks');
    $skin =& $wgUser->getSkin();
-   $result = '<table class="wikitable sortable"><tr><th>Title</th><th>Created</th><th>Last modified</th><th>by</th>'.
+   $result = "<table class=\"wikitable sortable\"><tr><th>$title</th><th>$created</th><th>$lastmodified</th><th>$by</th>".
                ($watchers ? '<th>Watchers</th>' : '').'</tr>';
    foreach ($sortTitles as $key => $data) {
       if ($data['lastmod']) {

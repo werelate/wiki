@@ -95,9 +95,9 @@ class GedcomPage {
 	
 	private function pageExpired() {
 		global $wgOut;
-		
-		$wgOut->setPageTitle("Loading ($this->gedcomkey gedcom)");
-		$wgOut->addWikiText("If this window does not refresh automatically in a few seconds, please click on the page in the top part of your browser");
+
+        $wgOut->setPageTitle(wfMsg('loadinggedcom', $this->gedcomkey));
+		$wgOut->addWikiText(wfMsg('ifnotrefreshing'));
 	}
 
    private function cleanName($name, $firstOnly) {
@@ -162,16 +162,18 @@ class GedcomPage {
             $nsSrc = NS_SOURCE;
             $title = htmlspecialchars($this->xml->title);
             $author = htmlspecialchars($this->xml->author);
+            $gedcomintext = wfMsg('gedcom');
+            $findmatchingsource = wfMsg('findmatchingsource');
             $matchButton = <<<END
 <div id="matchButton" class="inline-block">
 <form name="search" action="/wiki/Special:AddPage" method="get">
 <input type="hidden" name="namespace" value="$nsSrc"/>
-<input type="hidden" name="target" value="gedcom"/>
+<input type="hidden" name="target" value="$gedcomintext"/>
 <input type="hidden" name="gedcomtab" value="$gedcomtab"/>
 <input type="hidden" name="gedcomkey" value="$gedcomkey"/>
 <input type="hidden" name="st" value="$title"/>
 <input type="hidden" name="a" value="$author"/>
-<input type="submit" value="Find a matching Source"/>
+<input type="submit" value="$findmatchingsource"/>
 </form>
 </div>
 END;
@@ -239,7 +241,7 @@ END
      	$titleString = htmlspecialchars((string)$this->xml['title']);
 		$cancelLink = $skin->makeKnownLinkObj($wgTitle, 'Cancel', "editable=true&gedcomid={$gedcomid}&gedcomtab={$gedcomtab}&gedcomkey={$gedcomkey}");
       $timestamp = wfTimestamp(TS_MW);
-
+        //$true = wfMsg('true');
 		$wgOut->addHTML(<<< END
 <form id="editform" name="editform" method="post" action="$action" enctype="multipart/form-data">
 <input type="hidden" name="gedcomid" value="$gedcomid"/>
@@ -255,11 +257,13 @@ END
    	$editPage = (object)array('textbox1' => $this->data, 'section' => '');
    	$obj->renderEditFields($editPage);
    	$content = htmlspecialchars($editPage->textbox1);
+       $savepage = wfMsg('savepage');
+       $saveyourchanges = wfMsg('saveyourchanges');
 		$wgOut->addHTML(<<< END
 <textarea tabindex='1' accesskey="," name="wpTextbox1" id="wpTextbox1" rows='10' cols='80' >
 $content
 </textarea>  
-<input id="wpSave" name="wpSave" type="submit" tabindex="5" value="Save page" accesskey="s" title="Save your changes [alt-s]"/>
+<input id="wpSave" name="wpSave" type="submit" tabindex="5" value="$savepage" accesskey="s" title="$saveyourchanges"/>
 $cancelLink
 </form>
 END

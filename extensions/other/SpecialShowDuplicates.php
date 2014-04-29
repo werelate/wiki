@@ -22,13 +22,10 @@ function wfSpecialShowDuplicates($par) {
 	
 	$duplicates = new ShowDuplicates();
 	$duplicates->readQueryParms($par);
-	$sideText = '<p><b>Connect your tree to others</b> by clicking on a person or family in the list to compare it to others that are likely to be duplicates.</p>'.
-					'<p>Once you find possible duplicates you can compare them in more detail and then merge them together.</p>'.
-					'<p>When you\'ve finished, click on <a href="/wiki/Special:Network">Network</a> in the <i>MyRelate</i> menu to find out which users you are now related to!</p>'.
-					'<p>(<a href="/wiki/Help:Merging_pages">more help</a>)</p>';
+	$sideText = wfMsg('connecttreeothers');
 	$wgOut->setPageTitle($duplicates->getTitle());
    $skin = $wgUser->getSkin();
-   $wrSidebarHtml = $skin->makeKnownLink('Help:Merging pages', "Help", '', '', '', 'class="popup"');
+   $wrSidebarHtml = $skin->makeKnownLink('Help:Merging pages', wfMsg('help'), '', '', '', 'class="popup"');
 	$results = $duplicates->getResults();
 	if ($results) {
 		$wgOut->addHTML($results);
@@ -98,7 +95,7 @@ class ShowDuplicates {
 						$query='match=on&ns=' . $namespace . '&pagetitle=' . urlencode($row->dp_title);
 					}
 					$results .= '<li>'.$sk->makeKnownLinkObj($baseTitle, htmlspecialchars($title->getPrefixedText()), $query).
-											' &nbsp; (<i>'.$sk->makeKnownLinkObj($baseTitle, 'open in new window', $query, '', '', 'target="_blank"').'</i>)</li>';
+											' &nbsp; (<i>'.$sk->makeKnownLinkObj($baseTitle, wfMsg('opennewwindow'), $query, '', '', 'target="_blank"').'</i>)</li>';
 				}
 				$dbr->freeResult($res);
 				if ($found) {

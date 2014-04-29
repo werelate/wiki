@@ -31,6 +31,7 @@ function wfSpecialNames() {
 	$wgOut->addScript("<link href=\"$wgScriptPath/skins/common/jquery.customInput.css\" rel=\"stylesheet\" type=\"text/css\"/>");
 	$wgOut->addScript("<script src=\"$wgScriptPath/jquery.customInput.js\"></script>");
 	$type = $namesForm->type;
+
 	$wgOut->addScript(<<<END
 <script type="text/javascript">
 $(function(){
@@ -184,7 +185,7 @@ END;
       }
 
       // extract results
-      eval('$response = ' . $responseString . ';');
+      eval('$response = ' . $responseString .  ';');
       $namePiece = $response['name'];
       if ($namePiece != $this->name) {
          $normalizeMessage = "<p>We've &quot;normalized&quot; your name; for example, -dtr endings are normalized to -son</p>";
@@ -242,13 +243,14 @@ END;
       // construct basename
       if ($basename) {
          $link = $this->makeLink($skin, $basename);
-         $basename = <<< END
-<h3>Unprefixed name</h3>
-<p><em>The unprefixed form of the name and its variants will also be included in searches</em></p>
+          $unprefixedname = wfMsg('unprefixedname');
+          $unprefixedinsearches = wfMsg('unprefixedinsearches');
+          $basename = <<< END
+<h3>$unprefixedname</h3>
+<p><em>$unprefixedinsearches</em></p>
 $link
 END;
       }
-
       // construct prefixedNames
       $namesArray = array();
       if (is_array($prefixedNames)) {
@@ -259,13 +261,14 @@ END;
       }
       $prefixedNames = join("<br/>", $namesArray);
       if ($prefixedNames) {
-         $prefixedNames = <<< END
-<h3>Prefixed names</h3>
-<p><em>The following prefixed forms of the name will also be included in searches</em></p>
+          $prefixedNameTitle = wfMsg('prefixednames');
+          $prefixedNameText = wfMsg('prefixedinsearches');
+          $prefixedNames = <<< END
+<h3>$prefixedNameTitle</h3>
+<p><em>$prefixedNameText</em></p>
 $prefixedNames
 END;
       }
-
       // construct soundex examples
       $namesArray = array();
       if (is_array($soundexExamples)) {
@@ -281,7 +284,7 @@ END;
       $msg = '';
       if (!$wgUser->isLoggedIn()) {
          $updateDisabled='disabled="disabled"';
-         $msg = ' &nbsp; You must sign in to update';
+         $msg = wfMsg('mustsigninupdate');
       }
 
 		$comments = $this->generateCommentLog($this->type, $this->name, $skin);
@@ -289,6 +292,17 @@ END;
       // populate template
       $name = htmlspecialchars($this->name);
       $type = htmlspecialchars($this->type);
+      $nonVariants = wfMsg('nonvariants');
+      $nonVariantsNotInSearch = wfMsg('nonvariantsnotinsearch');
+      $computerRecommVariants = wfMsg('computerrecommvariants');
+      $computerRecommVariantsInSearch = wfMsg('computerrecommvariantsinsearch');
+      $confirmRecommVariants = wfMsg('confirmrecommvariants');
+      $confirmRecommVariantsInSearch = wfMsg('confirmrecommvariantsinsearch');
+      $leaveamessage = wfMsg('leaveamessage');
+      $soundexvariants = wfMsg('soundexvariants');
+      $soundexvariantssameinesearch = wfMsg('soundexvariantssameinsearches');
+      $add = wfMsg('add');
+      $save = wfMsg('save');
       $result = <<< END
 $normalizeMessage
 <form id="namesupdate_form" action="/wiki/Special:Names" method="post">
@@ -298,38 +312,32 @@ $normalizeMessage
 <table id="namesupdateform" class="namesupdateform" cellspacing="15">
 <tr>
 <td width="25%" valign="top">
-<h3>Non variants</h3>
-<p style="font-size: 10px">These names are not currently included in searches. Check names that should be included.</p>
+<h3>$nonVariants</h3>
+<p style="font-size: 10px">$nonVariantsNotInSearch</p>
 $nonVariantInputs
 </td>
 <td width="25%" valign="top">
-<h3>Computer Variants</h3>
-<p style="font-size: 10px">The computer thinks these names should be included in searches.
-Check the boxes on the left to remove names that should not be included,
-and check the boxes on the right to confirm names that you know are variants.
-(If you're not sure, leave the boxes unchecked.)</p>
+<h3>$computerRecommVariants</h3>
+<p style="font-size: 10px">$computerRecommVariantsInSearch</p>
 $computerVariantInputs
 </td>
 <td width="25%" valign="top">
-<h3>Confirmed Variants</h3>
-<p style="font-size: 10px">Others have confirmed that these names should be included in searches.
-You may add additional variants. (Don't forget to click the Save button at the bottom.)
-If you disagree with an existing variant, <a href="/wiki/WeRelate_talk:Variant_names_project">leave a message</a>.</p>
-<input type="text" id="name_input" size="10"/> <input type="submit" id="name_submit" value="Add"/>
+<h3>$confirmRecommVariants</h3>
+<p style="font-size: 10px">$confirmRecommVariantsInSearch<a href="/wiki/WeRelate_talk:Variant_names_project">$leaveamessage</a>.</p>
+<input type="text" id="name_input" size="10"/> <input type="submit" id="name_submit" value="$add"/>
 <div id="confirmed_names">$confirmedVariantInputs</div>
 </td>
 <td width="25%" valign="top">
 $basename
 $prefixedNames
-<h3>Soundex Variants</h3>
-<p style="font-size: 10px">Rare names with the same soundex code, like the names below,
-will be included in searches automatically.</p>
+<h3>$soundexvariants</h3>
+<p style="font-size: 10px">$soundexvariantssameinesearch</p>
 $soundexExamples
 </td>
 </tr>
 </table>
 <p>Comment (optional):<br/><input type="text" name="comment" size="50" value=""/></p>
-<p><input type="submit" name="update" value="Save" $updateDisabled/>$msg</p>
+<p><input type="submit" name="update" value="$save" $updateDisabled/>$msg</p>
 </form>
 <div>
 $comments
@@ -412,7 +420,7 @@ END;
 		}
 		$dbr->freeResult($rows);
 		if (count($logs) > 0) {
-			return '<h3>Change history</h3><dl class="wr-nameslog">'.join('', $logs).'</dl>';
+			return wfMsgHtml('changehistory').'<dl class="wr-nameslog">'.join('', $logs).'</dl>';
 		}
 		return '';
 	}

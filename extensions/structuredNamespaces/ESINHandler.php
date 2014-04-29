@@ -290,7 +290,7 @@ class ESINHandler extends StructuredData {
       $footer .= $this->showEventsSection();
       $footer .= $this->showChildrenSection();
       if ($this->imageText) {
-         $footer .= "<div class=\"h2like\">Image Gallery</div>\n".$this->imageText;
+         $footer .= "<div class=\"h2like\">".wfMsg('imagegallery')."</div>\n".$this->imageText;
          $this->imageText = '';
       }
       if ($footer) {
@@ -298,7 +298,7 @@ class ESINHandler extends StructuredData {
          $footer = $parserOutput->getText();
       }
       if ($wgCite->hasReferences()) {
-         $footer .= "<div class=\"h2like\">References</div>\n".$wgCite->references(null, array(), $parser);
+         $footer .= "<div class=\"h2like\">".wfMsg('references')."</div>\n".$wgCite->references(null, array(), $parser);
       }
       return $footer;
 	}
@@ -405,17 +405,18 @@ END;
 
    protected function formatGender($gender, $firstChildClass='') {
       if ($gender == 'M') {
-         $gender = 'Male';
+         $gender = wfMsg('male');
       }
       else if ($gender == 'F') {
-         $gender = 'Female';
+         $gender = wfMsg('female');
       }
       else if ($gender == '?') {
-         $gender = 'Unknown';
+         $gender = wfMsg('unknown');
       }
+      $genderincode = wfMsg('gender');
       return <<<END
 <tr>
-   <td class="wr-infotable-type $firstChildClass"><span class="wr-infotable-type">Gender</span></td>
+   <td class="wr-infotable-type $firstChildClass"><span class="wr-infotable-type">$genderincode</span></td>
    <td colspan="2" class="wr-infotable-gender $firstChildClass"><span class="wr-infotable-gender">$gender</span></td>
 </tr>
 END;
@@ -581,7 +582,7 @@ END;
 //      }
       $text = trim(str_replace("\n", "<br>", $text)); // hack - parser call in cite translates \n to '', so add spaces
       if ($text) $text = "\n<div class=\"wr-citation-text\">\n$text\n</div>\n"; // <code> tag must be at begin of line for parser to handle it properly
-      
+
       $notes = '';
       $cites = $this->getCites((string)$sourceCitation['notes']);
       foreach ($cites as $cite) {
@@ -688,9 +689,11 @@ END;
       $url = $t->getFullURL('namespace=Person&pf='.urlencode($pf->title->getText()));
       $addChildLink = ($pf->isGedcomPage() ? '' : "<div class=\"plainlinks addchildlink\">[$url Add child]</div>");
       if ($infotable || $addChildLink) {
-         $infotable = <<<END
+         $birth = wfMsg('birth');
+         $death = wfMsg('death');
+          $infotable = <<<END
 <table class="wr-infotable wr-infotable-children">
-<tr><th class="wr-infotable-id"></th><th></th><th>Birth</th><th>Death</th></tr>
+<tr><th class="wr-infotable-id"></th><th></th><th>$birth</th><th>$death</th></tr>
 $infotable
 </table>
 $addChildLink
@@ -884,7 +887,7 @@ END;
 		$result .= "<td colspan=\"2\"><input class=\"ef_desc\" tabindex=\"1\" type=\"text\" name=\"desc$efNum\" value=\"$desc\"/></td>";
       $oneBased = $efNum+1;
       if (!$stdEventType) {
-         $result .= "<td><a title='Remove this event/fact' href=\"javascript:void(0);\" onClick=\"removeEventFact($oneBased); return preventDefaultAction(event);\">remove</a></td>";
+         $result .= '<td><a title=\''.wfMsg('removeeventfact').'\' href="javascript:void(0);" onClick="removeEventFact('.$oneBased.'); return preventDefaultAction(event);">'.wfMsg('remove').'</a></td>';
       }
       else {
          $result .= "<td></td>";
@@ -897,20 +900,20 @@ END;
 //            $noteTip = '';
 //         }
 //         else {
-            $sourceTip = '<div class="sin_heading">Sources'.$tm->addMsgTip('EventFactSourceIDs').'</div>';
-            $imageTip = '<div class="sin_heading">Images'.$tm->addMsgTip('EventFactImageIDs').'&nbsp;</div>';
-            $noteTip = '<div class="sin_heading">Notes'.$tm->addMsgTip('EventFactNoteIDs').'&nbsp;&nbsp;</div>';
+            $sourceTip = '<div class="sin_heading">'.wfMsg('sources').$tm->addMsgTip('EventFactSourceIDs').'</div>';
+            $imageTip = '<div class="sin_heading">'.wfMsg('images').$tm->addMsgTip('EventFactImageIDs').'&nbsp;</div>';
+            $noteTip = '<div class="sin_heading">'.wfMsg('notes').$tm->addMsgTip('EventFactNoteIDs').'&nbsp;&nbsp;</div>';
 //         }
       }
       else {
          $sourceTip = $imageTip = $noteTip = '';
       }
       $rowNum = ($efNum*2)+2;
-		$result .= "<td class=\"ef_ref\">$sourceTip<a title='Add a source for this event/fact' href=\"#sourcesSection\" onClick=\"addRef('event_fact_input',$rowNum,1,newSource());\">+</a>";
+		$result .= "<td class=\"ef_ref\">$sourceTip<a title='".wfMsg('addsourceeventfact')."' href=\"#sourcesSection\" onClick=\"addRef('event_fact_input',$rowNum,1,newSource());\">+</a>";
 		$result .= "<input tabindex=\"1\" type=\"text\" name=\"sources$efNum\" value=\"$sources\"/></td>";
-		$result .= "<td class=\"ef_ref\">$imageTip<a title='Add an image for this event/fact' href=\"#imagesSection\" onClick=\"addRef('event_fact_input',$rowNum,2,newImage());\">+</a>";
+		$result .= "<td class=\"ef_ref\">$imageTip<a title='".wfMsg('addimageeventfact')."' href=\"#imagesSection\" onClick=\"addRef('event_fact_input',$rowNum,2,newImage());\">+</a>";
 		$result .= "<input tabindex=\"1\" type=\"text\" name=\"images$efNum\" value=\"$images\"/></td>";
-		$result .= "<td class=\"ef_ref\">$noteTip<a title='Add a note for this event/fact' href=\"#notesSection\" onClick=\"addRef('event_fact_input',$rowNum,3,newNote());\">+</a>";
+		$result .= "<td class=\"ef_ref\">$noteTip<a title='".wfMsg('addnoteeventfact')."' href=\"#notesSection\" onClick=\"addRef('event_fact_input',$rowNum,3,newNote());\">+</a>";
 		$result .= "<input tabindex=\"1\" type=\"text\" name=\"notes$efNum\" value=\"$notes\"/></td>";
 		$result .= "<td></td></tr>\n";
 		return $result;
@@ -944,9 +947,8 @@ END;
 				}
 			}
 		}
-
-		$result = '<h2>Events and Facts<small>'.$tm->addMsgTip('EventsFacts', 400).'</small></h2><table id="event_fact_input" border=0 cellpadding=3>' .
-		'<tr><th></th><th>Date'.$tm->addMsgTip('EventFactDate').'</th><th>Place'.$tm->addMsgTip('EventFactPlace').'</th><th colspan="2">Description'.$tm->addMsgTip('EventFactDescription').
+		$result = '<h2>'.wfMsg('eventsandfacts').'<small>'.$tm->addMsgTip('EventsFacts', 400).'</small></h2><table id="event_fact_input" border=0 cellpadding=3>' .
+		'<tr><th></th><th>'.wfMsg('date').$tm->addMsgTip('EventFactDate').'</th><th>'.wfMsg('place').$tm->addMsgTip('EventFactPlace').'</th><th colspan="2">'.wfMsg('description').$tm->addMsgTip('EventFactDescription').
 			'</th><th></th></tr>';
 		for ($i = 0; $i < count($stdEventTypes); $i++) {
 			$result .= $this->addEventFactInput($i, $stdEvents[$i], $stdEventTypes[$i], $otherEventTypes, $tm);
@@ -958,7 +960,7 @@ END;
 				$i++;
 			}
 		}
-		$result .= '</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addEventFact(\''.implode(',',$otherEventTypes).'\'); return preventDefaultAction(event);">Add event/fact</a></div>';
+		$result .= '</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addEventFact(\''.implode(',',$otherEventTypes).'\'); return preventDefaultAction(event);">'.wfMsg('addeventfact').'</a></div>';
 		$result .= $tm->getTipTexts();
 		return $result;
 	}
@@ -1019,22 +1021,22 @@ END;
 		$rowNum = $srcNum*5;
 		$tempNum = $srcNum+1;
 		return '<tr>'
-			.'<td align="right" style="padding-top:13px"><b>Citation ID</b></td>'
-			."<td style=\"padding-top:13px\">$id<input type=\"hidden\" name=\"source_id$srcNum\" value=\"$id\"/>&nbsp;&nbsp;&nbsp;<a title=\"Remove this source\" href=\"javascript:void(0);\" onClick=\"removeSource($tempNum); return preventDefaultAction(event);\">remove</a></td>"
+			.'<td align="right" style="padding-top:13px"><b>'.wfMsg('citationid').'</b></td>'
+			."<td style=\"padding-top:13px\">$id<input type=\"hidden\" name=\"source_id$srcNum\" value=\"$id\"/>&nbsp;&nbsp;&nbsp;<a title=\"".wfMsg('removethissource')."\" href=\"javascript:void(0);\" onClick=\"removeSource($tempNum); return preventDefaultAction(event);\">".wfMsg('remove')."</a></td>"
 			.'</tr><tr>'
-			.'<td align="right">Source</td><td>'.StructuredData::addSelectToHtml(1, "source_namespace$srcNum", self::$SOURCE_NAMESPACE_OPTIONS, $ns, 'class="s_select" onChange="changeSourceNamespace('.$srcNum.',\''.$id.'\')"', false).'</td>'
-			."<td align=\"right\">Title</td><td colspan=8><input class=\"s_title$autocompleteClass\" id=\"{$id}input\" tabindex=\"1\" type=\"text\" name=\"source_title$srcNum\" value=\"$titleString\"/>"
-			."&nbsp;<span style=\"font-size: 90%\"><a id=\"{$id}choose\" style=\"visibility:$chooseVisibility\" href=\"javascript:void(0);\" onClick=\"choose($ns,'{$id}input'); return preventDefaultAction(event);\">find/add&nbsp;&raquo;</a></span></td>"
+			.'<td align="right">'.wfMsg('source').'</td><td>'.StructuredData::addSelectToHtml(1, "source_namespace$srcNum", self::$SOURCE_NAMESPACE_OPTIONS, $ns, 'class="s_select" onChange="changeSourceNamespace('.$srcNum.',\''.$id.'\')"', false).'</td>'
+			."<td align=\"right\">".wfMsg('title')."</td><td colspan=8><input class=\"s_title$autocompleteClass\" id=\"{$id}input\" tabindex=\"1\" type=\"text\" name=\"source_title$srcNum\" value=\"$titleString\"/>"
+			."&nbsp;<span style=\"font-size: 90%\"><a id=\"{$id}choose\" style=\"visibility:$chooseVisibility\" href=\"javascript:void(0);\" onClick=\"choose($ns,'{$id}input'); return preventDefaultAction(event);\">".wfMsg('findadd')."&nbsp;&raquo;</a></span></td>"
          ."</tr><tr>"
-			."<td align=\"right\">Record&nbsp;name</td><td colspan=10><input class=\"s_recordname\" tabindex=\"1\" type=\"text\" name=\"record_name$srcNum\" value=\"$recordName\"/></td>"
+			."<td align=\"right\">".wfMsg('record_name')."/td><td colspan=10><input class=\"s_recordname\" tabindex=\"1\" type=\"text\" name=\"record_name$srcNum\" value=\"$recordName\"/></td>"
 			."</tr><tr>"
-			."<td align=\"right\">Volume / Pages</td><td><input class=\"s_page\" tabindex=\"1\" type=\"text\" name=\"source_page$srcNum\" value=\"$page\"/></td>"
-			."<td align=\"right\">Date</td><td><input class=\"s_date\" tabindex=\"1\" type=\"text\" name=\"source_date$srcNum\" value=\"$date\"/></td>"
-			."<td align=\"right\">Quality</td><td>".StructuredData::addSelectToHtml(1, "source_quality$srcNum", self::$QUALITY_OPTIONS, $quality, 'class="s_quality"').'</td>'
-			."<td colspan=2 align=\"right\">&nbsp;Images&nbsp;<a title='Add an image to this citation' href=\"#imagesSection\" onClick=\"addRef('source_input',".($rowNum+2).",7,newImage());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_images$srcNum\" value=\"$images\"/></td>"
-			."<td align=\"right\">Notes&nbsp;<a title='Add a note to this citation' href=\"#notesSection\" onClick=\"addRef('source_input',".($rowNum+2).",9,newNote());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_notes$srcNum\" value=\"$notes\"/></td>"
+			."<td align=\"right\">".wfMsg('volumepages')."</td><td><input class=\"s_page\" tabindex=\"1\" type=\"text\" name=\"source_page$srcNum\" value=\"$page\"/></td>"
+			."<td align=\"right\">".wfMsg('date')."</td><td><input class=\"s_date\" tabindex=\"1\" type=\"text\" name=\"source_date$srcNum\" value=\"$date\"/></td>"
+			."<td align=\"right\">".wfMsg('quality')."</td><td>".StructuredData::addSelectToHtml(1, "source_quality$srcNum", self::$QUALITY_OPTIONS, $quality, 'class="s_quality"').'</td>'
+			."<td colspan=2 align=\"right\">&nbsp;".wfMsg('images')."&nbsp;<a title='".wfMsg('addimagecitation')."' href=\"#imagesSection\" onClick=\"addRef('source_input',".($rowNum+2).",7,newImage());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_images$srcNum\" value=\"$images\"/></td>"
+			."<td align=\"right\">".wfMsg('notes')."&nbsp;<a title='".wfMsg('addnotecitation')."' href=\"#notesSection\" onClick=\"addRef('source_input',".($rowNum+2).",9,newNote());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_notes$srcNum\" value=\"$notes\"/></td>"
 			."</tr><tr>"
-			."<td align=\"right\">Text /<br/>Transcription<br/>location</td><td colspan=10><textarea class=\"s_text\" tabindex=\"1\" name=\"source_text$srcNum\" rows=\"3\">$text</textarea></td>"
+			."<td align=\"right\">".wfMsg('text')."/<br/>".wfMsg('transcription')."<br/>".wfMsg('location')."</td><td colspan=10><textarea class=\"s_text\" tabindex=\"1\" name=\"source_text$srcNum\" rows=\"3\">$text</textarea></td>"
 			."</tr>";
 //		return '<tr>'.
 //				"<td align=\"center\">$id<input type=\"hidden\" name=\"source_id$srcNum\" value=\"$id\"/></td>".
@@ -1080,10 +1082,10 @@ END;
 						"<td align=\"center\">$id<input type=\"hidden\" name=\"image_id$imgNum\" value=\"$id\"/></td>" .
 						"<td align=\"center\"><input tabindex=\"1\" type=\"checkbox\"$checked name=\"image_primary$imgNum\"/></td>" .
 						"<td><input id=\"{$id}input\" class=\"image_input\" tabindex=\"1\" type=\"text\" size=35 name=\"image_filename$imgNum\" value=\"$filename\"/></td>" .
-						"<td><span style=\"font-size: 90%\"><a href=\"javascript:void(0);\" onClick=\"choose($ns,'{$id}input'); return preventDefaultAction(event);\">find&nbsp;&raquo;</a>&nbsp;<br>" .
-							"<a href=\"javascript:void(0);\" onClick=\"uploadImage('{$id}input'); return preventDefaultAction(event);\">add&nbsp;&raquo;</a>&nbsp;</span></td>" .
+						"<td><span style=\"font-size: 90%\"><a href=\"javascript:void(0);\" onClick=\"choose($ns,'{$id}input'); return preventDefaultAction(event);\">".wfMsg('find')."&nbsp;&raquo;</a>&nbsp;<br>" .
+							"<a href=\"javascript:void(0);\" onClick=\"uploadImage('{$id}input'); return preventDefaultAction(event);\">".wfMsg('addlowercase')."&nbsp;&raquo;</a>&nbsp;</span></td>" .
 						"<td><input tabindex=\"1\" type=\"text\" size=30 name=\"image_caption$imgNum\" value=\"$caption\"/></td>" .
-						"<td><a title='Remove this image' href=\"javascript:void(0);\" onClick=\"removeImage($tempNum); return preventDefaultAction(event);\">remove</a></td>" .
+						"<td><a title='".wfMsg('removethisimage')."' href=\"javascript:void(0);\" onClick=\"removeImage($tempNum); return preventDefaultAction(event);\">".wfMsg('remove')."</a></td>" .
 						'</tr>';
 		return $result;
 	}
@@ -1100,7 +1102,7 @@ END;
 		$result .= "<td align=\"center\">$id<input type=\"hidden\" name=\"note_id$noteNum\" value=\"$id\"/></td>";
 		$result .= "<td><textarea tabindex=\"1\" name=\"note_text$noteNum\" rows=\"3\" cols=\"85\">$text</textarea></td>";
 		$tempNum = $noteNum+1;
-		$result .= "<td><a title='Remove this note' href=\"javascript:void(0);\" onClick=\"removeNote($tempNum); return preventDefaultAction(event);\">remove</a></td>";
+		$result .= "<td><a title='".wfMsg('removethisnote')."' href=\"javascript:void(0);\" onClick=\"removeNote($tempNum); return preventDefaultAction(event);\">".wfMsg('remove')."</a></td>";
 		$result .= '</tr>';
 		return $result;
 	}
@@ -1138,7 +1140,7 @@ END;
 //		'<tr><th>ID</th><th>Type'.$tm->addMsgTip('CitationType').'</th><th>Title'.$tm->addMsgTip('SourceTitle').'</th><th></th><th>Page'.$tm->addMsgTip('SourcePage').'</th><th>Quality'.$tm->addMsgTip('SourceQuality').
 //			'</th><th>Date'.$tm->addMsgTip('SourceDate').'</th><th colspan=2>Image&nbsp;ID(s)'.$tm->addMsgTip('SourceImageIDs').'</th><th colspan=2>Note&nbsp;ID(s)'.$tm->addMsgTip('SourceNoteIDs').'</th></tr>' .
 			$rows .
-			'</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addSource(); return preventDefaultAction(event);">Add source citation</a></div>';
+			'</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addSource(); return preventDefaultAction(event);">'.wfMsg('addsourcecitation').'</a></div>';
 		// add image input
 		$display = 'none';
 		$rows = '';
@@ -1166,8 +1168,8 @@ END;
 				$rows .= $this->addImageInput($i - 1, @$sortedImages[$i]);
 			}
 		}
-		$result .= "<a name=\"imagesSection\"></a><h2>Images</h2><table id=\"image_input\" border=0 style=\"display:$display\">" .
-		'<tr><th>ID</th><th>Primary'.$tm->addMsgTip('ImagePrimary').'</th><th>Title'.$tm->addMsgTip('ImageFilename').'</th><th></th><th>Caption'.$tm->addMsgTip('ImageCaption').'</th></tr>' .
+		$result .= "<a name=\"imagesSection\"></a><h2>".wfMsg('images')."</h2><table id=\"image_input\" border=0 style=\"display:$display\">" .
+		'<tr><th>'.wfMsg('id').'</th><th>Primary'.$tm->addMsgTip('ImagePrimary').'</th><th>Title'.$tm->addMsgTip('ImageFilename').'</th><th></th><th>Caption'.$tm->addMsgTip('ImageCaption').'</th></tr>' .
 			$rows .
 			'</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addImage(); return preventDefaultAction(event);">Add image</a></div>';
 		// add note input

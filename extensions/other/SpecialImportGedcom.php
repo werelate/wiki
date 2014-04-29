@@ -178,14 +178,14 @@ class GedcomImport {
       $wgOut->setPagetitle('Import GEDCOM');
       $wgOut->setArticleRelated(false);
       $wgOut->setRobotpolicy('noindex,nofollow');
-
-      $wgOut->addHTML( "<h2>You have a GEDCOM already in process</h2>\n" .
-           "<p>Before importing a new GEDCOM you need to wait for your earlier GEDCOM to finish importing</p>\n" );
+      $havegedcomalready = wfMsg('havegedcomalready');
+      $wgOut->addHTML( "<h2>". $havegedcomalready ."</h2>\n" .
+           "<p>". wfMsg('waitforearlier') ."</p>\n" );
       if ($gedcomStatus == GedcomsPage::$USER_REVIEW) {
-         $msg = "<a href=\"/gedcom/index.php?gedcomId=$gedcomId\" rel=\"nofollow\"><b>Click here</b></a> to review (or delete) your earlier GEDCOM";
+         $msg = "<a href=\"/gedcom/index.php?gedcomId=$gedcomId\" rel=\"nofollow\"><b>". wfMsg('clickhere') ."</b></a> " . wfMsg('reviewearliergedcom');
       }
       else if ($gedcomStatus == GedcomsPage::$ADMIN_REVIEW) {
-         $msg = "Please be patient; an Administrator should review your earlier GEDCOM and finalize the import within the next 24 hours";
+         $msg = wfMsg('administratorshouldreview');
       }
       $wgOut->addHtml("<p>$msg</p>");
    }
@@ -213,7 +213,7 @@ class GedcomImport {
 		}
 
 		if ($this->mUploadError != 0) {
-		   $this->mainUploadForm('Error during upload.');
+		   $this->mainUploadForm(wfMsg('errorduringupload'));
 		   return;
 		}
 
@@ -228,11 +228,11 @@ class GedcomImport {
    	$tree = $dbr->selectRow('familytree', array('ft_tree_id', 'ft_person_count'), array('ft_user' => $wgUser->getName(), 'ft_name' => $treeName));
    	if ($tree === false) {
    		if (!$treeName) {
-   			$this->mainUploadForm('Please enter a name for your new tree');
+   			$this->mainUploadForm(wfMsg('enternametree'));
    			return;
    		}
    	   if (!FamilyTreeUtil::isValidTreeName($treeName)) {
-   	      $this->mainUploadForm('Sorry, that name contains characters that are not allowed in a tree name');
+   	      $this->mainUploadForm(wfMsg('namecontainsnotallowed'));
    	      return;
    	   }
          else {
@@ -370,6 +370,7 @@ END
 
 		$titleObj = Title::makeTitle( NS_SPECIAL, 'ImportGedcom' );
 		$action = $titleObj->escapeLocalURL();
+        $ifplacesassumed = wfMsg('ifplacesassumed');
 		$wgOut->addHTML(<<< END
 <form id='import' method='post' enctype='multipart/form-data' action="$action">
 <table border='0'>
@@ -379,7 +380,7 @@ END
 </tr>
 <tr>
  <td align="right"><label for="wrDefaultCountry">Default country:</label></td>
- <td align="left" style="font-size: 11px; line-height:2em">$defaultCountryControl &nbsp; if places in your GEDCOM don't have countries, this country will be assumed</td>
+ <td align="left" style="font-size: 11px; line-height:2em">$defaultCountryControl &nbsp; $ifplacesassumed</td>
 </tr>
 <tr>
  <td align='right'><label for='wrTreeName'>$importIntoTree</label></td>

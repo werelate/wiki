@@ -85,26 +85,29 @@ END;
       $ret = '<div class="myrelate-header">Profile &amp; Messages</div>';
       if ($profileRevision) {
       	$tip = wfMsgHTML('viewprofiletip');
-	      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), 'View your profile', '', '', '', '', " title=\"$tip\"") . ' (&nbsp;';
+	      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), wfMsg('viewyourprofile'), '', '', '', '', " title=\"$tip\"") . ' (&nbsp;';
       }
       $tip=wfMsgHTML('editprofiletip');
-      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), $profileRevision ? 'edit' : '<b>Create your profile</b>', "action=edit", '', '', '', " title=\"$tip\"");
+      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), $profileRevision ? wfMsg('edit') : '<b>Create your profile</b>', "action=edit", '', '', '', " title=\"$tip\"");
       if ($profileRevision) {
       	$ret .= '&nbsp;)';
       }
       $ret .= '<br/>';
       $tip=wfMsgHTML('checkmessagestip');
+      $lastmessage = wfMsg('lastmessage:');
+
 		$msgsRevision = Revision::newFromTitle($wgUser->getTalkPage());
 		if ($msgsRevision) {
-		   $msgsText = '<dl><dd>(last message: ' . $wgLang->timeanddate(wfTimestamp(TS_MW, $msgsRevision->getTimestamp()), true) . ' by ' .
+		   $msgsText = '<dl><dd>(' . $lastmessage . $wgLang->timeanddate(wfTimestamp(TS_MW, $msgsRevision->getTimestamp()), true) . wfMsg('by') .
 		                $skin->makeKnownLinkObj(Title::makeTitle(NS_USER, $msgsRevision->getUserText()), $msgsRevision->getUserText()) . ')</dl></dd>';
 		}
 		else {
 		   $msgsText = '<br/>';
 		}
-      $ret .= $skin->makeKnownLinkObj($wgUser->getTalkPage(), "Read messages", '', '', '', '', " title=\"$tip\"") . $msgsText;
+
+      $ret .= $skin->makeKnownLinkObj($wgUser->getTalkPage(), wfMsg('readmessage'), '', '', '', '', " title=\"$tip\"") . $msgsText;
       $tip=wfMsgHTML('preferencestip');
-      $ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Preferences'), 'Edit preferences', '', '', '', '', " title=\"$tip\"");
+      $ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Preferences'), wfMsg('editpreferences'), '', '', '', '', " title=\"$tip\"");
       return $ret;
    }
 
@@ -133,8 +136,8 @@ END;
 		      $ret .= '</ul>';
 		   }
 		}
-		$tip = 'Add a new user page';
-		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'AddPage'), 'Add user page', "namespace=".NS_USER, '', '', '', " title=\"$tip\"");
+		$tip = wfMsg('addnewuserpage');
+		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'AddPage'), wfMsg('adduserpage'), "namespace=".NS_USER, '', '', '', " title=\"$tip\"");
 		return $ret;
    }
 
@@ -148,7 +151,7 @@ END;
       $ret .= '<dl><dd>' . wfMsgWikiHTML('networkmsg') . '</dd></dl>';
 
       $tip=wfMsgHTML('networktip');
-		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Network'), 'View network', '', '', '', '', " title=\"$tip\"");
+		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Network'), wfMsg('viewnetwork'), '', '', '', '', " title=\"$tip\"");
 		return $ret;
    }
 
@@ -173,7 +176,7 @@ END;
       $ret .= '<dl><dd>' . wfMsgWikiHTML('watchlistchanged', $cnt) . '</dd></dl>';
 
       $tip=wfMsgHTML('watchlisttip');
-		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Watchlist'), 'View watchlist', '', '', '', '', " title=\"$tip\"");
+		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Watchlist'), wfMsg('viewwatchlist'), '', '', '', '', " title=\"$tip\"");
 		return $ret;
    }
 
@@ -202,7 +205,7 @@ END;
       $ret .= '<dl><dd>' . wfMsgWikiHTML('NumberOfContributions', $numContribs, $numDays) . '</dd></dl>';
 
       $tip=wfMsgHTML('contributionstip');
-		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Contributions/' . $wgUser->getName()), 'View contributions', '', '', '', '', " title=\"$tip\"");
+		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Contributions/' . $wgUser->getName()), wfMsg('viewcontributions'), '', '', '', '', " title=\"$tip\"");
 		return $ret;
    }
    
@@ -225,9 +228,9 @@ END;
 		$familyTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName());
       foreach($familyTrees as $familyTree) {
       	$ret .= '<li>' . htmlspecialchars($familyTree['name']) . ' (&nbsp;' .
-					$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'view', 'k='.urlencode('+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')) .
+					$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), wfMsg('view'), 'k='.urlencode('+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')) .
 					'&nbsp;) (&nbsp;' .
-					'<a href="/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($familyTree['name']) . '">launch FTE</a>&nbsp;)';
+					'<a href="/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($familyTree['name']) . '">' . wfMsg('launchFTE') . '</a>&nbsp;)';
 			$found = false;
 			foreach ($gedcoms as $gedcom) {
 				if ($gedcom['fg_tree_id'] == $familyTree['id']) {
@@ -235,7 +238,7 @@ END;
 						$ret .= '<ul>';
 					}
 					$found = true;
-					$ret .= '<li>'.htmlspecialchars($gedcom['fg_gedcom_filename']).' <a href="/gedcom/index.php?gedcomId='.$gedcom['fg_id'].'" rel="nofollow">Waiting for review</a></li>';
+					$ret .= '<li>'.htmlspecialchars($gedcom['fg_gedcom_filename']).' <a href="/gedcom/index.php?gedcomId='.$gedcom['fg_id'].'" rel="nofollow">'. wfMsg('waitingforreview') .'</a></li>';
 
 				}
 			}
@@ -244,8 +247,8 @@ END;
 			}
 			$ret .= '</li>';
       }
-      $tip = 'Create, rename, delete, and email trees';
-		$ret .= '</ul>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'Manage trees', '', '', '', '', " title=\"$tip\"");
+      $tip = wfMsg('createrenamedeleteemail');
+		$ret .= '</ul>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), wfMsg('managetrees'), '', '', '', '', " title=\"$tip\"");
 
       return $ret;
    }

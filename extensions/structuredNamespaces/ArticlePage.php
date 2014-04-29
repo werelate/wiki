@@ -212,12 +212,12 @@ class ArticlePage extends StructuredData {
             }
          }
       }
-      $result .= "<br><label for=\"surnames\">Surnames (one per line):</label><br><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea>";
-      $result .= "<br><label for=\"places\">Places (one per line):</label><br><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea>";
-      $result .= "<table><tr>";
-      $result .= "<td align=left>Year range:</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>";
-      $result .=           "&nbsp;&nbsp;-&nbsp;<input tabindex=\"1\" name=\"toYear\" value=\"$toYear\" size=\"5\"$toYearStyle/>";
-      $result .= "</td></tr></table>Text:<br>";
+      $result .= '<br><label for="surnames">'.wfMsg('surnamesperline').'</label><br><textarea tabindex="1" name="surnames" rows="3" cols="60">'.$surnames.'</textarea>';
+      $result .= '<br><label for="places">'.wfMsg('placesperline').'</label><br><textarea class="place_input" tabindex="1" name="places" rows="3" cols="60">'.$places.'</textarea>';
+      $result .= '<table><tr>';
+      $result .= '<td align=left>'.wfMsg('yearrange').'</td><td align=left><input tabindex="1" name="fromYear" value="'.$fromYear.'" size="5"'.$fromYearStyle.'/>';
+      $result .=           '&nbsp;&nbsp;-&nbsp;<input tabindex="1" name="toYear" value="'.$toYear.'" size="5"'.$toYearStyle.'/>';
+      $result .= '</td></tr></table>'.wfMsg('text:').'<br>';
       return $result;
    }
 

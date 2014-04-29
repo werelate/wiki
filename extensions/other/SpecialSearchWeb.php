@@ -42,33 +42,20 @@ END
 		);		
 	}
 	else {
+        $text1 = wfMsg('experimentalgoalpurpose');
+
 		$sideText = $wgOut->parse(<<< END
-This is an experimental Web search engine for genealogy.  It currently contains over 5,000,000 pages that were crawled in 2006.
-Our goal is to extend it significantly in the future as time and resources allow.
-
-Unlike a general-purpose search engine, we target only content that is relevant to genealogy.
+        $text1
 END
 		);
+        $text2 = wfMsgWikiHtml('searchinstructionsbeta');
 		$endText = $wgOut->parse(<<< END
-<font size="+1"><b>Search over 5,000,000 genealogy Web pages</b></font>
-
-==Instructions==
-* Enter the terms you are looking for in the "Keywords" field.
-* You can limit your search to a particular website by entering ''site:'' followed by the name of the website.  
-For example, ''site:familysearch.org'' searches just the items in the family history library catalog.
-
-==Beta Alerts==
-Due to a bug in our Web crawl, approximately 25% of the pages you'll get back are ''not'' genealogical.  
-We'll never achieve 100% accuracy, but we hope to decrease the number of non-relevant pages significantly over the coming months.
-
-Currently we do not distinguish between words used as names, places, or dictionary terms.  So if you search for the surname ''Brown'' you'll 
-also get back pages for ''Brown County'' or even the color brown.  We plan to fix this in the coming months.
-
-We expect to increase the number of web pages we search significantly over the next year.
+        $text2
 END
 		);
+        $text3 = wfMsg('websearch');
 		$wgOut->addHTML(<<< END
-<table class="fullwidth"><tr><td id="infobox"><div class="infobox-header">Web Search</div>
+<table class="fullwidth"><tr><td id="infobox"><div class="infobox-header">$text3</div>
 <table><tr><td>
 $sideText
 </td></tr></table>
@@ -100,10 +87,11 @@ function getSearchWebForm($keywords = '') {
 	$searchHelpUrl = Title::makeTitle(NS_HELP, 'Search')->getLocalUrl();
 
    // generate form
+    $keywordscolon = wfMsg('keywords:');
 	$result = <<< END
 <div class="searchform"><form name="search" action="$wrSearchWebURL" method="get">
 <table><tr>
-<td align=right>Keywords: </td><td align=left colspan=3><input type="text" name="keywords" size=42 maxlength=100 value="$keywords" onfocus="select()"/></td>
+<td align=right>$keywordscolon</td><td align=left colspan=3><input type="text" name="keywords" size=42 maxlength=100 value="$keywords" onfocus="select()"/></td>
 </tr><tr>
 <td align=right colspan=4><input type="submit" value="Search"/></td><td>&nbsp;&nbsp;<a href="$searchHelpUrl">Help</a></td>
 </tr></table></form><div>

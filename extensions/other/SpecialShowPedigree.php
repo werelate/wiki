@@ -295,10 +295,11 @@ END
 	}
 
 	$queryBoxStyle = 'width:100%;text-align:center;';
+    $personfamilytitle = wfMsg('personfamilytitle');
 	$form = <<< END
 <form name="search" action="/wiki/Special:ShowPedigree" method="get">
 <div id="searchFormDiv" style="$queryBoxStyle">
-Person or Family page title: <input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
+$personfamilytitle<input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
 <input type="submit" value="Go" />
 </div>
 </form>

@@ -31,8 +31,8 @@ function wrAddShowWatchers(&$template, &$content_actions) {
    $pageTitle = $wgTitle->getFullText();
    $content_actions['watchers'] = array(
       'class=' => false,
-      'text' => "Who's watching",
-      'title' => "Who's watching this page",
+      'text' => wfMsg('watcherarraytext'),
+      'title' => wfMsg('watcherarraytitle'),
       'href' => '/w/index.php?'.http_build_query(array('action' => 'ajax', 'rs'=>'wfShowWatchers',
                                                          'rsargs' => $pageTitle)),
    );

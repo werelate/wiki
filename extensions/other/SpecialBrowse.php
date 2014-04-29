@@ -42,7 +42,7 @@ function wfSpecialBrowse() {
    }
 
    // set up page
-	$wgOut->setPagetitle('Browse Pages');
+	$wgOut->setPagetitle(wfMsg('browsepages'));
    $wgOut->setArticleRelated(false);
    $wgOut->setRobotpolicy('noindex,nofollow');
 
@@ -52,7 +52,7 @@ function wfSpecialBrowse() {
    $alphaLinks = '';
    $c = 'A';
    for ($i = 0; $i < 26; $i++) {
-   	$alphaLinks .= "&nbsp;<a title=\"$c\" href=\"javascript:void(0)\" onClick=\"browseGo('$c'); return preventDefaultAction(event);\">$c</a>\n";
+   	$alphaLinks .= "&nbsp;<a title=\"$c\" href =\"javascript:void(0)\" onClick=\"browseGo('$c'); return preventDefaultAction(event);\">$c</a>\n";
    	$c++;
    }
    
@@ -97,38 +97,39 @@ function wfSpecialBrowse() {
    	$watchedSelected = ' checked';
    	$allSelected = '';
    }
-   
+    $browsepagestext = wfMsg('browsepagestext');
    // set up namespace selector
 	$nsSelector = str_replace('<select ', "<select onChange=\"browseChangeNs('')\" ", HTMLnamespaceselector($namespace));
 	
 	// add form
 		$sideText = $wgOut->parse(<<< END
-Browse pages in your watchlist (typically includes all pages that you have created or edited), or browse all pages on WeRelate.
-
-''Namespace'' corresponds to the type of page; e.g., Main (articles), Person, Family, or Image.  
-
-Each type of page also has an associated "talk" page. Browse talk pages by selecting the corresponding Talk namespace.
+$browsepagestext
 END
 		);
+    $watchedpages = wfMsg('watchedpages');
+    $pleasewait = wfMsg('pleasewait');
+    $titlecasesensitive = wfMsg('titlecasesensitive');
+    $pagefromlist = wfMsg('pagefromlist');
+    $threespaces = wfMsg('threespaces');
    $wgOut->addHTML(<<< END
 <center>
 <div class="browse">
 <form name="browse" action="/wiki/Special:Browse" method="get">
 <table style="margin: 0 .5em 1em .5em">
-<tr><td></td><td align="left"><input type="radio" name="scope" value="watched"$watchedSelected onChange="browseGo('')"> Watched pages
+<tr><td></td><td align="left"><input type="radio" name="scope" value="watched"$watchedSelected onChange="browseGo('')"> $watchedpages
 <input type="radio" name="scope" value="all"$allSelected onChange="browseGo('')"> All pages</td></tr>
 <tr><td align="right">Namespace:</td><td align="left">$nsSelector
-<span id="pleasewait" style="display: none"><span style="padding: 0 .2em; color: #fff; background-color: #888">Please Wait</span></span>
+<span id="pleasewait" style="display: none"><span style="padding: 0 .2em; color: #fff; background-color: #888">$pleasewait</span></span>
 </td></tr>
 <tr><td align="right">Title:</td><td align="left"><input id="titleinput" type="text" name="pagetitle" size="25" maxlength="150" value="$pageTitle"/>
 <input type="submit" name="go" value="Go"/>
 </td></tr>
-<tr><td></td><td style="margin: 0; padding: 0; line-height: .7em; font-size: 80%;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Title is case-sensitive</td></tr>
+<tr><td></td><td style="margin: 0; padding: 0; line-height: .7em; font-size: 80%;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$titlecasesensitive</td></tr>
 </table>
 </form>
 </div>
 $alphaLinks
-<div id="message">Choose a page from the list</div>
+<div id="message">$pagefromlist</div>
 <table id="results" align="center">
 <tr><td align="center"><span id="prevlink" style="display: $prevDisplay"><a title="Previous page" href="javascript:void(0)" onClick="browsePrev(); return preventDefaultAction(event);">< Prev</a></span> &nbsp;&nbsp;&nbsp;
 <span id="nextlink" style="display: $nextDisplay"><a title="Next page" href="javascript:void(0)" onClick="browseNext(); return preventDefaultAction(event);">Next ></a></span></td></tr>

@@ -28,7 +28,7 @@ function wfSpecialReviewMerge( $par=NULL, $specialPage ) {
    $unmerge = '';
 	if (!$reviewForm->readQueryParms($par)) {
 		$wgOut->setPageTitle('Review merge');
-		$results = '<p>You must click on a "review" link on Recent Changes or a page history in order to review the merge.</p>';
+		$results = '<p>'. wfMsg('clickreviewtoreview').'</p>';
 	}
 	else if ($reviewForm->isMarkPatrolled()) {
 		$wgOut->setPagetitle( wfMsg( 'markedaspatrolled' ) );
@@ -139,7 +139,7 @@ class ReviewForm {
 		if( wfRunHooks( 'MarkPatrolled', array( &$this->rcid, &$wgUser, false ) ) ) {
 			RecentChange::markPatrolled( $this->rcid );
 			wfRunHooks( 'MarkPatrolledComplete', array( &$this->rcid, &$wgUser, false ) );
-			$output .= '<p>The selected '.($this->unmergeTimestamp ? 'unmerge' : 'merge').' has been marked as patrolled.</p>';
+			$output .= wfMsg('selectedmarkedpatrolled', ($this->unmergeTimestamp ? 'unmerge' : 'merge') );
 		}
 		$rcTitle = Title::makeTitle( NS_SPECIAL, 'Recentchanges' );
 		$output .= '<p>Return to '.$sk->makeKnownLinkObj($rcTitle).'.</p>';		
@@ -274,26 +274,14 @@ class ReviewForm {
 			$output .= "<h2>Unmerge partially completed</h2><p><b><font color=\"red\">The following page(s) must still be unmerged</font></b></p><ul>";
 			foreach ($manualPages as $page) {
 				$output .= "<li>".htmlspecialchars($page['title']->getPrefixedText()).' <b>'.
-											$skin->makeKnownLinkObj($page['title'], 'changes to undo', 'diff='.$page['next_revid'].'&oldid='.$page['revid']).'</b> &nbsp;=>&nbsp; <b>'.
-											$skin->makeKnownLinkObj($page['title'], 'edit', 'action=edit')."</b></li>\n";
+											$skin->makeKnownLinkObj($page['title'], wfMsg('changestoundo'), 'diff='.$page['next_revid'].'&oldid='.$page['revid']).'</b> &nbsp;=>&nbsp; <b>'.
+											$skin->makeKnownLinkObj($page['title'], wfMsg('editlowercase'), 'action=edit')."</b></li>\n";
 				error_log("Unmerge may be needed: {$page['title']->getPrefixedText()} id={$this->mergeId}");
 			}
+            $changestoundotext = wfMsg('changestoundotext');
 			$output .= <<< END
 </ul>
-<p>For each page listed above, click on the <b>changes to undo</b> link to see what changes need to be manually undone:
-<ol>
-<li>For each item that was removed in the merge (listed on the left side of the screen in yellow), you need to add that item back to the page.</li>
-<li>For each item that was added in the merge (listed on the right side of the screen in green), you need to remove that item from the page.</li>
-</ol></p>
-<p>Once you know which items need to be added/removed, click on the <b>edit</b> link to edit the page and add/remove the items.</p>
-<p>Additional notes:
-<ul>
-<li>Some of the items may have been added/removed already.</li>
-<li>You can ignore place changes that simply fill in missing place levels.</li>
-<li>When reviewing changes to Family pages, you can ignore changes to personal information (birth, death, etc.) associated with the family members: <i>husband</i>, <i>wife</i>, or <i>child</i>.
-Just re-add family members that were removed in the merge, and remove ones that were added.</li>
-</ul></p>
-<p>If you have questions, send an email to <b>solveig@quass.org</b> containing the titles of the pages listed above and the URL appearing at the top of your browser window and we will finish the unmerge for you.</p>
+$changestoundotext
 <p>&nbsp;</p>
 END;
 		}
@@ -459,10 +447,9 @@ END;
          $unmerge = "<p><font color=\"red\">Merge has been undone</font> by: $unmergeUserLinks $unmergeUserToolLinks</p><p>$UnmergeDatetime</p>";
       }
       else {
+          $leftrightshowsmerge = wfMsg('leftrightshowsmerge');
          $unmerge = <<<END
-<p>The columns on the left show pages that were merged.</p>
-<p>The column on the right shows the result of the merge.</p>
-<p>If you disagree, leave a message for the person who performed the merge or click on the <i>Unmerge</i> button at the bottom of the screen.</p>
+$leftrightshowsmerge
 END;
       }
       return $unmerge;
@@ -572,21 +559,20 @@ END;
 							$titlesCnt = count(@$data[$i][$j][$label]);
 							if ($titlesCnt > 0) {
 								if (!$data[$i][$j]['Exists']) { // person/family not found
-									$output .= '<br>Not found';
+									$output .= '<br>'.wfMsg('notfound');
 								}
 								else if ($data[$i][$j]['Redirect']) { // person/family has been merged
-									$output .= '<br>Already merged';
+									$output .= '<br>'.wfMsg('alreadymerged');
 								}
 								else if ($data[$i][$j]['mergeTarget']) {
-									$output .= '<br>'.($data[$i][$j][$label][0] == $data[$i][$j]['mergeTarget'] ? 'Same as ' : 'Merged with ').
-										htmlspecialchars($data[$i][$j]['mergeTarget']);
+									$output .= '<br>'. wfMsg('mergetargettext', ($data[$i][$j][$label][0] == $data[$i][$j]['mergeTarget'] ? 'Same as ' : 'Merged with '), htmlspecialchars($data[$i][$j]['mergeTarget']) ) ;
 								}
 								else if ($j == 1 && @$data[$i][0]['mergeresult']) {
 									$output .= '<br>(merge target)';
 								}
 							}
 							else if (@$data[$i][$j]['deleted']) {
-								$output .= 'Page has been deleted';
+								$output .= wfMsg('pagebeendeleted');
 							}
 						}
 						$output .= '</td>';
@@ -596,10 +582,12 @@ END;
    		}
    	}
    	if ($this->unmergeTimestamp) {
-   		$unmergeButton = 'Merge has been undone';
+   		$unmergeButton = wfMsg('mergebeenundone');
    	}
    	else {
-   		$unmergeButton = 'Unmerge reason: <input type="text" name="comment" size=36/><br><input type="submit" value="Unmerge"/>';
+        $unmergebuttontext = wfMsg('unmerge');
+        $commentbuttontext = wfMsg('comment');
+   		$unmergeButton = 'Unmerge reason: <input type="text" name="'.$commentbuttontext.'" size=36/><br><input type="submit" value="'.$unmergebuttontext.'"/>';
    	}
 		$output .= <<< END
 <tr><td align=right colspan="$tblCols">$unmergeButton</td></tr>

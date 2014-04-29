@@ -1035,10 +1035,10 @@ function wfAddPage($args) {
       }
 		else if ($ns == NS_PERSON) {
          if (ESINHandler::isLivingDates($args['bd'], null, $args['dd'], $args['dp'])) {
-            $error = 'Living people cannot be added to WeRelate. People born in the last 110 years must have a death date';
+            $error = wfMsg('nolivingpeople110');
          }
          else if (ESINHandler::isAmbiguousDate($args['bd']) || ESINHandler::isAmbiguousDate($args['dd'])) {
-            $error = "Please write dates in D MMM YYYY format so they are unambiguous (ie 5 Jan 1900)";
+            $error = wfMsg('writedatesthisway');
          }
          else {
             if (!$title) $title = StructuredData::constructPersonTitle($args['g'], $args['s']);
@@ -1050,7 +1050,7 @@ function wfAddPage($args) {
 		}
 		else if ($ns == NS_FAMILY) {
          if (ESINHandler::isAmbiguousDate($args['md'])) {
-            $error = "Please write dates in D MMM YYYY format so they are unambiguous (ie 5 Jan 1900)";
+             $error = wfMsg('writedatesthisway');
          }
          else {
             $title = StructuredData::constructFamilyTitle($args['hg'], $args['hs'], $args['wg'], $args['ws']);
@@ -1066,7 +1066,7 @@ function wfAddPage($args) {
 				$text = Source::getPageText($args['sty'], $args['st'], $args['a'], $args['p'], $args['pi'], $args['pu']);
 			}
 			else {
-				$error = 'Required source fields are missing; please press the Back button on your browser to enter the required fields.';
+				$error = wfMsg('missingfieldsource');
 			}
 		}
 		else if ($ns == NS_MYSOURCE) {
@@ -1087,7 +1087,7 @@ function wfAddPage($args) {
          $pos = mb_strpos($titleText, ',');
          if ($pos === false) {
             $title = null;
-            $error = 'You need to fill in the country';
+            $error = wfMsg('missingfieldcountry');
          }
          else {
             $locatedIn = Title::newFromText(trim(mb_substr($titleText, $pos+1)), NS_PLACE);
@@ -1100,7 +1100,7 @@ function wfAddPage($args) {
 		
 		if ($status == GE_SUCCESS && $title == null) {
 	   	$status = GE_INVALID_ARG;
-	   	if (!$error) $error = 'Invalid page title; unable to create page';
+	   	if (!$error) $error = wfmsg('invalidpagetitle');
 		}
       // don't update in the case of the user passing in a non-existing titleString
       if ($update && !($titleString && !$title->exists())) {
@@ -1115,7 +1115,7 @@ function wfAddPage($args) {
                   $updated = false;
                   Person::updateFamilyLink('spouse_of_family', '', $args['sf'], $content, $updated);
                   if ($updated) {
-                     $article->doEdit($content, 'Add spouse family: [[Family:'.$args['sf'].']]', EDIT_UPDATE);
+                     $article->doEdit($content, wfMsg('addspousefamily') . '[[Family:'.$args['sf'].']]', EDIT_UPDATE);
                      StructuredData::purgeTitle($title, +1); // purge person with a fudge factor so family link will be blue
                   }
                }

@@ -70,17 +70,17 @@ function wfSpecialMerge( $par=NULL, $specialPage ) {
 	}
   	
 	$isGedcom = $mergeForm->isGedcom();
-	$wgOut->setPageTitle($isGedcom ? 'Update pages' : 'Merge pages');
+	$wgOut->setPageTitle($isGedcom ? wfMsg('updatepages') : wfmsg('mergepages'));
 
 	if ($mergeForm->getFormAction() == 'Cancel') {
-		$output = '<H2>Merge Cancelled</H2><p>You can use the <b>back</b> button on your browser to navigate back to where you were, or select an item from the menu.</p>';
+		$output = '<H2>'.wfMsg('mergecancelled').'</H2>'. wfMsg('backorselect');
 	}
 	else if ($mergeForm->getFormAction() == 'NotMatch') {
 		$output = $mergeForm->getNotMatchResults();
 	}
 	else if ($mergeForm->getFormAction() != 'Merge' || !$mergeForm->preMerge()) {
-		$output = '<H2>Unable to merge</H2>' . $mergeForm->getWarnings().
-			'<p>Press the <b>back</b> button on your browser to go back to the Compare page.</p>';
+		$output = '<H2>'. wfMsg('unabletomerge') .'</H2>' . $mergeForm->getWarnings().
+			'<p>'. wfMsg('backtocompare') . '</p>';
 	}
 	else if ($mergeForm->isSecondPhase()) {
 
@@ -607,7 +607,7 @@ class MergeForm {
    	}
    	$skin =& $wgUser->getSkin();
    	$targetTitle = Title::newFromText($this->data[0][0]['title'], ($this->namespace == 'Family' ? NS_FAMILY : NS_PERSON));
-   	$output = '<ul>The following pages have been marked <i>not a match</i> with <b>'.$skin->makeKnownLinkObj($targetTitle)."</b>:\n";
+   	$output = '<ul>'. wfMsg('pagesnotamatch') .'<b>'.$skin->makeKnownLinkObj($targetTitle)."</b>:\n";
    	$noMergeTemplates = array();
 		for ($j = 1; $j < count($this->data[0]); $j++) {
 			$sourceTitle = Title::newFromText($this->data[0][$j]['title'], $this->namespace == 'Family' ? NS_FAMILY : NS_PERSON);
@@ -621,7 +621,7 @@ class MergeForm {
 			if ($targetTalkContents) {
 				$targetTalkContents = rtrim($targetTalkContents) . "\n\n";
 			}
-			$article->doEdit($targetTalkContents . join("\n", $noMergeTemplates), 'Add nomerge template');
+			$article->doEdit($targetTalkContents . join("\n", $noMergeTemplates), wfMsg('addnomergetemplate'));
 			if ($this->addWatches) {
    			StructuredData::addWatch($wgUser, $article, true);
 			}
@@ -657,7 +657,7 @@ class MergeForm {
 	   	$this->createTargetTalkPages();
 	   	$this->getUpdatable();
 	   	if (!$this->editToken || !$wgUser->matchEditToken( $this->editToken)) {
-	   		$this->warnings[] = 'Not logged in, or session data lost; please try again.';
+	   		$this->warnings[] = wfMsg('notloggedsessionlost');
 	   	}
    	}
    	else {
@@ -668,11 +668,11 @@ class MergeForm {
    	}
    	
    	if (!$this->validateMergeTargets()) {
-   		$this->warnings[] = 'Something is wrong.  The merge target is invalid.';
+   		$this->warnings[] = wfMsg('mergetargetinvalid');
    	}
 
    	if (count($this->nomerges) > 0) {
-   		$warning = 'The following pages cannot be merged. (see comments on the talk page):<ul>';
+   		$warning = wfMsg('followingcannotmerged') . '<ul>';
    		foreach ($this->nomerges as $nomerge) {
 				$warning .= '<li>'.$skin->makeKnownLinkObj($nomerge->getTalkPage(), htmlspecialchars($nomerge->getTalkPage()->getPrefixedText())).'</li>';
    		}
@@ -691,16 +691,15 @@ class MergeForm {
 			$spouseFamilies = array();
 			$rowGender = '';
 			for ($p = 0; $p < count($this->data[$m]); $p++) {
-				$fullTitle = ($m == 0 && $this->namespace == 'Family' ? 'Family:' : 'Person:') . $this->data[$m][$p]['title'];
+				$fullTitle = ($m == 0 && $this->namespace == 'Family' ? wfMsg('family:') : wfMsg('person:') ) . $this->data[$m][$p]['title'];
 				if (@$seenTitles[$fullTitle]) {
-					$this->warnings[] = '<b>'.htmlspecialchars($fullTitle).'</b> appears in multiple rows.'.
-						' If the same person appears in different families, they must be merged together in the same row.';
+					$this->warnings[] = wfMsg('_multiplemustbemerged', htmlspecialchars($fullTitle) );
 				}
 				$seenTitles[$fullTitle] = 1;
 				
 				// verify that all pages in row 0 (the primary row) exist
 				if ($m == 0 && !$this->data[$m][$p]['revid'] && !$this->data[$m][$p]['gedcom']) {
-						$this->warnings[] = '<b>'.htmlspecialchars($this->data[$m][$p]['title']).'</b> not found.  This page cannot be merged.';
+						$this->warnings[] = wfMsg('_notfoundcannotmerged', htmlspecialchars($this->data[$m][$p]['title']));
 				}
 				
 				// verify that the pages being merged in this row won't have overlapping husbands/wives/children or child_of_families/spouse_of_families
@@ -716,30 +715,29 @@ class MergeForm {
 						$rowGender = $this->data[$m][$p]['gender'];
 					}
 					else if ($this->data[$m][$p]['gender'] && $this->data[$m][$p]['gender'] != $rowGender) {
-						$this->warnings[] = '<b>'.htmlspecialchars($this->data[$m][$p]['title']).'</b> has a different gender than the page(s) being merged.  These people cannot be merged.';
+						$this->warnings[] = wfMsg('_differentgendercannotmerged', htmlspecialchars($this->data[$m][$p]['title']));
 					}
 				}
 			}
 			$inter = array_intersect($husbands, $wives);
-			if (count($inter) > 0) $this->warnings[] = '<b>'.htmlspecialchars($inter[0]).'</b> appears as both a husband and a wife.  These families cannot be merged.';
+			if (count($inter) > 0) $this->warnings[] = wfMsg('_appearshusbandwife', htmlspecialchars($inter[0]));
 			$inter = array_intersect($husbands, $children);
-			if (count($inter) > 0) $this->warnings[] = '<b>'.htmlspecialchars($inter[0]).'</b> appears as both a husband and a child.  These families cannot be merged.';
+			if (count($inter) > 0) $this->warnings[] = wfMsg('_appearshusbandchild', htmlspecialchars($inter[0]));
 			$inter = array_intersect($children, $wives);
-			if (count($inter) > 0) $this->warnings[] = '<b>'.htmlspecialchars($inter[0]).'</b> appears as both a wife and a child.  These families cannot be merged.';
+			if (count($inter) > 0) $this->warnings[] = wfMsg('_appearswifechild', htmlspecialchars($inter[0]));
 			$inter = array_intersect($parentFamilies, $spouseFamilies);
-			if (count($inter) > 0) $this->warnings[] = '<b>'.htmlspecialchars($inter[0]).'</b> appears as both a parent family and a spouse family. These people cannot be merged.';
+			if (count($inter) > 0) $this->warnings[] = wfMsg('_appearsparentspouse',htmlspecialchars($inter[0]));
 		}
-		
+        //$maxmerges = self::MAX_MERGES;
 		if ($maxWidth < 2) {
-			$this->warnings[] = '<b>No pages to merge.</b> You need to check the boxes above the pages you want to merge.';
+			$this->warnings[] = wfMsg('nocheckboxesmerge');
 		}
 		else if ($maxWidth > self::MAX_MERGES) {
-			$this->warnings[] = '<b>Too many pages to merge.</b> Sorry - you can merge up to '.self::MAX_MERGES.' pages into a single page.'.
-				' If you need to merge more, please divide them into groups of '.self::MAX_MERGES.', merge the pages in each group, then merge the groups.';
+			$this->warnings[] = wfMsg('toomanymerge', self::MAX_MERGES); //possible error; don't know if wfMsg can catch 'self::MAX_MERGES'
 		}
 		
 		if ($this->isGedcom() && !$this->gedcomId) {
-			$this->warnings[] = "Something's wrong - we're missing the GEDCOM id; please refresh your browser and try again.";
+			$this->warnings[] = wfMsg('missinggedcomid');
 		}
 		
 		return count($this->warnings) == 0;
@@ -1646,24 +1644,24 @@ END;
    	$cols = $maxPages*3 + 1;
    	$nonmergedPages = $this->getNonmergedPages();
 		if ($nonmergedPages) {
-			$nonmergedPages = '<p>In addition to people listed above, the following will also be included in the target family' . 
-										($this->isGedcom() ? '<br/>(GEDCOM people listed will be added when the GEDCOM imported)' : '') .
+			$nonmergedPages = '<p>'. wfMsg('followingincludedfamily') .
+										($this->isGedcom() ? '<br/>'. wfMsg('peoplelistedadded') : '') .
 										$nonmergedPages . "</p>\n";
 		}
 		$semiProtectedMsg = ($semiProtected ? '<br>'.CompareForm::getSemiProtectedMessage($this->isTrusted) : '');
 		if ($this->isGedcom()) {
 			$cancelFunction = 'doCancelGedcom()';
 			$mergeFunction = 'doMergeGedcom()';
-			$mergeLabel = 'Update';
+			$mergeLabel = wfMsg('update');
 			$mergeSummary = '';
-			$mergeTitle = 'Update the existing page(s) with the checked information from your GEDCOM';
+			$mergeTitle = wfMsg('updatepagesinformation');
 		}
 		else {
 			$cancelFunction = 'doCancel()';
 			$mergeFunction = 'doMerge()';
-			$mergeLabel = 'Merge';
+			$mergeLabel = wfMsg('merge');
 			$mergeSummary = 'Merge Summary: &nbsp; <input type="text" size="25" name="userComment"> &nbsp; &nbsp;';
-			$mergeTitle = 'Combine the pages, keeping only the checked information';
+			$mergeTitle = wfMsg('combineonlychecked');
 		}
 		$output .= <<< END
 <tr><td align=right colspan="$cols"><input type="hidden" name="formAction">
@@ -1724,7 +1722,7 @@ END;
    			else {
    				$obj = new Person($this->data[$m][0]['title']);
    			}
-   			$obj->createPage('Create page in preparation for merge');
+   			$obj->createPage(wfMsg('createpagepreparation'));
    			
 	  			// update link cache
 	  			$title->resetArticleID(0);
@@ -1747,7 +1745,7 @@ END;
 				$mergeTargetTalkTitle = Title::newFromText($this->data[$m][0]['title'], $this->namespace == 'Family' && $m == 0 ? NS_FAMILY_TALK : NS_PERSON_TALK);
 				$article = new Article($mergeTargetTalkTitle, 0);
 				if ($article) {
-					$article->doEdit('', 'Create page in preparation for merge', EDIT_NEW);
+					$article->doEdit('', wfMsg('createpageinpreparation'), EDIT_NEW);
 					$this->data[$m][0]['talkrevid'] = $article->getRevIdFetched();
 				}
    		}
@@ -2325,7 +2323,7 @@ END;
 		$mergeCmtSuffix = $this->isGedcom() ? '' : " - [[Special:ReviewMerge/$mergeLogId|review/undo]]";
 		if ($this->namespace == 'Family' && !$this->isGedcom()) {
 			$t = Title::newFromText($this->data[0][0]['title'], NS_FAMILY);
-			$mergeCmtFamily = ($this->namespace == 'Family' ? " in merge of [[{$t->getPrefixedText()}]]" : '');
+			$mergeCmtFamily = ($this->namespace == 'Family' ? wfMsg('inmergeof', $t->getPrefixedText()) : '');
 		}
 		else {
 			$mergeCmtFamily = '';
@@ -2362,13 +2360,13 @@ END;
 			
 			$notesMap = array();
 			$noteAdoptions = array();
-			$this->generateMapAdoptions('notes', 'N', $mergeTargetNs, $this->data[$m], $this->add[$m], $this->key[$m], $keepKeys, $notesMap, $noteAdoptions);
+			$this->generateMapAdoptions(wfMsg('notes'), 'N', $mergeTargetNs, $this->data[$m], $this->add[$m], $this->key[$m], $keepKeys, $notesMap, $noteAdoptions);
 			$sourcesMap = array();
 			$sourceAdoptions = array();
-			$this->generateMapAdoptions('sources', 'S', $mergeTargetNs, $this->data[$m], $this->add[$m], $this->key[$m], $keepKeys, $sourcesMap, $sourceAdoptions);
+			$this->generateMapAdoptions(wfMsg('sources'), 'S', $mergeTargetNs, $this->data[$m], $this->add[$m], $this->key[$m], $keepKeys, $sourcesMap, $sourceAdoptions);
 			$imagesMap = array();
 			$imageAdoptions = array();
-			$this->generateMapAdoptions('images', 'I', $mergeTargetNs, $this->data[$m], $this->add[$m], $this->key[$m], $keepKeys, $imagesMap, $imageAdoptions);
+			$this->generateMapAdoptions(wfMsg('images'), 'I', $mergeTargetNs, $this->data[$m], $this->add[$m], $this->key[$m], $keepKeys, $imagesMap, $imageAdoptions);
 				
 			// get request data for merge target
 			for ($p = 0; $p < count($this->data[$m]); $p++) {
@@ -2460,7 +2458,7 @@ END;
 		   			StructuredData::addWatch($wgUser, $article, true); 
 					}
 				}
-				$outputRow .= '<li>Merged ' . $talkOutput . ' into ' . $skin->makeKnownLinkObj($mergeTargetTalkTitle, htmlspecialchars($mergeTargetTalkTitle->getPrefixedText()))."</li>";
+				$outputRow .= '<li>' . wfMsg('merged_into', $talkOutput, $skin->makeKnownLinkObj($mergeTargetTalkTitle, htmlspecialchars($mergeTargetTalkTitle->getPrefixedText())) )."</li>";
 			}
 			
 			$obj = $this->data[$m][0]['object'];
@@ -2472,17 +2470,17 @@ END;
 			}
 			// update merge target
 			$req = new FauxRequest($requestData, true);
-			$comment = $this->makeComment($this->userComment, ($mergeSummary == 'gedcom' ? 'Add data from gedcom' : 'merged with '.$mergeSummary).$mergeCmtFamily,$mergeCmtSuffix);
+			$comment = $this->makeComment($this->userComment, ($mergeSummary == 'gedcom' ? wfMsg('adddatagedcom') : wfMsg('mergedwith', $mergeSummary)) . $mergeCmtFamily,$mergeCmtSuffix);
 			$obj->editPage($req, $contents, $comment, $editFlags, $this->addWatches);
-			$outputRow .= '<li>Merged ' . $mainOutput . ' into ' . $skin->makeKnownLinkObj($mergeTargetTitle, htmlspecialchars($mergeTargetTitle->getPrefixedText()))."</li>";
+			$outputRow .= '<li>' . wfMsg('merged_into', $mainOutput, $skin->makeKnownLinkObj($mergeTargetTitle, htmlspecialchars($mergeTargetTitle->getPrefixedText())) )."</li>";
 
 			$outputRows[] = $outputRow;
 		}
 		
 		// add log and recent changes
 		if (!$this->isGedcom()) {
-			if (!$mergeSummary) $mergeSummary = 'members of other families';
-			$mergeComment = 'Merge [['.$mergeTargetTitle->getPrefixedText().']] and '.$mergeSummary;
+			if (!$mergeSummary) $mergeSummary = wfMsg('membersotherfamilies');
+			$mergeComment = wfMsg('merge[[targettitle]]', $mergeTargetTitle->getPrefixedText() ) .$mergeSummary;
 			$log = new LogPage( 'merge', false );
 			$t = Title::makeTitle(NS_SPECIAL, "ReviewMerge/$mergeLogId");
 			$log->addEntry('merge', $t, $mergeComment);
@@ -2492,12 +2490,12 @@ END;
 										
 		$nonmergedPages = $this->getNonmergedPages();
 		$output .= join("\n", array_reverse($outputRows)) . '</ul>'.  // reverse the order to put back in the top-down order
-						($nonmergedPages ? '<p>In addition to the people listed above, the following have also been included in the target family' . 
-												($this->isGedcom() ? '<br/>(GEDCOM people listed will be added when the GEDCOM is imported)' : '') .
+						($nonmergedPages ? '<p>' . wfMsg('followingincludedinfamily') .
+												($this->isGedcom() ? '<br/>' . wfMsg('gedcomaddedimported') : '') .
 												$nonmergedPages . "</p>\n" : '') .
 						($this->isGedcom() ? '' : '<p>'.
-														$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'ReviewMerge/'.$mergeLogId), htmlspecialchars("Review/undo merge")).'<br>'.
-														$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'ShowDuplicates'), htmlspecialchars("Show more duplicates")).
+														$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'ReviewMerge/'.$mergeLogId), htmlspecialchars(wfMsg('reviewundomerge'))).'<br>'.
+														$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'ShowDuplicates'), htmlspecialchars(wfMsg('showmoreduplicates'))).
 														'</p>');
 
 		return $output;

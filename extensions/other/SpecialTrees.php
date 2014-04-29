@@ -115,23 +115,23 @@ class SpecialTrees {
 				$db->rollback();
 			}
 	      if ($status == FTE_DUP_KEY) {
-	      	$msg = 'You already have a tree named '.$this->newName;
+	      	$msg = wfMsg('alreadytreenamed', htmlspecialchars($this->newName));
 	      }
 	      else if ($status == FTE_INVALID_ARG) {
-	      	$msg = $this->newName . ' is not a valid tree name';
+	      	$msg = wfMsg('_notvalidtree', htmlspecialchars($this->newName));
 	      }
 	      else if ($status != FTE_SUCCESS) {
-	      	$msg = 'Error creating '.$this->newName;
+	      	$msg = wfMsg('errorcreating_', htmlspecialchars($this->newName));
 	      }
 	      else {
-	      	$msg = $this->newName.' was created';
+	      	$msg = $this->wfMsg('_wascreated', htmlspecialchars(newName));
 	      }
          $this->show($msg);
       }
       else {
-      	$label = 'Tree name';
+      	$label = wfMsg('treename');
 			$field = $label.': <input type="text" name="newName"/>';
-      	$this->showInputForm('New tree', $field, 'add', 'Add');
+      	$this->showInputForm(wfMsg('newtree'), $field, 'add', wfMsg('add'));
       }
    }
    
@@ -198,30 +198,30 @@ class SpecialTrees {
                $msg = 'Error renaming '.$this->name;
             }
             else {
-               $msg = $this->name.($renameExisting ? ' was merged into ' : ' was renamed to ').$this->newName.
-                       ".  It will take about an hour to re-index the pages so that they are searchable under the new ".
-                       ($renameExisting ? 'tree.' : 'name.');
+                $_renamedmergedto =
+               $msg = wfMsg('renamedmergedto', htmlspecialchars($this->name), $renameExisting, htmlspecialchars($this->newName));
+
             }
             $this->show($msg);
          }
          else if ($this->name == $this->newName) {
-            $this->show('This tree is already named '.$this->newName);
+            $this->show(wfMsg('treealreadynamed', htmlspecialchars($this->newName)));
          }
          else if ($this->canceled) {
             $this->show();
          }
          else {
-            $label = 'Are you sure you want to merge <b>'.htmlspecialchars($this->name).'</b> into <b>'.htmlspecialchars($this->newName).'</b>?<br>';
+            $label = wfMsg('surewanttomerge', htmlspecialchars($this->name), htmlspecialchars($this->newName));
             $newNameField = '<input type="hidden" name="newName" value="'.htmlspecialchars($this->newName).'"/>';
-            $field = $label.$newNameField.'<input type="submit" name="confirmed" value="Yes"/>';
-            $this->showInputForm('Are you sure?', $field, 'canceled', 'No');
+            $field = $label.$newNameField.'<input type="submit" name="confirmed" value='.wfMsg('yes').'/>';
+            $this->showInputForm(wfMsg('areyousure'), $field, 'canceled', wfMsg('no'));
          }
       }
       else {
          $text = wfMsgWikiHtml('TreeRenameMsg');
-      	$label = 'New name';
+      	$label = wfMsg('newname');
 			$field = $text.'<br>'.$label.': <input type="text" name="newName"/>';
-      	$this->showInputForm('Rename/Merge tree: ' . $this->name, $field, 'go', 'Go');
+      	$this->showInputForm(wfMsg('renamemergetree', htmlspecialchars($this->name)), $field, 'go', wfMsg('go'));
       }
    }
 
@@ -248,10 +248,10 @@ class SpecialTrees {
 				$db->rollback();
 			}
 	      if ($status != FTE_SUCCESS) {
-	      	$msg = 'Error deleting '.$this->name;
+	      	$msg = wfMsg('errordeleting', $this->name);
 	      }
 	      else {
-	      	$msg = $this->name.' is being deleted';
+	      	$msg = wfMsg('isbeingdeleted', $this->name);
 	      }
          $this->show($msg);
       }
@@ -260,8 +260,8 @@ class SpecialTrees {
       }
       else {
          $label = wfMsgWikiHtml('TreeDeleteMsg', htmlspecialchars($this->name), urlencode($this->name), urlencode($userName));
-      	$field = $label.'<br><input type="submit" name="confirmed" value="Yes"/>';
-      	$this->showInputForm('Are you sure?', $field, 'canceled', 'No');
+      	$field = $label.'<br><input type="submit" name="confirmed" value='.wfMsg('yes').'/>';
+          $this->showInputForm(wfMsg('areyousure'), $field, 'canceled', wfMsg('no'));
       }
    }
    
@@ -273,12 +273,12 @@ class SpecialTrees {
    	$treeId = $dbr->selectField('familytree', 'ft_tree_id', array('ft_user' => $userName, 'ft_name' => $this->name));
    	
    	if (!$treeId) {
-   		$this->show("Tree not found");
+   		$this->show(wfMsg('treenotfound'));
    	}
    	else {
 	      $job = new GedcomExportJob(array('tree_id' => $treeId, 'user' => $userName, 'name' => $this->name));
 	      $job->insert();
-	   	$this->show("Your GEDCOM file is being created.  This typically takes 10-30 minutes.  You will receive a message on your talk page when the GEDCOM is ready.");
+	   	$this->show(wfMsg('gedcombeingcreated'));
    	}
    }
    
@@ -309,7 +309,7 @@ class SpecialTrees {
    	$filename = $dbr->selectField(array('familytree_gedcom', 'familytree'), 'fg_gedcom_filename',
    											array('fg_id' => $this->gedcomId, 'fg_tree_id = ft_tree_id', 'ft_user' => $wgUser->getName()));
    	if (!$filename) {
-   		$this->show('You cannot download this GEDCOM');
+   		$this->show(wfMsg('cannotdownloadgedcom'));
    	}
    	else {
 	   	// get gedcom file
@@ -328,7 +328,7 @@ class SpecialTrees {
   		$file = "$wrGedcomExportDirectory/$treeId.ged";
 
    	if (!file_exists($file)) {
-   		$this->show('GEDCOM file not found');
+   		$this->show(wfMsg('gedcomnotfound'));
    	}
    	else {
    		$this->downloadFile($file, "{$this->name}.ged");
@@ -362,7 +362,7 @@ END
    private function show($msg='') {
    	global $wgUser, $wgOut;
 
-		$wgOut->setPageTitle( 'Manage Trees' );
+		$wgOut->setPageTitle( wfMsg('managetrees') );
 		$wgOut->setRobotpolicy( 'noindex,nofollow' );
 		$wgOut->setArticleRelated( false );
 
@@ -388,7 +388,7 @@ END
       	   switch ($row->fg_status) {
       	      case FG_STATUS_READY:
       	      case FG_STATUS_OPENED:
-      	      	$tip = 'Download the GEDCOM that you uploaded to WeRelate';
+      	      	$tip = wfMsg('downloadgedcomuploaded');
 				      $download = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'Download', 
 				      					wfArrayToCGI(array('action' => 'download', 'gedcomId' => $row->fg_id)), '', '', '', " title=\"$tip\"");
       	         $status = 'Import: '.date("d M Y",wfTimestamp(TS_UNIX,$row->fg_status_date));
@@ -415,7 +415,7 @@ END
    	$skin =& $wgUser->getSkin();
 
       $ret = '<div id="familytree-table"><table width="99%" cellpadding="5" cellspacing="0" border="0">'.
-              '<tr><td><b>Name</b></td><td><b>Pages</b></td><td><b>Imported GEDCOMs</b></td><td><b>Export a GEDCOM</b></td><td><b>Rename / Merge tree</b></td><td><b>Related pages not in tree</b></td><td><b>Other watchers</b></td><td><b>E-mail (share)</b></td><td><b>Deletion impact</b></td><td><b>Delete</b></td></tr>';
+              '<tr><td><b>'.wfMsg('name').'</b></td><td><b>'.wfMsg('pages').'</b></td><td><b>'.wfMsg('importgedcoms').'</b></td><td><b>'.wfMsg('exportgedcom').'</b></td><td><b>'.wfMsg('renameslashmergetree').'</b></td><td><b>'.wfMsg('relatednotintree').'</b></td><td><b>'.wfMsg('otherwatchers').'</b></td><td><b>'.wfMsg('emailshare').'</b></td><td><b>'.wfMsg('deletionimpact').'</b></td><td><b>Delete</b></td></tr>';
 		$db =& wfGetDB( DB_MASTER ); // make sure we show just-added or renamed trees
 		$familyTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName(), true, $db);
       if (!is_null($familyTrees)) {
@@ -440,7 +440,7 @@ END
       }
 
       $ret .= '</table></div>';
-      $ret .= '<p>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'Create a new family tree', wfArrayToCGI(array('action' => 'newTree')));
+      $ret .= '<p>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), wfMsg('createnewtree'), wfArrayToCGI(array('action' => 'newTree')));
       return $ret;
    }
 }

@@ -49,7 +49,7 @@ class SkinMonoBook extends SkinTemplate {
 				'active' => ( $this->userpageUrlDetails['href'] == $pageurl )
 			);
          $personal_urls['preferences'] = array(
-            'text' => 'Settings',
+            'text' => wfMsg('settings'),
             'href' => $this->makeNSUrl('Preferences', '', NS_SPECIAL),
          );
 		}
@@ -73,7 +73,7 @@ class SkinMonoBook extends SkinTemplate {
 			);
 		}
       $personal_urls['donate'] = array(
-         'text' => 'Volunteer',
+         'text' => wfMsg('volunteer'),
          'href' => $this->makeNSUrl('Maintenance', '', NS_PORTAL)
       );
       $personal_urls['help'] = array();

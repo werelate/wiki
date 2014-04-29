@@ -43,8 +43,8 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 		$wgOut->redirect($redirTitle->getFullURL());
 		return;
 	}
-	
-	$wgOut->setPageTitle($searchForm->target ? 'Search for possible matches' : 'Search WeRelate');
+
+	$wgOut->setPageTitle($searchForm->target ? wfMsg('searchpossiblematches') : wfMsg('searchwerelate'));
    $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.yui.30.js\"></script>");
 	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.yui.8.js\"></script>");
 
@@ -578,59 +578,59 @@ class SearchForm {
       $words = explode(' ',$this->title);
       foreach ($words as $word) {
          if ($this->wildcardWithoutEnoughLetters($word)) {
-            $errMsg[] = "Need at least three non-wildcard letters in Title";
+            $errMsg[] = wfMsg('needthreetitle');
          }
       }
       $words = explode(' ',$this->sourceTitle);
       foreach ($words as $word) {
          if ($this->wildcardWithoutEnoughLetters($word)) {
-            $errMsg[] = "Need at least three non-wildcard letters in Title";
+            $errMsg[] = wfMsg('needthreetitle');
          }
       }
       $words = explode(' ',$this->author);
       foreach ($words as $word) {
          if ($this->wildcardWithoutEnoughLetters($word)) {
-            $errMsg[] = "Need at least three non-wildcard letters in Author";
+            $errMsg[] = wfMsg('needthreeauthor');
          }
       }
       if (mb_strpos($this->keywords, '?') !== false || mb_strpos($this->keywords, '*') !== false) {
-         $errMsg[] = "Cannot use wildcards in the Keywords field";
+         $errMsg[] = wfMsg('cannotwildcardkeywords');
       }
       if ($this->wildcardWithoutEnoughLetters($this->givenname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Givenname";
+         $errMsg[] = wfMsg('needthreegivenname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->surname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Surname";
+         $errMsg[] = wfMsg('needthreesurname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->fatherGivenname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Father Givenname";
+         $errMsg[] = wfMsg('threefathergivenname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->fatherSurname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Father Surname";
+         $errMsg[] = wfMsg('threefathersurname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->motherGivenname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Mother Givenname";
+         $errMsg[] = wfMsg('threemothergivenname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->motherSurname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Mother Surname";
+         $errMsg[] = wfMsg('threemothersurname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->spouseGivenname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Spouse Givenname";
+         $errMsg[] = wfMsg('threespousegivenname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->spouseSurname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Spouse Surname";
+         $errMsg[] = wfMsg('threespousesurname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->husbandGivenname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Husband Givenname";
+         $errMsg[] = wfMsg('threehusbandgivenname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->husbandSurname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Husband Surname";
+         $errMsg[] = wfMsg('threehusbandsurname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->wifeGivenname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Wife Givenname";
+          $errMsg[] = wfMsg('threewifegivenname');
       }
       if ($this->wildcardWithoutEnoughLetters($this->wifeSurname)) {
-         $errMsg[] = "Need at least three non-wildcard letters in Wife Surname";
+          $errMsg[] = wfMsg('threewifesurname');
       }
       return join(' ', $errMsg);
    }
@@ -1114,19 +1114,19 @@ class SearchForm {
       if ($end > $numFound) {
       	$end = $numFound;
       }
-      
+
 		if ($this->target && $this->namespace != 'Image') { // can't currently add images from here; just select them
          $jsFunction = $this->getAddJSFunction().'; return preventDefaultAction(event);';
-			$output .= "<table><tr><td><input type=\"submit\" value=\"Add Page\" onClick=\"$jsFunction\"/></td>"
-				."<td><b> Select one of the pages below, or click <a href=\"javascript:void(0);\" onClick=\"$jsFunction\">Add Page</a> to create a new page</b>"
-            .' &nbsp; <span id="pleasewait" style="display: none"><span style="font-size: 80%; padding: 0 .2em; color: #fff; background-color: #888">Please Wait</span></span>'
+			$output .= "<table><tr><td><input type=\"submit\" value=\"".wfMsg('addpage')."\" onClick=\"$jsFunction\"/></td>"
+				."<td><b>".wfMsg('selectpageclick', $jsFunction)
+            .' &nbsp; <span id="pleasewait" style="display: none"><span style="font-size: 80%; padding: 0 .2em; color: #fff; background-color: #888">' . wfMsg('pleasewait'). '</span></span>'
 				.($this->target != 'AddPage' && $this->target != 'gedcom' && ($this->namespace == 'Person' || $this->namespace == 'Family')
                  ? '<br/>'.FamilyTreeUtil::generateTreeCheckboxes($wgUser, null, true) : '')
 				.'</td></tr></table><hr/>';
 		}
 		
       if ($numFound == 0 && count($recentDocs) == 0) {
-          $output .= '<p></p><p><font size=+1>Your search did not match any documents.</font></p>';
+          $output .= '<p></p><p><font size=+1>'.wfMsg('searchnotmatchdocuments').'</font></p>';
       }
       else {
 	      // display prev..next naviagtion
@@ -1152,7 +1152,7 @@ class SearchForm {
 				if ($t) {
 					$ts = htmlspecialchars($t->getText());
 					$titleText = GedcomUtil::isGedcomTitle($this->pagetitle) ? '<b>'.htmlspecialchars($t->getPrefixedText()).'</b>' : $skin->makeKnownLinkObj($t);
-					$compareButton = '<input type="submit" value="Compare"/> checked pages with '.$titleText;
+					$compareButton = '<input type="submit" value="'.wfMsg('compare').'"/> ' . wfMsg('checkedpageswith',$titleText);
 				}
 				$output .= '<form name="compare" action="'.$wrCompareURL.'" method="post">'.
 								$compareButton.
@@ -1387,8 +1387,8 @@ END;
 			if (count($facets) > 0) {
 				$result .= '<ul>';
 				foreach ($facets as $userName => $count) {
-					$result .= "<li><a href=\"$selfQuery&watch=w\">Watched</a> ($count)</li>" .
-					           "<li><a href=\"$selfQuery&watch=u\">Unwatched</a>".($numFound ? ' ('.($numFound - $count).')' : '').'</li>';
+					$result .= '<li><a href="$selfQuery&watch=w">'.wfMsg('watched').'</a> ($count)</li>' .
+					           '<li><a href="$selfQuery&watch=u">'.wfMsg('unwatched').'</a>'.($numFound ? ' ('.($numFound - $count).')' : '').'</li>';
 					break;
 				}
 				$result .= '</ul>';
@@ -1496,8 +1496,9 @@ END;
 		global $wgOut, $wgScriptPath, $http_response_header;
 
 		// send the query to the search server
-//wfDebug("searchServerQuery=$searchServerQuery\n");
-		$responseString = file_get_contents($searchServerQuery);
+        //wfDebug("searchServerQuery=$searchServerQuery\n");
+        error_log("searchServerQuery=$searchServerQuery");
+        $responseString = file_get_contents($searchServerQuery);
 		if (!$responseString) {
 			list($version, $status_code, $msg) = explode(' ', $http_response_header[0], 3);
 			if ($status_code != '400') {
@@ -1640,76 +1641,103 @@ END;
       $heading = ($this->target && $this->namespace != 'Image' ? '<h2 style="padding-bottom:4px">Step 2. Review possible matches. Select a match or click Add Page</h2>' : '');
       $condensedChecked = ($this->condensedView ? ' checked="checked"' : '');
 
+       $surnamecolon = wfMsg('surname:');
+       $fathergivencolon = wfMsg('fathergiven:');
+       $mothergivencolon = wfMsg('mothergiven:');
+       $spousegivencolon = wfMsg('spousegiven:');
       if ($this->target) {
          $relativeRows = '';
       }
       else {
          $relativeRows = <<< END
 <tr id="father_row">
-<td align=right>Father given: </td><td colspan=2><input id="input_fg" class="input_medium" type="text" name="fg" maxlength=50 value="$fathergivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_fs" class="input_medium" type="text" name="fs" maxlength=50 value="$fathersurname" onfocus="select()"/></td>
+<td align=right>$fathergivencolon</td><td colspan=2><input id="input_fg" class="input_medium" type="text" name="fg" maxlength=50 value="$fathergivenname" onfocus="select()"/></td>
+<td align=right>$surnamecolon</td><td colspan=2><input id="input_fs" class="input_medium" type="text" name="fs" maxlength=50 value="$fathersurname" onfocus="select()"/></td>
 </tr><tr id="mother_row">
-<td align=right>Mother given: </td><td colspan=2><input id="input_mg" class="input_medium" type="text" name="mg" maxlength=50 value="$mothergivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_ms" class="input_medium" type="text" name="ms" maxlength=50 value="$mothersurname" onfocus="select()"/></td>
+<td align=right>$mothergivencolon</td><td colspan=2><input id="input_mg" class="input_medium" type="text" name="mg" maxlength=50 value="$mothergivenname" onfocus="select()"/></td>
+<td align=right>$surnamecolon</td><td colspan=2><input id="input_ms" class="input_medium" type="text" name="ms" maxlength=50 value="$mothersurname" onfocus="select()"/></td>
 </tr><tr id="spouse_row">
-<td align=right>Spouse given: </td><td colspan=2><input id="input_sg" class="input_medium" type="text" name="sg" maxlength=50 value="$spousegivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_ss" class="input_medium" type="text" name="ss" maxlength=50 value="$spousesurname" onfocus="select()"/></td>
+<td align=right>$spousegivencolon</td><td colspan=2><input id="input_sg" class="input_medium" type="text" name="sg" maxlength=50 value="$spousegivenname" onfocus="select()"/></td>
+<td align=right>$surnamecolon</td><td colspan=2><input id="input_ss" class="input_medium" type="text" name="ss" maxlength=50 value="$spousesurname" onfocus="select()"/></td>
 </tr>
 END;
       }
 
+
+        $search = wfMsg('search');
+       $namespacecolon = wfMsg('namespace:');
+       $authorcolon = wfMsg('author:');
+       $titlecolon = wfMsg('title:');
+       $coverscolon = wfMsg('covers:');
+       $givencolon = wfMsg('givenname:');
+       $placecolon = wfMsg('place:');
+       $surnamecolon = wfMsg('surname:');
+       $includeplacesfor = wfMsg('includeplacesfor', $supChecked);
+       $deathcolon = wfMsg('deathdate:');
+       $birthcolon = wfMsg('birthdate:');
+       $husbandgivencolon = wfMsg('husbandgiven:');
+       $wifegivencolon = wfMsg('wifegiven:');
+       $marriagedatecolon = wfMsg('marriagedate:');
+       $placenamecolon = wfMsg('placename:');
+       $locatedincolon = wfMsg('locatedin:');
+       $subjectcolon = wfMsg('subject:');
+       $availabilitycolon = wfMsg('availability:');
+       $pagetitlecolon = wfMsg('pagetitle:');
+       $keywordscolon = wfMsg('keywords:');
+       $resultsperpage = wfMsg('resultsperpage', $rowsSelector, $condensedChecked, $ecpSelector);
+
 		$result = <<< END
 $heading
-<form id="search_form" name="search" action="/wiki/Special:Search" method="get">
+<form id="search_form" name="$search" action="/wiki/Special:Search" method="get">
 $hiddenFields
 <table id="searchform" class="searchform"><tr>
 <td colspan=6 align=right><span class="sort_label">Sort by</span>$sortSelect</td>
 </tr><tr>
-<td align=right>Namespace: </td><td>$nsSelect</td><td>$talkSpan</td>
+<td align=right>$namespacecolon</td><td>$nsSelect</td><td>$talkSpan</td>
 <td colspan=3 align=right>$watchSelect</td>
 </tr><tr id="author_row">
-<td align=right>Author: </td><td colspan=5><input id="input_a" class="input_long" type="text" name="a" maxlength=100 value="$author" onfocus="select()"/></td>
+<td align=right>$authorcolon</td><td colspan=5><input id="input_a" class="input_long" type="text" name="a" maxlength=100 value="$author" onfocus="select()"/></td>
 </tr><tr id="source_title_row">
-<td align=right>Title: </td><td colspan=5><input id="input_st" class="input_long" type="text" name="st" maxlength=100 value="$sourcetitle" onfocus="select()"/></td>
+<td align=right>$titlecolon</td><td colspan=5><input id="input_st" class="input_long" type="text" name="st" maxlength=100 value="$sourcetitle" onfocus="select()"/></td>
 </tr><tr id="coverage_row">
-<td align=right></td><td colspan=5>Covers:</td>
+<td align=right></td><td colspan=5>$coverscolon</td>
 </tr><tr id="name_row">
-<td id="givenname_cell1" align=right>Given name: </td><td id="givenname_cell2" colspan=2><input id="input_g" class="input_medium" type="text" name="g" maxlength=50 value="$givenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_s" class="input_medium" type="text" name="s" maxlength=50 value="$surname" onfocus="select()"/></td>
+<td id="givenname_cell1" align=right>$givencolon</td><td id="givenname_cell2" colspan=2><input id="input_g" class="input_medium" type="text" name="g" maxlength=50 value="$givenname" onfocus="select()"/></td>
+<td align=right>$surnamecolon</td><td colspan=2><input id="input_s" class="input_medium" type="text" name="s" maxlength=50 value="$surname" onfocus="select()"/></td>
 </tr><tr id="place_row">
-<td align=right>Place: </td><td colspan=5><input id="input_p" class="input_long place_input" type="text" name="p" maxlength=130 value="$place" onfocus="select()"/></td>
+<td align=right>$placecolon</td><td colspan=5><input id="input_p" class="input_long place_input" type="text" name="p" maxlength=130 value="$place" onfocus="select()"/></td>
 </tr><tr id="source_place_row">
-<td align=right></td><td colspan=5>&nbsp; Include sources for <input type="checkbox" name="sub"$subChecked/>subordinate places <input type="checkbox" name="sup"$supChecked/>superior places</td>
+<td align=right></td><td colspan=5>&nbsp;$includeplacesfor</td>
 </tr><tr id="birth_row">
-<td align=right>Birth date: </td><td colspan=2><input id="input_bd" class="input_short" type="text" name="bd" size=14 maxlength=25 value="$birthdate" onfocus="select()"/> &nbsp;$birthRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_bp" class="input_medium place_input" type="text" name="bp" maxlength=130 value="$birthplace" onfocus="select()"/></td>
+<td align=right>$birthcolon</td><td colspan=2><input id="input_bd" class="input_short" type="text" name="bd" size=14 maxlength=25 value="$birthdate" onfocus="select()"/> &nbsp;$birthRangeSelect</td>
+<td align=right>$placecolon</td><td colspan=2><input id="input_bp" class="input_medium place_input" type="text" name="bp" maxlength=130 value="$birthplace" onfocus="select()"/></td>
 </tr><tr id="death_row">
-<td align=right>Death date: </td><td colspan=2><input id="input_dd" class="input_short" type="text" name="dd" size=14 maxlength=25 value="$deathdate" onfocus="select()"/> &nbsp;$deathRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_dp" class="input_medium place_input" type="text" name="dp" maxlength=130 value="$deathplace" onfocus="select()"/></td>
+<td align=right>$deathcolon</td><td colspan=2><input id="input_dd" class="input_short" type="text" name="dd" size=14 maxlength=25 value="$deathdate" onfocus="select()"/> &nbsp;$deathRangeSelect</td>
+<td align=right>$placecolon</td><td colspan=2><input id="input_dp" class="input_medium place_input" type="text" name="dp" maxlength=130 value="$deathplace" onfocus="select()"/></td>
 </tr>
 $relativeRows
 <tr id="husband_row">
-<td align=right>Husband given: </td><td colspan=2><input id="input_hg" class="input_medium" type="text" name="hg" maxlength=50 value="$husbandgivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_hs" class="input_medium" type="text" name="hs" maxlength=50 value="$husbandsurname" onfocus="select()"/></td>
+<td align=right>$husbandgivencolon</td><td colspan=2><input id="input_hg" class="input_medium" type="text" name="hg" maxlength=50 value="$husbandgivenname" onfocus="select()"/></td>
+<td align=right>$surnamecolon</td><td colspan=2><input id="input_hs" class="input_medium" type="text" name="hs" maxlength=50 value="$husbandsurname" onfocus="select()"/></td>
 </tr><tr id="wife_row">
-<td align=right>Wife given: </td><td colspan=2><input id="input_wg" class="input_medium" type="text" name="wg" maxlength=50 value="$wifegivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_ws" class="input_medium" type="text" name="ws" maxlength=50 value="$wifesurname" onfocus="select()"/></td>
+<td align=right>$wifegivencolon</td><td colspan=2><input id="input_wg" class="input_medium" type="text" name="wg" maxlength=50 value="$wifegivenname" onfocus="select()"/></td>
+<td align=right>$surnamecolon</td><td colspan=2><input id="input_ws" class="input_medium" type="text" name="ws" maxlength=50 value="$wifesurname" onfocus="select()"/></td>
 </tr><tr id="marriage_row">
-<td align=right>Marriage date: </td><td colspan=2><input id="input_md" class="input_short" type="text" name="md" size=14 maxlength=25 value="$marriagedate" onfocus="select()"/> &nbsp;$marriageRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_mp" class="input_medium place_input" type="text" name="mp" maxlength=130 value="$marriageplace" onfocus="select()"/></td>
+<td align=right>$marriagedatecolon</td><td colspan=2><input id="input_md" class="input_short" type="text" name="md" size=14 maxlength=25 value="$marriagedate" onfocus="select()"/> &nbsp;$marriageRangeSelect</td>
+<td align=right>$placecolon</td><td colspan=2><input id="input_mp" class="input_medium place_input" type="text" name="mp" maxlength=130 value="$marriageplace" onfocus="select()"/></td>
 </tr><tr id="placename_row">
-<td align=right>Place name: </td><td colspan=2><input id="input_pn" class="input_medium" type="text" name="pn" maxlength=50 value="$placename" onfocus="select()"/></td>
-<td align=right>Located in: </td><td colspan=2><input id="input_li" class="input_medium place_input" type="text" name="li" maxlength=130 value="$locatedinplace" onfocus="select()"/></td>
+"<td align=right>$placenamecolon</td><td colspan=2><input id="input_pn" class="input_medium" type="text" name="pn" maxlength=50 value="$placename" onfocus="select()"/></td>
+<td align=right>$locatedincolon</td><td colspan=2><input id="input_li" class="input_medium place_input" type="text" name="li" maxlength=130 value="$locatedinplace" onfocus="select()"/></td>
 </tr><tr id="subject_row">
-<td align=right>Subject: </td><td colspan=2>$sourceSubjectSelect</td>
-<td align=right>Availability: </td><td colspan=2>$sourceAvailabilitySelect</td>
+<td align=right>$subjectcolon</td><td colspan=2>$sourceSubjectSelect</td>
+<td align=right>$availabilitycolon</td><td colspan=2>$sourceAvailabilitySelect</td>
 </tr><tr id="title_row">
-<td align=right>Page title: </td><td colspan=5><input id="input_t" class="input_long" type="text" name="t" maxlength=100 value="$title" onfocus="select()"/></td>
+<td align=right>$pagetitlecolon</td><td colspan=5><input id="input_t" class="input_long" type="text" name="t" maxlength=100 value="$title" onfocus="select()"/></td>
 </tr><tr>
-<td align=right>Keywords: </td><td colspan=5><input id="input_k" class="input_long" type="text" name="k" maxlength=100 value="$keywords" onfocus="select()"/></td>
+<td align=right>$keywordscolon</td><td colspan=5><input id="input_k" class="input_long" type="text" name="k" maxlength=100 value="$keywords" onfocus="select()"/></td>
 </tr><tr>
-<td colspan=2>$rowsSelector results per page <input type="checkbox" name="cv"$condensedChecked>condensed</td><td align="right" colspan=4>$ecpSelector <input type="submit" value="Search"/></td>
-</tr></table></form>
+<td colspan=2>$resultsperpage</td>
+</tr></table></form>"
 END;
 	   return $result;
    }

@@ -151,7 +151,7 @@ class EmailForm {
 		}
 		if ($err || count($to) == 0) {
 			// have we already displayed the probable reason?
-			$this->showForm($err ? '' : "Missing or invalid recipient email address / user name" );
+			$this->showForm($err ? '' : wfMsg('missingemailusername') );
 			return;
 		}
 
@@ -160,10 +160,10 @@ class EmailForm {
 		$subject = $this->subject;
 		$text = $this->text;
 
-		if( wfRunHooks( 'Email', array( &$dest, &$from, &$subject, &$text ) ) ) {
+		if( wfRunHooks( wfMsg('email'), array( &$dest, &$from, &$subject, &$text ) ) ) {
 			$mailResult = userMailer( $dest, $from, $subject, $text );
 			$destString = $dest->toString();
-			wfDebug("SpecialEmail email sent to: $destString\n");
+			wfDebug( wfMsg('specialemailsent')."$destString\n");
 			if( WikiError::isError( $mailResult ) ) {
 				$err = true;
 				$wgOut->addHTML( wfMsg( "usermailererror" ) . $mailResult);
