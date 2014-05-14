@@ -200,8 +200,9 @@ END;
       $result .= $this->getLV("Year range", $this->xml->from_year, false, $this->xml->to_year);
       $result .= $this->getLV("Surname", $this->xml->surname);
       if (!$result) return '';
+       $coverage = wfMsg('coverage');
       return <<<END
-<div class="wr-infobox-heading">Coverage</div>
+<div class="wr-infobox-heading">$coverage</div>
 <table>
 $result
 </table>
@@ -213,8 +214,9 @@ END;
       $result .= $this->getLV("Type", $this->xml->type);
       $result .= $this->getLV("Publication", $this->xml->publication_info);
       if (!$result) return '';
+      $publicinformation = wfMsg('publicationinformation');
       return <<<END
-<div class="wr-infobox-heading">Publication information</div>
+<div class="wr-infobox-heading">$publicinformation</div>
 <table>
 $result
 </table>
@@ -241,8 +243,9 @@ END;
    protected function getCitation() {
       $result = $this->getCitationText();
       if (!$result) return '';
+       $citation= wfMsg('citation');
       return <<<END
-<div class="wr-infobox-heading">Citation</div>
+<div class="wr-infobox-heading">$citation</div>
 <table><tr><td>$result.</td></tr></table>
 END;
    }
@@ -254,8 +257,9 @@ END;
       $result .= $this->getLV("Call #", $this->xml->call_number);
       $result .= $this->getLV("URL", $this->xml->url);
       if (!$result) return '';
+       $repository = wfMsg('repository');
       return <<<END
-<div class="wr-infobox-heading">Repository</div>
+<div class="wr-infobox-heading">$repository</div>
 <table>
 $result
 </table>
@@ -387,24 +391,25 @@ END;
       }
 		if ($this->isGedcomPage) {
 			list ($mysourcePrefix, $mysourceTitle, $mysourceSuffix) = MySource::splitGedcomMySourceTitle($this->titleString);
-			$result .= '<br><label for="title">MySource title</label><input tabindex="1" size="80" name="mysource_title" value="'.htmlspecialchars($mysourceTitle).'"/>';
+
+			$result .= '<br><label for="title">'.wfMsg('mysourcetitle').'</label><input tabindex="1" size="80" name="mysource_title" value="'.htmlspecialchars($mysourceTitle).'"/>';
 		}
       
       $result .= "<br>";
 //      $result .= "<label for=\"altNames\">Alternate names (one per line):</label><br><textarea tabindex=\"1\" name=\"altNames\" rows=\"3\" cols=\"40\">".htmlspecialchars($altNames)."</textarea>";
-      $result .= "<br><label for=\"surnames\">Surnames covered(one per line):</label><br><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea>"
-      ."<br><label for=\"places\">Places covered (one per line):</label><br><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea>"
+      $result .= "<br><label for=\"surnames\">".wfMsg('surnamescoveredline')."</label><br><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea>"
+      ."<br><label for=\"places\">".wfMsg('placescoveredline')."</label><br><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea>"
       ."<table>"
-      ."<tr><td align=right>Year range:</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>"
+      ."<tr><td align=right>".wfMsg('yearrange')."</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>"
          ."&nbsp;&nbsp;-&nbsp;<input tabindex=\"1\" name=\"toYear\" value=\"$toYear\" size=\"5\"".htmlspecialchars($toYearStyle)."/></td></tr>";
-      $result .= "<tr><td align=right>URL:</td><td align=left><input tabindex=\"1\" name=\"url\" value=\"$url\" size=\"60\"$urlStyle/></td></tr>"
-         ."<tr><td align=right>Author:</td><td align=left><input tabindex=\"1\" name=\"author\" value=\"$author\" size=\"20\"/></td></tr>"
-         ."<tr><td align=right>Publication info:</td><td align=left><input tabindex=\"1\" name=\"pubInfo\" value=\"$pubInfo\" size=\"60\"/></td></tr>"
-         ."<tr><td align=right>Call number:</td><td align=left><input tabindex=\"1\" name=\"callNumber\" value=\"$callNumber\" size=\"20\"/></td></tr>"
-         ."<tr><td align=right>Type:</td><td align=left><input tabindex=\"1\" name=\"type\" value=\"$type\" size=\"20\"/></td></tr>"
-         ."<tr><td align=right>Repository name:</td><td align=left><input tabindex=\"1\" name=\"repoName\" value=\"$repoName\" size=\"60\"/></td></tr>"
-         ."<tr><td align=right>Repository addr:</td><td align=left><input tabindex=\"1\" name=\"repoAddr\" value=\"$repoAddr\" size=\"60\"/></td></tr>"
-         ."<tr><td align=right>Abbreviation:</td><td align=left><input tabindex=\"1\" name=\"abbrev\" value=\"$abbrev\" size=\"10\"/></td></tr>"
+      $result .= "<tr><td align=right>".wfMsg('url:')."</td><td align=left><input tabindex=\"1\" name=\"url\" value=\"$url\" size=\"60\"$urlStyle/></td></tr>"
+         ."<tr><td align=right>".wfMsg('author:')."</td><td align=left><input tabindex=\"1\" name=\"author\" value=\"$author\" size=\"20\"/></td></tr>"
+         ."<tr><td align=right>".wfMsg('publicationinfo')."</td><td align=left><input tabindex=\"1\" name=\"pubInfo\" value=\"$pubInfo\" size=\"60\"/></td></tr>"
+         ."<tr><td align=right>".wfMsg('callnumber')."</td><td align=left><input tabindex=\"1\" name=\"callNumber\" value=\"$callNumber\" size=\"20\"/></td></tr>"
+         ."<tr><td align=right>".wfMsg('type:')."</td><td align=left><input tabindex=\"1\" name=\"type\" value=\"$type\" size=\"20\"/></td></tr>"
+         ."<tr><td align=right>".wfMsg('repositoryname')."</td><td align=left><input tabindex=\"1\" name=\"repoName\" value=\"$repoName\" size=\"60\"/></td></tr>"
+         ."<tr><td align=right>".wfMsg('repositoryaddr')."</td><td align=left><input tabindex=\"1\" name=\"repoAddr\" value=\"$repoAddr\" size=\"60\"/></td></tr>"
+         ."<tr><td align=right>".wfMsg('abbreviation:')."</td><td align=left><input tabindex=\"1\" name=\"abbrev\" value=\"$abbrev\" size=\"10\"/></td></tr>"
          ."</table>Text:<br>";
       return $result;
    }

@@ -39,7 +39,7 @@ class SpecialDashboard {
    		$request = new FauxRequest(array('returnto' => $wgLang->specialPage('Dashboard')));
    		require_once('includes/SpecialUserlogin.php');
    		$form = new LoginForm($request);
-   		$form->mainLoginForm("You need to log in to view your dashboard<br/><br/>", '');
+   		$form->mainLoginForm(wfMsg('loginviewdashboard'), '');
    	}
    }
 
@@ -88,7 +88,7 @@ END;
 	      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), wfMsg('viewyourprofile'), '', '', '', '', " title=\"$tip\"") . ' (&nbsp;';
       }
       $tip=wfMsgHTML('editprofiletip');
-      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), $profileRevision ? wfMsg('edit') : '<b>Create your profile</b>', "action=edit", '', '', '', " title=\"$tip\"");
+      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), $profileRevision ? wfMsg('edit') : wfMsg('createyourprofile'), "action=edit", '', '', '', " title=\"$tip\"");
       if ($profileRevision) {
       	$ret .= '&nbsp;)';
       }
@@ -98,7 +98,7 @@ END;
 
 		$msgsRevision = Revision::newFromTitle($wgUser->getTalkPage());
 		if ($msgsRevision) {
-		   $msgsText = '<dl><dd>(' . $lastmessage . $wgLang->timeanddate(wfTimestamp(TS_MW, $msgsRevision->getTimestamp()), true) . wfMsg('by') .
+		   $msgsText = '<dl><dd>(' . $lastmessage . $wgLang->timeanddate(wfTimestamp(TS_MW, $msgsRevision->getTimestamp()), true) . wfMsg('_by_') .
 		                $skin->makeKnownLinkObj(Title::makeTitle(NS_USER, $msgsRevision->getUserText()), $msgsRevision->getUserText()) . ')</dl></dd>';
 		}
 		else {
@@ -200,7 +200,7 @@ END;
 			$dbr->freeResult($res);
 		}
 
-      $ret = '<div class="myrelate-header">Contributions</div>';
+      $ret = '<div class="myrelate-header">'.wfMsg('contributions').'</div>';
 
       $ret .= '<dl><dd>' . wfMsgWikiHTML('NumberOfContributions', $numContribs, $numDays) . '</dd></dl>';
 

@@ -28,10 +28,10 @@ function wfSpecialShowPedigree() {
 	if ($titleText) {
 		$title = Title::newFromText($titleText);
 		if (is_null($title) || ($title->getNamespace() != NS_PERSON && $title->getNamespace() != NS_FAMILY) || !$title->exists()) {
-			$error = 'Please enter the title of a person or family page (include the "Person:" or "Family:")';
+			$error = wfMsg('entertitlepersonfamily');
 		}
 		else {
-			$wgOut->setPageTitle('Pedigree for ' . $title->getText());
+			$wgOut->setPageTitle(wfMsg('pedigreefor_', $title->getText() ) );
 			$sp = new ShowPedigree($title);
 			$wgOut->addHtml($sp->getPedigreeTable());
 
@@ -52,17 +52,19 @@ function getPedigreeData() { return '<events>$mapData</events>'; }
 			return;
 		}
 	}
-	$wgOut->setPageTitle('Show Pedigree');
+	$wgOut->setPageTitle(wfMsg('showpedigree'));
 	if ($error) {
 		$wgOut->addHTML("<p><font color=red>$error</font></p>");
 	}
 
 	$queryBoxStyle = 'width:100%;text-align:center;';
+    $personfamilypagetitle = wfMSg('personfamilypagetitle');
+    $go = wfMsg('go');
 	$form = <<< END
 <form name="search" action="/wiki/Special:ShowPedigree" method="get">
 <div id="searchFormDiv" style="$queryBoxStyle">
-Person or Family page title: <input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
-<input type="submit" value="Go" />
+$personfamilypagetitle: <input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
+<input type="submit" value="$go" />
 </div>
 </form>
 END;
@@ -159,9 +161,9 @@ class ShowPedigree {
 
 	public function getLegend() {
 		global $wgStylePath;
-		return "<img src=\"$wgStylePath/common/images/maps/lolly/ffffff.png\"/> Birth(s) ".
-				 "<img src=\"$wgStylePath/common/images/maps/heart/ffffff.png\"/> Marriage(s) ".
-				 "<img src=\"$wgStylePath/common/images/maps/grave/ffffff.png\"/> Death(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Icons are offset if more than one is coded to the same location)<br>";
+		return "<img src=\"$wgStylePath/common/images/maps/lolly/ffffff.png\"/>". wfMsg('birth(s)').
+				 "<img src=\"$wgStylePath/common/images/maps/heart/ffffff.png\"/>".wfMsg('marriage(s)').
+				 "<img src=\"$wgStylePath/common/images/maps/grave/ffffff.png\"/> ".wfMsg('deathsiconoffset')."<br>";
 	}
 
 	private function loadPersonAttrs($xmlPerson) {
@@ -293,7 +295,7 @@ class ShowPedigree {
 		$title = Title::makeTitle(NS_SPECIAL, 'ShowPedigree');
 		$titleText = $person['title'];
 		$fullName = StructuredData::getFullname($person);
-		return $this->skin->makeKnownLinkObj($title, $linkText, "pagetitle=Person:$titleText", '', '', "title=\"Show pedigree for $fullName\"", "class='cont'");
+		return $this->skin->makeKnownLinkObj($title, $linkText, "pagetitle=Person:$titleText", '', '', "title=".wfMsg('showpedigreefor', $fullName), "class='cont'");
 	}
 
 	private function formatUplink($n, $tag) {
@@ -392,7 +394,7 @@ class ShowPedigree {
 			for ($i = 0; $i < $this->numSpouseFamilies; $i++) {
 				$family = $this->families[$i + ShowPedigree::SPOUSE_FAMILY_BASE];
 				if (@$family[$this->spouseTag]) {
-					$result .= "$tbl<tr><th colspan=2>Spouse</th></tr><tr><td></td><td>".$this->formatSpouse($i + ShowPedigree::SPOUSE_FAMILY_BASE).'</td></tr>';
+					$result .= "$tbl<tr><th colspan=2>".wfMsg('spouse')."</th></tr><tr><td></td><td>".$this->formatSpouse($i + ShowPedigree::SPOUSE_FAMILY_BASE).'</td></tr>';
 					$tbl = '';
 				}
 				$j = 0;
@@ -464,7 +466,7 @@ class ShowPedigree {
 				}
 			}
 			$familyText .= '</dl>';
-			return $this->tm->addTip("family-$familyNumber", 'All Children', $familyText, $familyTitle->getPrefixedURL(), 'F');
+			return $this->tm->addTip("family-$familyNumber", wfMsg('allchildren'), $familyText, $familyTitle->getPrefixedURL(), 'F');
 		}
 		return "";
 	}

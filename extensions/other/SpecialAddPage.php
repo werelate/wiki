@@ -44,7 +44,7 @@ function wfSpecialAddPage($par) {
 		$wgOut->readOnlyPage();
 		return;
 	}
-  	
+
 	// redirect?
 	list ($redirTitle, $error) = $addPageForm->getRedirTitleOrError();
 	if ($redirTitle != null) {
@@ -52,13 +52,13 @@ function wfSpecialAddPage($par) {
       $wgOut->redirect($redirTitle->getFullURL('action=edit'.$editParms));
 		return;
 	}
-	
+
 	// get form text
 	$formHtml = $addPageForm->getFormHtml();
 	$pageTitle = $addPageForm->getPageTitle();
 	$pageHeading = $addPageForm->getPageHeading();
 	$msgId = $addPageForm->getMessageId();
-	
+
    // set up page
    $wgOut->setPagetitle($pageTitle);
    $wgOut->setArticleRelated(false);
@@ -81,8 +81,8 @@ function wfSpecialAddPage($par) {
   * Search form used in Special:Search and <search> hook
   */
 class AddPageForm {
-	private static $MSGIDS = array(NS_GIVEN_NAME => 'addgivennamepageend', NS_SURNAME => 'addsurnamepageend', NS_PERSON => 'addpersonpageend', 
-											NS_FAMILY => 'addfamilypageend', NS_SOURCE => 'addsourcepageend', NS_MYSOURCE => 'addmysourcepageend', 
+	private static $MSGIDS = array(NS_GIVEN_NAME => 'addgivennamepageend', NS_SURNAME => 'addsurnamepageend', NS_PERSON => 'addpersonpageend',
+											NS_FAMILY => 'addfamilypageend', NS_SOURCE => 'addsourcepageend', NS_MYSOURCE => 'addmysourcepageend',
 											NS_MAIN => 'addarticleend', NS_USER => 'adduserpageend', NS_PLACE => 'addplacepageend',
                                  NS_TRANSCRIPT => 'addtranscriptpageend', NS_REPOSITORY => 'addrepositorypageend');
 
@@ -116,10 +116,10 @@ class AddPageForm {
 	private $locatedIn;
 	private $target;
    private $confirm;
-	
+
 	public function readQueryParms($par) {
 		global $wgRequest, $wgUser, $wgLang;
-		
+
 		$this->namespace = $wgRequest->getVal('namespace');
 		if (!$this->namespace && $par) {
 			$this->namespace = $par;
@@ -173,10 +173,10 @@ class AddPageForm {
 			}
 		}
 	}
-	
+
 	public function getPageHeading() {
 		global $wgLang;
-		
+
 		if ($this->namespace == NS_PLACE || $this->namespace == NS_SOURCE || $this->namespace == NS_MYSOURCE ||
           $this->namespace == NS_PERSON || $this->namespace == NS_FAMILY) {
 			return wfMsg('addpageinstructionsstep01');
@@ -185,25 +185,25 @@ class AddPageForm {
 			return '';
 		}
 	}
-	
+
 	public function getPageTitle() {
 		global $wgLang;
-		
+
 	  	if (strlen($this->namespace) > 0) {
 		   $nsText = $wgLang->getFormattedNsText($this->namespace);
 		   if (!$nsText) {
 		   	$nsTitle = wfMsg('addpagetitlearticle');
 		   }
 		   else {
-		   	$nsTitle = wfMsg('addpagetitleother', $nsText);
+		   	$nsTitle = wfMsg('addpagetitle_', $nsText);
 		   }
 	  	}
 	  	else {
 	  		$nsTitle = wfMsg('addpagetitlepage');
 	  	}
- 		return wfMsg('addpagetitle', $nsTitle);
+ 		return $nsTitle;
 	}
-	
+
 	public function getMessageId() {
 		$msgid = @AddPageForm::$MSGIDS[$this->namespace];
 		if (!$msgid) {
@@ -214,10 +214,10 @@ class AddPageForm {
 
 	public function getRedirTitleOrError() {
 		global $wgUser;
-		
+
 		$title = null;
 		$error = '';
-		
+
 		if ($this->confirm) {
 			if ($this->namespace == NS_IMAGE) {
 		   	$error = 'Add images by selecting Image from the Add menu';
@@ -249,7 +249,7 @@ class AddPageForm {
 				}
 			}
 		}
-		
+
 	  	return array($title, $error);
 	}
 
@@ -293,10 +293,10 @@ class AddPageForm {
       }
       return $parms.($this->target ? '&target='.urlencode($this->target) : '');
 	}
-	
+
 	public function getFormHtml() {
 		global $wgLang, $wgUser;
-		
+
 		$target = $this->target;
 		if (!$target) {
 			$target = 'AddPage';
@@ -316,7 +316,12 @@ class AddPageForm {
          $spouseFamily = htmlspecialchars($this->spouseFamily);
          $wifegivenname = htmlspecialchars($this->wifeGivenname); // if we're adding a father we need to remember the mother's name
          $wifesurname = htmlspecialchars($this->wifeSurname);
-
+        $givennamecolon = wfMsg('givenname:');
+        $surnamecolon = wfMsg('surname:');
+        $gendercolon = wfMsg('gender:');
+        $birthdatecolon = wfMsg('birthdate:');
+        $placecolon = wfMsg('place:');
+        $deathdatecolon = wfMsg('deathdate:');
 	     	$result = <<< END
 <form name="search" action="/wiki/Special:Search" method="get">
 <input type="hidden" name="target" value="$target"/>
@@ -326,13 +331,13 @@ class AddPageForm {
 <input type="hidden" id="input_wg" name="wg" value="$wifegivenname"/>
 <input type="hidden" id="input_ws" name="ws" value="$wifesurname"/>
 <table class="searchform">
-<tr><td align="right">Given name: </td><td><input type="text" id="givenname_input" name="g" size=15 maxlength="50" value="$givenname" tabindex="1"/></td>
-  <td align="right">Surname: </td><td><input type="text" name="s" size=35 maxlength="50" value="$surname" tabindex="1"/></td></tr>
-<tr><td align="right">Gender: </td><td>$genderSelect</td></tr>
-<tr><td align="right">Birth date: </td><td><input type="text" name="bd" size=15 maxlength="25" value="$birthdate"  tabindex="1" /></td>
-  <td align="right">Place: </td><td><input class="place_input" type="text" name="bp" size=35 maxlength="130" value="$birthplace" tabindex="1" /></td></tr>
-<tr><td align="right">Death date: </td><td><input type="text" name="dd" size=15 maxlength="25" value="$deathdate" tabindex="1" /></td>
-  <td align="right">Place: </td><td><input class="place_input" type="text" name="dp" size=35 maxlength="130" value="$deathplace" tabindex="1" /></td></tr>
+<tr><td align="right">$givennamecolon</td><td><input type="text" id="givenname_input" name="g" size=15 maxlength="50" value="$givenname" tabindex="1"/></td>
+  <td align="right">$surnamecolon</td><td><input type="text" name="s" size=35 maxlength="50" value="$surname" tabindex="1"/></td></tr>
+<tr><td align="right">$gendercolon</td><td>$genderSelect</td></tr>
+<tr><td align="right">$birthdatecolon</td><td><input type="text" name="bd" size=15 maxlength="25" value="$birthdate"  tabindex="1" /></td>
+  <td align="right">$placecolon</td><td><input class="place_input" type="text" name="bp" size=35 maxlength="130" value="$birthplace" tabindex="1" /></td></tr>
+<tr><td align="right">$deathdatecolon</td><td><input type="text" name="dd" size=15 maxlength="25" value="$deathdate" tabindex="1" /></td>
+  <td align="right">$placecolon</td><td><input class="place_input" type="text" name="dp" size=35 maxlength="130" value="$deathplace" tabindex="1" /></td></tr>
 <tr><td colspan=4 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1"/></td></tr></table>
 </form>
 END;
@@ -348,6 +353,11 @@ END;
          $husbandTitle = htmlspecialchars($this->husbandTitle);
          $wifeTitle = htmlspecialchars($this->wifeTitle);
          $childTitle = htmlspecialchars($this->childTitle);
+           $surnamecolon = wfMsg('surname:');
+           $placecolon = wfMsg('place:');
+         $wifegivennamecolon = wfMsg('wifegivenname:');
+         $maidennamecolon = wfMsg('maidenname:');
+         $marriagedatecolon = wfMsg('marriagedate:');
 	   	$result = <<< END
 <form name="search" action="/wiki/Special:Search" method="get">
 <input type="hidden" name="target" value="$target"/>
@@ -358,11 +368,11 @@ END;
 <input type="hidden" id="input_ct" name="ct" value="$childTitle"/>
 <table class="searchform">
 <tr id="husband_row"><td align="right">Husband given name: </td><td><input type="text" name="hg" size=15 maxlength="50" value="$husbandgivenname" tabindex="1" /></td>
-  <td align="right">Surname: </td><td><input type="text" name="hs" size=25 maxlength="50" value="$husbandsurname" tabindex="1" /></td></tr>
-<tr><td align="right">Wife given name: </td><td><input type="text" name="wg" size=15 maxlength="50" value="$wifegivenname" tabindex="1" /></td>
-  <td align="right">Maiden name: </td><td><input type="text" name="ws" size=25 maxlength="50" value="$wifesurname" tabindex="1" /></td></tr>
-<tr><td align="right">Marriage date: </td><td><input type="text" name="md" size=15 maxlength="25" value="$marriagedate" tabindex="1" /></td>
-  <td align="right">Place: </td><td><input class="place_input" type="text" name="mp" size=25 maxlength="130" value="$marriageplace" tabindex="1" /></td></tr>
+  <td align="right">$surnamecolon</td><td><input type="text" name="hs" size=25 maxlength="50" value="$husbandsurname" tabindex="1" /></td></tr>
+<tr><td align="right">$wifegivennamecolon</td><td><input type="text" name="wg" size=15 maxlength="50" value="$wifegivenname" tabindex="1" /></td>
+  <td align="right"></td>$maidennamecolon<td><input type="text" name="ws" size=25 maxlength="50" value="$wifesurname" tabindex="1" /></td></tr>
+<tr><td align="right">$marriagedatecolon</td><td><input type="text" name="md" size=15 maxlength="25" value="$marriagedate" tabindex="1" /></td>
+  <td align="right">$placecolon</td><td><input class="place_input" type="text" name="mp" size=25 maxlength="130" value="$marriageplace" tabindex="1" /></td></tr>
 <tr><td colspan=4 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1" /></td></tr></table>
 </form>
 END;
@@ -374,18 +384,26 @@ END;
 	   	$placeIssued = htmlspecialchars($this->placeIssued);
 	   	$publisher = htmlspecialchars($this->publisher);
 			$select = StructuredData::addSelectToHtml(1, 'sty', Source::$ADD_SOURCE_TYPE_OPTIONS, $this->sourceType);
-
+        $sourcetypecolon = wfMsg('sourcetype:');
+        $authorcolon = wfMsg('author:nospace');
+        $titlecolon = wfMsg('title:nospace');
+        $placecoveredcolon = wfMsg('placecovered:');
+        $publishercolon = wfMsg('publisher:');
+        $placeissuedcolon = wfMsg('placeissued:');
+        $surnamegivenauthor = wfMsg('surnamegivenauthor');
+        $titlenosubtitle = wfMsg('titlenosubtitle');
+        $governmentchurchrecords = wfMsg('governmentchurchrecords');
 	     	$result = <<< END
 <form name="search" action="/wiki/Special:Search" method="get">
 <input type="hidden" name="target" value="$target"/>
 <input type="hidden" id = "ns" name="ns" value="$nsText"/>
 <table class="searchform">
-<tr><td align="right">Source type:</td><td align="left">$select</td><td></td></tr>
-<tr id="author_row"><td align="right">Author:</td><td align="left"><input type="text" name="a" size="35" value="$author" tabindex="1" /></td><td>&nbsp;<i>surname, given name(s) of first author</i></td></tr>
-<tr><td align="right">Title:</td><td align="left"><input type="text" name="st" size="35" value="$title" tabindex="1" /></td><td>&nbsp;<i>title only, no subtitle</i></td></tr>
-<tr><td align="right">Place covered:</td><td align="left"><input class="place_input" type="text" name="p" size="35" value="$place" tabindex="1" /></td><td>&nbsp;<i>for government/church records</i></td></tr>
-<tr><td align="right">Publisher:</td><td align="left"><input type="text" name="pu" size="35" value="$publisher" tabindex="1" /></td><td></td></tr>
-<tr><td align="right">Place issued:</td><td align="left"><input type="text" name="pi" size="35" value="$placeIssued" tabindex="1" /></td><td></td></tr>
+<tr><td align="right">$sourcetypecolon</td><td align="left">$select</td><td></td></tr>
+<tr id="author_row"><td align="right">$authorcolon</td><td align="left"><input type="text" name="a" size="35" value="$author" tabindex="1" /></td><td>&nbsp;$surnamegivenauthor</td></tr>
+<tr><td align="right">$titlecolon</td><td align="left"><input type="text" name="st" size="35" value="$title" tabindex="1" /></td><td>&nbsp;$titlenosubtitle</td></tr>
+<tr><td align="right">$placecoveredcolon</td><td align="left"><input class="place_input" type="text" name="p" size="35" value="$place" tabindex="1" /></td><td>&nbsp;$governmentchurchrecords</td></tr>
+<tr><td align="right">$publishercolon</td><td align="left"><input type="text" name="pu" size="35" value="$publisher" tabindex="1" /></td><td></td></tr>
+<tr><td align="right">$placeissuedcolon</td><td align="left"><input type="text" name="pi" size="35" value="$placeIssued" tabindex="1" /></td><td></td></tr>
 <tr><td colspan=3 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1" /></td></tr>
 </table></form>
 END;
@@ -393,13 +411,13 @@ END;
 	   else if ($this->namespace == NS_MYSOURCE) {
 	   	$author = htmlspecialchars($this->author);
 			$title = htmlspecialchars($this->titleText);
-	   	
+            $titlecolon = wfMsg('title:nospace');
 	     	$result = <<< END
 <form name="search" action="/wiki/Special:Search" method="get">
 <input type="hidden" name="target" value="$target"/>
 <input type="hidden" id = "ns" name="ns" value="$nsText"/>
 <table class="searchform">
-<tr><td align="right">Title:</td><td align="left"><input type="text" name="t" size="35" value="$title" tabindex="1" /></td></tr>
+<tr><td align="right">$titlecolon</td><td align="left"><input type="text" name="t" size="35" value="$title" tabindex="1" /></td></tr>
 <tr><td colspan=2 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1" /></td></tr>
 </table></form>
 END;
@@ -407,14 +425,16 @@ END;
 	   else if ($this->namespace == NS_PLACE) {
 	   	$placeName = htmlspecialchars($this->placeName);
 	   	$locatedIn = htmlspecialchars($this->locatedIn);
-	   	
+        $nameplaceadd = wfMsg('nameplaceadd');
+        $countystatelocated = wfMsg('countystatelocated');
+        $locatedincolon = wfMsg('locatedin:');
 	   	$result = <<< END
 <form name="search" action="/wiki/Special:Search" method="get">
 <input type="hidden" name="target" value="$target"/>
 <input type="hidden" id = "ns" name="ns" value="$nsText"/>
 <table class="searchform">
-<tr id="placename_row"><td align="right">Place name:</td><td align="left"><input type="text" name="pn" size="20" value="$placeName" tabindex="1" /></td><td>Name of the place to add</td></tr>
-<tr><td align="right">Located in:</td><td align="left"><input class="place_input" type="text" name="li" size="35" value="$locatedIn" tabindex="1" /></td><td>County, District, or State in which the place is located</td></tr>
+<tr id="placename_row"><td align="right">Place name:</td><td align="left"><input type="text" name="pn" size="20" value="$placeName" tabindex="1" /></td><td>$nameplaceadd</td></tr>
+<tr><td align="right">$locatedincolon</td><td align="left"><input class="place_input" type="text" name="li" size="35" value="$locatedIn" tabindex="1" /></td><td>$countystatelocated</td></tr>
 <tr><td colspan=3 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1" /></td></tr>
 </table></form>
 END;
@@ -450,6 +470,6 @@ END;
                         '<div id="addpage_cache" style="display:none"></div>' : '');  // was $treeCheckboxes inside div
 	   return '<center>'.$result.'</center>'.$addPageCache;
 	}
-	
+
 }
 ?>

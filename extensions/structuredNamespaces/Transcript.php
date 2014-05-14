@@ -182,7 +182,7 @@ END;
       	$source = htmlspecialchars((string)$this->xml->source);
          if ($source && !StructuredData::titleExists(NS_SOURCE, $source)) {
             $sourceStyle = $invalidStyle;
-            $result .= "<p><font color=red>Please enter the title of a Source page</font></p>";
+            $result .= "<p><font color=red>".wfMsg('entertitlesource')."</font></p>";
          }
          foreach ($this->xml->surname as $surname) {
             $surnames .= htmlspecialchars($surname) . "\n";
@@ -205,16 +205,16 @@ END;
 
 
 		// display edit fields
-      $result .= "<h2>Transcript information</h2><table>"
-         . "<tr><td align=right>Source:</td><td align=left><input tabindex=\"1\" class=\"source_input\" name=\"source\" value=\"$source\" size=\"60\"$sourceStyle/></td></tr></table>"
-         . "<br><label for=\"surnames\">Surnames (one per line):</label><br><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea>"
-         . "<br><label for=\"places\">Places (one per line):</label><br><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea>"
+      $result .= "<h2>".wfMsg('transcriptinformation')."</h2><table>"
+         . "<tr><td align=right>".wfMsg('source').":</td><td align=left><input tabindex=\"1\" class=\"source_input\" name=\"source\" value=\"$source\" size=\"60\"$sourceStyle/></td></tr></table>"
+         . "<br><label for=\"surnames\">".wfMsg('surnamesperline')."</label><br><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea>"
+         . "<br><label for=\"places\">".wfMsg('placesperline')."</label><br><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea>"
          . "<table><tr>"
-         . "<td align=left>Year range:</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>"
+         . "<td align=left>".wfMsg('yearrange')."</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>"
          . "&nbsp;&nbsp;-&nbsp;<input tabindex=\"1\" name=\"toYear\" value=\"$toYear\" size=\"5\"$toYearStyle/>"
          . "</td></tr></table>"
 		   //. $tm->getTipTexts()
-      	."<br/>Text:<br/>";
+      	."<br/>".wfMsg('text:')."<br/>";
       return $result;
    }
 

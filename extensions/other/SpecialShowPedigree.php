@@ -49,6 +49,20 @@ function wfSpecialShowPedigree() {
    <div ex:role="facet" ex:height="75px" ex:facetClass="NumericRange" ex:expression=".DeathYear" ex:interval="10" ex:facetLabel="Death Year"></div>
 </div>   
 END;
+            $viewpedigree = wfMsg('viewpedigree');
+            $pedigree = wfMsg('_pedigree_');
+            $birthplaces = wfMsg('birthplaces');
+            $viewbirthmap = wfMsg('viewbirthmap');
+            $deathplaces = wfMsg('deathplaces');
+            $viewdeathmap = wfMsg('viewdeathmap');
+            $allplaces = wfMsg('allplaces');
+            $vieweventmap = wfMsg('vieweventmap');
+            $timeline = wfMsg('timeline');
+            $viewpeopletimeline = wfMsg('viewpeopletimeline');
+            $thumbnails = wfMsg('thumbnails');
+            $viewpeoplethumbnails = wfMsg('viewpeoplethumbnails');
+            $details = wfMsg('details');
+            $viewdetails = wfMsg('viewdetails');
 
 			$wgOut->addHtml(<<< END
 <div ex:role="viewPanel">
@@ -182,8 +196,8 @@ END;
    </table>
    <div ex:role="view"
       ex:viewClass="Template"
-      ex:label="Pedigree"
-      ex:title="View pedigree"
+      ex:label="$pedigree"
+      ex:title="$viewpedigree"
       ex:template="exhibitPersonPedigreeTemplate"
       ex:lenses="exhibitLenses"
       ex:slotIDPrefix="exhibit-pedigree-"
@@ -194,8 +208,8 @@ END;
  </div>
  <div ex:role="view"
      ex:viewClass="Map"
-     ex:label="Birth Places"
-    ex:title="View birth places on a map"
+     ex:label="$birthplaces"
+    ex:title="$viewbirthmap"
      ex:latlng=".addressLatLng"
      ex:maxAutoZoom='9'
      ex:mapHeight='435'
@@ -209,8 +223,8 @@ END;
  </div>
  <div ex:role="view"
      ex:viewClass="Map"
-     ex:label="Death Places"
-    ex:title="View death places on a map"
+     ex:label="$deathplaces"
+    ex:title="$viewdeathmap"
      ex:latlng=".addressLatLng"
      ex:maxAutoZoom='9'
      ex:mapHeight='435'
@@ -224,8 +238,8 @@ END;
  </div>
  <div ex:role="view"
      ex:viewClass="Map"
-     ex:label="All Places"
-     ex:title="View all event places on a map"
+     ex:label="$allplaces"
+     ex:title="$vieweventmap"
      ex:latlng=".addressLatLng"
      ex:maxAutoZoom='9'
      ex:mapHeight='435'
@@ -240,8 +254,8 @@ END;
  </div>
  <div ex:role="view"
        ex:viewClass="Timeline"
-       ex:label="Timeline"
-       ex:title="View people as timeline"
+       ex:label="$timeline"
+       ex:title="$viewpeopletimeline"
        ex:timelineHeight='435'
        ex:topBandHeight='86'
        ex:bottomBandHeight='14'
@@ -258,8 +272,8 @@ END;
  </div>
  <div ex:role="view"
        ex:viewClass="Thumbnail"
-       ex:label="Thumbnails"
-       ex:title="View people as thumbnails"
+       ex:label="$thumbnails"
+       ex:title="$viewpeoplethumbnails"
      ex:orders=".Surname"
      ex:possibleOrders=".Surname, .Givenname, .Generation, .BirthYear, .DeathYear"
      ex:grouped="true"
@@ -274,8 +288,8 @@ END;
    </div>
     <div ex:role="view"
          ex:viewClass="Tile"
-         ex:label="Details"
-         ex:title="View details"
+         ex:label="$details"
+         ex:title="$viewdetails"
         ex:orders=".Surname, .Givenname"
         ex:possibleOrders=".Surname, .Givenname, .Generation, .BirthYear, .DeathYear"
         ex:grouped="false"
@@ -296,11 +310,12 @@ END
 
 	$queryBoxStyle = 'width:100%;text-align:center;';
     $personfamilytitle = wfMsg('personfamilytitle');
+    $go = wfMsg('go');
 	$form = <<< END
 <form name="search" action="/wiki/Special:ShowPedigree" method="get">
 <div id="searchFormDiv" style="$queryBoxStyle">
 $personfamilytitle<input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
-<input type="submit" value="Go" />
+<input type="submit" value="$go" />
 </div>
 </form>
 END;

@@ -370,7 +370,8 @@ END
 
 		$titleObj = Title::makeTitle( NS_SPECIAL, 'ImportGedcom' );
 		$action = $titleObj->escapeLocalURL();
-        $ifplacesassumed = wfMsg('ifplacesassumed');
+        $ifplacesassumed = wfMsg('ifplacesassumed', $defaultCountryControl);
+        $defaultcountrycolon = wfMsg('defaultcountry:');
 		$wgOut->addHTML(<<< END
 <form id='import' method='post' enctype='multipart/form-data' action="$action">
 <table border='0'>
@@ -379,8 +380,8 @@ END
  <td align='left'><input type='file' name='wrUploadFile' id='wrUploadFile' size='30' /></td>
 </tr>
 <tr>
- <td align="right"><label for="wrDefaultCountry">Default country:</label></td>
- <td align="left" style="font-size: 11px; line-height:2em">$defaultCountryControl &nbsp; $ifplacesassumed</td>
+ <td align="right"><label for="wrDefaultCountry">$defaultcountrycolon</label></td>
+ <td align="left" style="font-size: 11px; line-height:2em">$ifplacesassumed</td>
 </tr>
 <tr>
  <td align='right'><label for='wrTreeName'>$importIntoTree</label></td>

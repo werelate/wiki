@@ -28,48 +28,50 @@ function wfSpecialPlaceMap() {
    if ($titleText) {
       $title = Title::newFromText($titleText, NS_PLACE);
       if (is_null($title) || $title->getNamespace() != NS_PLACE || !$title->exists()) {
-         $error = 'Please enter the title of a place page';
+         $error = wfMsg('pleaseentertitle');
       }
       else {
    		$revision = StructuredData::getRevision($title, true);
    		if (!$revision) {
-   			$error = "Place map revision not found!\n";
+   			$error = wfMsg('mapnotfound');
    		}
    		else {
 				$sk = $wgUser->getSkin();
 	   		$text =& $revision->getText();
 	   		$xml = StructuredData::getXml('place', $text);
-	      	$wgOut->setPageTitle('Map of ' . $revision->getTitle()->getText());
+	      	$wgOut->setPageTitle(wfMsg('mapof_',$revision->getTitle()->getText() ) );
 	      	
 		      // place map
-				$wgOut->addHTML('<H2>Map for ' . $sk->makeKnownLinkObj($revision->getTitle(), $revision->getTitle()->getText()) . '</H2>');
+				$wgOut->addHTML('<H2>'.wfMsg('mapfor_', $sk->makeKnownLinkObj($revision->getTitle(), $revision->getTitle()->getText()) ) . '</H2>');
 				$wgOut->addHTML('<div id="placemap" style="width: 760px; height: 520px"></div><br>');
 		      $mapData = SpecialPlaceMap::getContainedPlaceMapData($xml);
 		      if (!$mapData) {
 		      	$mapData = SpecialPlaceMap::getSelfMapData($revision->getTitle(), $xml);
 		      }
 		      $wgOut->addHTML(SpecialPlaceMap::getMapScripts(1, $mapData));
-		      $wgOut->addHTML('<div id="latlnginst" style="display: block">Click on the map to see the latitude and longitude at the cursor position.</div>');
+		      $wgOut->addHTML('<div id="latlnginst" style="display: block">'.wfMsg('clickmaptosee').'</div>');
 		      $wgOut->addHTML('<div id="latlngbox" style="display: none">Clicked on Latitude: <span id="latbox"></span> Longitude: <span id="lngbox"></span></div><br>');
 		      $unmappedPlaces = SpecialPlaceMap::getUnmappedPlaces($sk, $xml);
 		      if ($unmappedPlaces) {
-		      	$wgOut->addHTML("<h3>Places not on map</h3>" . $unmappedPlaces);
+		      	$wgOut->addHTML("<h3>".wfMsg('placesnotonmap')."</h3>" . $unmappedPlaces);
 		      }
 		      return;
    		}
       }
    }
-	$wgOut->setPageTitle('Place Map');
+	$wgOut->setPageTitle(wfMsg('placemap'));
    if ($error) {
       $wgOut->addHTML("<p><font color=red>$error</font></p>");
    }
 
    $queryBoxStyle = 'width:100%;text-align:center;';
+   $go = wfMsg('go');
+   $placetitlecolon = wfMsg('placetitle:');
    $form = <<< END
 <form name="search" action="/wiki/Special:PlaceMap" method="get">
 <div id="searchFormDiv" style="$queryBoxStyle">
-Place title: <input type="text" name="pagetitle" size=24 maxlength="100" value="$titleText" onfocus="select()" />
-<input type="submit" value="Go" />
+$placetitlecolon<input type="text" name="pagetitle" size=24 maxlength="100" value="$titleText" onfocus="select()" />
+<input type="submit" value="$go" />
 </div>
 </form>
 END;

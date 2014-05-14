@@ -18,8 +18,8 @@ define('PROPAGATE_EDIT_FLAGS', EDIT_UPDATE | EDIT_MINOR | EDIT_FORCE_BOT);
  * Abstract class from which structured data handler classes can inherit basic functionality
  */
 abstract class StructuredData {
-   const PROPAGATE_MESSAGE = 'Changed page link to follow redirection';
-   const PROPAGATE_MOVE_MESSAGE = 'Contents updated for the new namespace';
+   //const PROPAGATE_MESSAGE = 'Changed page link to follow redirection'; //wfMsg('changedlinktofollow')
+   //const PROPAGATE_MOVE_MESSAGE = 'Contents updated for the new namespace'; //wfMsg('updatedfornewnamespace')
 	protected $tagName;  // name of the tag containing the structured data; e.g., name
 	protected $titleString; // title->getText() of page
 	protected $ns; // namespace of the page
@@ -1794,7 +1794,7 @@ END;
 		}
 		$dbr->freeResult($rows);
 
-		return "|-\n|\n{| id=\"watchers\"\n|-\n! Watching Page\n".
+		return "|-\n|\n{| id=\"watchers\"\n|-\n! ".wfMsg('watchingpage')."\n".
 			$this->addValuesToTableDL(' ', $users, 'formatWatcher', null).  // by passing in a ' ' we trick the function into not printing its own header
 			"\n|}\n";
 	}
@@ -1955,7 +1955,7 @@ END;
 			StructuredData::followRedirects($textBox1, $this->titleString, $this->ns, $error, $redirTargetMustExist);
 			$this->xml = StructuredData::getXml($this->tagName, $textBox1);
 			if ($error || !$this->validateData($textBox1)) {
-				$hookError = '<b>You must correct the errors before saving</b>';
+				$hookError = '<b>'.wfMsg('mustcorrecterrors').'</b>';
 			}
 		}
 	}
@@ -2014,7 +2014,7 @@ END;
    		if ($result && $textChanged) { // should change only if moving namespaces (which is currently only allowed for source -> repo)
 				$article = new Article($newTitle, 0);
    			PropagationManager::enablePropagation(false);
-   			$result = $article->doEdit($text, self::PROPAGATE_MOVE_MESSAGE, PROPAGATE_EDIT_FLAGS);
+   			$result = $article->doEdit($text, wfMsg('updatedfornewnamespace'), PROPAGATE_EDIT_FLAGS);
    			PropagationManager::enablePropagation(true);
    		}
 			if (!$result) {
@@ -2084,7 +2084,7 @@ END;
 				$newTitle->getArticleID(GAID_FOR_UPDATE); // make sure you read the master db for the pageid
 				$article = new Article($newTitle, 0);
    			PropagationManager::enablePropagation(false);
-   			$result = $article->doEdit($text, self::PROPAGATE_MESSAGE, PROPAGATE_EDIT_FLAGS);
+   			$result = $article->doEdit($text, wfMsg('changedlinktofollow'), PROPAGATE_EDIT_FLAGS);
    			PropagationManager::enablePropagation(true);
    		}
 //	   }
@@ -2113,7 +2113,7 @@ END;
    		$result = $this->propagateEditData($oldText, $text, $textChanged);
    		if ($result && $textChanged) {
    			PropagationManager::enablePropagation(false);
-   			$result = $article->doEdit($text, self::PROPAGATE_MESSAGE, PROPAGATE_EDIT_FLAGS);
+   			$result = $article->doEdit($text, wfMsg('changedlinktofollow'), PROPAGATE_EDIT_FLAGS);
    			PropagationManager::enablePropagation(true);
    		}
 //	   }

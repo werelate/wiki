@@ -179,7 +179,7 @@ class SpecialNetwork {
 
 	   $sk = $wgUser->getSkin();
 
-	   $wgOut->addHtml('<p>&nbsp;&nbsp;&nbsp;&lt; ' . $sk->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Network'), ' Show full network') . '</p>');
+	   $wgOut->addHtml('<p>&nbsp;&nbsp;&nbsp;&lt; ' . $sk->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'boarNetwork'), ' Show full network') . '</p>');
 
 	   $title = null;
 	   if ($this->from) {

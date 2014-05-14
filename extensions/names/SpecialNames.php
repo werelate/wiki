@@ -136,13 +136,13 @@ class NamesForm {
       $name = htmlspecialchars($this->name);
       $nameTypeSelect = StructuredData::addSelectToHtml(0, "type", self::$TYPE_OPTIONS, $this->type, '', false);
       $namesend = preg_replace('#</?p>#', '', wfMsgWikiHtml('namesend'));
-
+      $go = wfMsg('go');
       $result = <<< END
 <form id="names_form" action="/wiki/Special:Names" method="get">
 <table id="namesform" class="namesform"><tr>
 <td align=right>$nameTypeSelect</td>
 <td><input id="input_name" class="input_name" type="text" name="name" maxlength=100 value="$name" onfocus="select()"/></td>
-<td><input type="submit" value="Go"/></td>
+<td><input type="submit" value="$go"/></td>
 <td style="padding-left:15px">$namesend</td>
 </tr></table></form>
 END;

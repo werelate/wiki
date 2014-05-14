@@ -165,18 +165,21 @@ function wrGoogleMap($input, $argv, $parser) {
       }
    }
 
+    $largermap = wfMsg('largermap');
    return <<< END
 <iframe width="$width" height="$height" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="$src&amp;output=embed"></iframe>
-<br /><small><a href="$src&amp;source=embed" style="color:#0000FF;text-align:left">Larger map</a></small>
+<br /><small><a href="$src&amp;source=embed" style="color:#0000FF;text-align:left">$largermap</a></small>
 END;
 }
 
+
 function wrDonateHook($input, $argv, $parser) {
+    $makepaymentspaypal = wfMsg('makepaymentspaypal');
 	return <<< END
 	<div id="wr-paypal">
 		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 		<input type="hidden" name="cmd" value="_s-xclick">
-		<input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-butcc-donate.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!">
+		<input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-butcc-donate.gif" border="0" name="submit" alt="$makepaymentspaypal">
 		<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
 		<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----">
 		</form>
@@ -287,7 +290,7 @@ function wrLogEmail( $to, $from, $subject, $text ) {
 	$addrs = explode(',', $to->address);
 	$n = count($addrs);
 	$log = new LogPage( 'email', false );
-	$log->addEntry( 'email', $wgTitle, "Sent to $n addresses");
+	$log->addEntry( 'email', $wgTitle, wfMsg('senttoaddresses', $n));
 	return true;
 }
 
@@ -319,7 +322,7 @@ function wrAddNewAccount( $user = NULL ) {
       }
       $saveUser = $wgUser;
       $wgUser = User::newFromName(User::whoIs($wrBotUserID));
-      $article->doEdit($talkContents . '{{Subst:Welcome1}}', 'Welcome!');
+      $article->doEdit($talkContents . '{{Subst:Welcome1}}', wfMsg('weclome!'));
       $wgUser = $saveUser;
    }
 
@@ -466,13 +469,14 @@ function wrDoContentActions($action, $article) {
 	      $job = new AddTreePagesJob(array('trees' => join(',', $checkedTreeIds), 'user' => $wgUser->getName(), 'title' => $article->getTitle()->getPrefixedText(),
 										'ancGenerations' => $ancGenerations, 'includeAncestorChildren' => $includeAncestorChildren, 'descGenerations' => $descGenerations));
 	      $job->insert();
-			$treesUpdatedMsg = 'treesupdatedtextdeferred';
+			$treesUpdatedMsg = wfMsg('treesupdatedtextdeferred');
 		}
 		else {
-			$treesUpdatedMsg = 'treesupdatedtext';
+			$treesUpdatedMsg = wfMsg('treesupdatedtext');
 		}
-		$wgOut->setPagetitle( wfMsg( 'treesupdatedtitle' ) );
-		$wgOut->addWikiText( wfMsg( $treesUpdatedMsg ) );
+        $treesupdatedtitle = wfMsg( 'treesupdatedtitle' );
+		$wgOut->setPagetitle( $treesupdatedtitle );
+		$wgOut->addWikiText( $treesUpdatedMsg );
 		$wgOut->returnToMain( true, $article->getTitle()->getPrefixedText() );
 	}
 	else if (count($allTrees) == 0) {
@@ -481,10 +485,11 @@ function wrDoContentActions($action, $article) {
 	else { // show form
 		$wgOut->setPagetitle( wfMsg( 'treeupdatetitle' ) );
 		if ($action == 'treeUpdateConfirm') {
-			$wgOut->addHTML('<font color="red">Please check the box next to the tree(s) you want to add the pages to.</font>');
+			$wgOut->addHTML('<font color="red">'.wfMsg('checkboxtree').'</font>');
 		}
-		$wgOut->addWikiText('==Trees==');
-		$wgOut->addWikiText(wfMsg('treeupdatetext'));
+        $treesUpdatedtext = wfMsg('treesupdatedtext');
+		$wgOut->addWikiText(wfMsgWikiHtml('==trees=='));
+		$wgOut->addWikiText($treesUpdatedtext);
 			// TODO show form
 		$action = $article->getTitle()->escapeLocalURL( 'action=treeUpdateConfirm' );
   		$wgOut->addHTML( <<<END
@@ -494,19 +499,21 @@ END
 		$wgOut->addHTML(FamilyTreeUtil::generateTreeCheckboxes($wgUser, $article->getTitle(), false, $allTrees, $treeOwnerIds));
 		
 		if ($article->getTitle()->getNamespace() == NS_PERSON || $article->getTitle()->getNamespace() == NS_FAMILY) {
-			$wgOut->addWikiText('==Include relatives==');
-			$wgOut->addWikiText(":'''''Warning''': including relatives can add potentially many people to your tree and to your watchlist.''");
-			$wgOut->addWikiText(':Add the following relatives to the checked trees.');
+			$wgOut->addWikiText(wfMsgWikiHtml('includerelatives'));
+			$wgOut->addWikiText(wfMsgWikiHtml('includerelativespotentially'));
+			$wgOut->addWikiText(wfMsgWikiHtml('relativescheckedtrees'));
 			$options = array(); for ($i = 0; $i <= 20; $i++) $options["$i"] = $i;
 			$ancGenerations = StructuredData::addSelectToHtml(0, 'ancestorgenerations', $options, 0);
 			$options = array(); for ($i = 0; $i <= 5; $i++) $options["$i"] = $i;
 			$descGenerations = StructuredData::addSelectToHtml(0, 'descendantgenerations', $options, 0);
-			
+			$includedecendantsfor = wfMsg('includedecendantsfor', $descGenerations);
+            $inludeancenstorsfor = wfMsg('includeancestorsfor', $ancGenerations);
+            $alsoancestorschildren = wfMsg('alsoancestorschildren' );
 			$wgOut->addHTML( <<<END
-<dl><dd>Include ancestors for $ancGenerations generations
-	<dl><dd><input type="checkbox" name="includeancestorchildren"/>Also include ancestors' children</dd></dl></dd>
+<dl><dd>$inludeancenstorsfor
+	<dl><dd><input type="checkbox" name="includeancestorchildren"/>$alsoancestorschildren</dd></dl></dd>
 <dd>&nbsp;</dd>
-<dd>Include descendants for $descGenerations generations</dd>
+<dd>$includedecendantsfor</dd>
 </dl>
 END
 );
@@ -813,7 +820,7 @@ function wrCheckSpam($editPage, $textBox1, $section, &$hookError) {
          $wgMemc->set($cacheKey, $cnt, 3600*4);
       }
       if ($cnt < 5) {
-         $hookError = '<b>Links to other websites are not allowed</b>';
+         $hookError = wfMsg('linksnotallowed');
       }
    }
 	return true;

@@ -480,23 +480,33 @@ class SDImage extends StructuredData {
 		$personTbl = $this->addPageInput($people, 'person');
 		$familyTbl = $this->addPageInput($families, 'family');
 		$notes = htmlspecialchars($notes);
+        $licenseandcopyright = wfMsg('licenseandcopyright');
+       $nameofcopyrightholder = wfMsg('nameofcopyrightholder');
+       $timeplacepeople = wfMsg('timeplacepeople');
+       $imagedate = wfMsg('imagedate');
+       $placecolon = wfMsg('place:');
+       $personpage = wfMsg('personpage');
+       $familypage = wfMsg('familypage');
+       $addanotherperson = wfMsg('addanotherperson');
+       $addanotherfamily = wfMsg('addanotherfamily');
+       $text = wfMsg('textnospace');
 	   $result .= <<< END
 <input type="hidden" id="notesField" name="notes" value="$notes"/>
 <table border=0>
-<tr><td>&nbsp;</td><td><b>License and copyright</b></td></tr>
+<tr><td>&nbsp;</td><td><b>$licenseandcopyright </b></td></tr>
 <tr><td align='right'><label for='wpLicense'>$licenseLabel (&nbsp;$licenseHelp&nbsp;):</label></td>
 	<td align='left'><select name='license' id='wpLicense' tabindex='1' onchange='licenseSelectorCheck()'>
 		<option value=''>$nolicense</option>$licenseshtml</select></td></tr>
-<tr><td align='right'><label for="copyright_holder">Name of copyright holder:</label></td><td align='left'><input tabindex="1" name="copyright_holder" value="$copyright" size="30"/></td></tr>
+<tr><td align='right'><label for="copyright_holder">$nameofcopyrightholder</label></td><td align='left'><input tabindex="1" name="copyright_holder" value="$copyright" size="30"/></td></tr>
 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
-<tr><td>&nbsp;</td><td><b>Time place and people</td></tr>
-<tr><td align='right'><label for="date">Image date:</label></td><td align='left'><input tabindex="1" name="date" value="$date" size="15"/></td></tr>
-<tr><td align='right'><label for="place">Place:</label></td><td align='left'><input class="place_input" tabindex="1" name="place" value="$place" size="30"/></td></tr>
-<tr><td align='right' valign='top'>Person page:</td><td align='left'>$personTbl</td></tr>
-<tr><td>&nbsp;</td><td align='left'><a id='person_link' href='javascript:void(0)' onClick='addImagePage("person"); return preventDefaultAction(event);'>Add another person</a></td></tr>
-<tr><td align='right' valign='top'>Family page:</td><td align='left'>$familyTbl</td></tr>
-<tr><td>&nbsp;</td><td align='left'><a id='family_link' href='javascript:void(0)' onClick='addImagePage("family"); return preventDefaultAction(event);'>Add another family</a></td></tr>
-</table><h2>Text</h2>
+<tr><td>&nbsp;</td><td><b>$timeplacepeople</td></tr>
+<tr><td align='right'><label for="date">$imagedate</label></td><td align='left'><input tabindex="1" name="date" value="$date" size="15"/></td></tr>
+<tr><td align='right'><label for="place">$placecolon</label></td><td align='left'><input class="place_input" tabindex="1" name="place" value="$place" size="30"/></td></tr>
+<tr><td align='right' valign='top'>$personpage</td><td align='left'>$personTbl</td></tr>
+<tr><td>&nbsp;</td><td align='left'><a id='person_link' href='javascript:void(0)' onClick='addImagePage("person"); return preventDefaultAction(event);'>$addanotherperson</a></td></tr>
+<tr><td align='right' valign='top'>$familypage</td><td align='left'>$familyTbl</td></tr>
+<tr><td>&nbsp;</td><td align='left'><a id='family_link' href='javascript:void(0)' onClick='addImagePage("family"); return preventDefaultAction(event);'>$addanotherfamily</a></td></tr>
+</table><h2>$text</h2>
 END;
 		return $result;
    }

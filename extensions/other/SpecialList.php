@@ -40,11 +40,11 @@ function wfSpecialListPages($par) {
    $wgOut->addScript("<script src=\"$wgScriptPath/jquery.loadmask.min.js\"></script>");
    $wgOut->addScript("<script src=\"$wgScriptPath/jquery.multiselect.min.js\"></script>");
    $wgOut->addScript("<script src=\"$wgScriptPath/list.3.js\"></script>");
-
+   $searchcolon = wfMsg('search:');
    $wgOut->addHTML(<<< END
 <div class="listPagesForm" style="width:835px;">
    <div class="listPagesSearch">
-     <label>Search: </label><input type="text" id="txtSearch">
+     <label>$searchcolon</label><input type="text" id="txtSearch">
    </div>
    <div class="listPagesFilter">
       <span id="rowCount"></span>

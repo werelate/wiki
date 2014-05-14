@@ -26,7 +26,8 @@ function wfESINHandlerSetup() {
  * Handle events, sources, images, and notes - common to Person and Family
  */
 class ESINHandler extends StructuredData {
-   const PROPAGATE_MESSAGE = 'Propagate changes to';
+   //const PROPAGATE_MESSAGE = 'Propagate changes to';
+    //PROPAGATE_MESSAGE = wfMsg('propagatechangesto'); <- how do I fix this....
 	// tag to append to end of pages that use ESIN (currently person and family)
 	const ESIN_FOOTER_TAG = "<show_sources_images_notes/>";
 	
@@ -860,7 +861,7 @@ END;
 		}
 		else {
 			$result .= "<td><select class=\"ef_select\" tabindex=\"1\" name=\"event_fact$efNum\">" .
-			'<option value="Unknown"' . (empty($typeString) || $typeString == 'Unknown' ? ' selected="selected"' : '') . '>Type</option>';
+			'<option value="Unknown"' . (empty($typeString) || $typeString == 'Unknown' ? ' selected="selected"' : '') . '>'.wfMsg('type').'</option>';
 			foreach ($otherEventTypes as $eventType) {
 				$eventType = str_replace('~',"'", $eventType);
 				if (mb_substr($eventType, 0, 1) == '=') {
@@ -1169,9 +1170,9 @@ END;
 			}
 		}
 		$result .= "<a name=\"imagesSection\"></a><h2>".wfMsg('images')."</h2><table id=\"image_input\" border=0 style=\"display:$display\">" .
-		'<tr><th>'.wfMsg('id').'</th><th>Primary'.$tm->addMsgTip('ImagePrimary').'</th><th>Title'.$tm->addMsgTip('ImageFilename').'</th><th></th><th>Caption'.$tm->addMsgTip('ImageCaption').'</th></tr>' .
+		'<tr><th>'.wfMsg('id').'</th><th>'.wfMsg('primary').$tm->addMsgTip('ImagePrimary').'</th><th>'.wfMsg('title').$tm->addMsgTip('ImageFilename').'</th><th></th><th>'.wfMsg('caption').$tm->addMsgTip('ImageCaption').'</th></tr>' .
 			$rows .
-			'</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addImage(); return preventDefaultAction(event);">Add image</a></div>';
+			'</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addImage(); return preventDefaultAction(event);">'.wfMsg('addimage').'</a></div>';
 		// add note input
 		$display = 'none';
 		$rows = '';
@@ -1184,7 +1185,7 @@ END;
 			}
 		}
 		$result .= "<a name=\"notesSection\"></a><h2>Notes</h2><table id=\"note_input\" border=0 width=\"670px\" style=\"display:$display\">" .
-		'<tr><th>ID</th><th width="90%">Text'.$tm->addMsgTip('NoteText').'</th></tr>' . $rows . '</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addNote(); return preventDefaultAction(event);">Add note</a></div>';
+		'<tr><th>'.wfMsg('id').'</th><th width="90%">Text'.$tm->addMsgTip('NoteText').'</th></tr>' . $rows . '</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addNote(); return preventDefaultAction(event);">'.wfMsg('addnote').'</a></div>';
 		$result .= $tm->getTipTexts();
 		return $result;
 	}
@@ -1523,7 +1524,7 @@ END;
 			$content =& $article->fetchContent(); // fetches from master
 			$updatedContent =& $this->updateImageContent($tag, $oldTitle, $newTitle, $propagatedData, $content);
 			if ($updatedContent) {
-				$result = $article->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$thisTitle->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+				$result = $article->doEdit($updatedContent, wfMsg('propagatechangesto').' [['.$thisTitle->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
 			}
 			else {
 			   error_log("updateImage propagating nothing changed: " . $imageTitle->getText());

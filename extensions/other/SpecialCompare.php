@@ -1369,7 +1369,8 @@ if (!is_array($data[$t][$pfx.'Nomerge'])) error_log("nomerge not array: t=$t c=$
         $or = wfMsg('or');
         $comparepeople = wfMsg('comparepeople');
         $entertitlescompare = wfMsg('entertitlescompare');
-
+        $compare = wfMsg('compare');
+        $person = wfMsg('person');
 		return <<<END
 <H3>$comparefamilies</H3>
 <p>$enterfamilycompare</p>
@@ -1377,17 +1378,17 @@ if (!is_array($data[$t][$pfx.'Nomerge'])) error_log("nomerge not array: t=$t c=$
 <input type="hidden" name="ns" value="$familyintext"/>
 <table>
 $inputFields
-<tr><td align="right"><input type="submit" name="formAction" value="Compare"/></td></tr>
+<tr><td align="right"><input type="submit" name="formAction" value="$compare"/></td></tr>
 </table>
 </form>
 <H2>$or</H2>
 <H3>$comparepeople</H3>
 <p>$entertitlescompare</p>
 <form name="comparePeople" action="/wiki/Special:Compare" method="post">
-<input type="hidden" name="ns" value="Person"/>
+<input type="hidden" name="ns" value="$person"/>
 <table>
 $inputFields
-<tr><td align="right"><input type="submit" name="formAction" value="Compare"/></td></tr>
+<tr><td align="right"><input type="submit" name="formAction" value="$compare"/></td></tr>
 </table>
 </form>
 END;

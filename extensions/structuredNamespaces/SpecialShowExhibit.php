@@ -27,7 +27,7 @@ function wfSpecialShowExhibit() {
 	if ($titleText) {
 		$title = Title::newFromText($titleText);
 		if (is_null($title) || ($title->getNamespace() != NS_PERSON && $title->getNamespace() != NS_FAMILY) || !$title->exists()) {
-			$error = 'Please enter the title of a person or family page (include the "Person:" or "Family:")';
+			$error = wfMsg('entertitlepersonfamily');
 		}
 		else {
 			$wgOut->setPageTitle('MIT Exhibit for ' . $title->getText());
@@ -86,23 +86,46 @@ END;
 
 
 			// MIT Exhibit divs:
+            $family = wfMsg('family');
+            $person = wfMsg('person');
+            $birth = wfMsg('birth');
+            $death = wfMsg('death');
+            $marriage = wfMsg('marriage');
+            $others = wfMsg('others');
+            $missing = wfMsg('missing');
+            $mixed = wfMsg('mixed');
+            $viewallobjects = wfMsg('viewallobjects');
+            $givenname = wfMsg('givenname');
+            $surname = wfMsg('surname');
+            $siblingcount = wfMsg('siblingcount');
+            $date = wfMsg('date');
+            $location = wfMsg('location');
+            $latitudelongitude = wfMsg('latitudelongitude');
+            $viewsortablecolumns = wfMsg('viewsortablecolumns');
+            $viewtimeline = wfMsg('viewtimeline');
+            $marriagedate = wfMsg('marriagedate');
+            $birthdate = wfMsg('birthdate');
+            $deathdate = wfMsg('deathdate');
+            $ageatdeath = wfMsg('ageatdeath');
+            $vieweventmap = wfMsg('vieweventmap');
+            $event = wfMsg('event');
 			$divs = <<< END
 	<div ex:role="collection" ex:itemTypes="Person" id="the-people"></div>
 	<div ex:role="coder" ex:coderClass="Color" id="event-colors">
-		  <span ex:color="#b0e0e6">Family</span>
-		  <span ex:color="#66cdaa">Person</span>
-		  <span ex:color="#ffa07a">Birth</span>
-		  <span ex:color="#ffd700">Death</span>
-		  <span ex:color="#d3d3d3">Marriage</span>
-		  <span ex:case="others" ex:color="red">Others</span>
-		  <span ex:case="missing" ex:color="white">Missing</span>
-		  <span ex:case="mixed" ex:color="green">Mixed</span>
+		  <span ex:color="#b0e0e6">$family</span>
+		  <span ex:color="#66cdaa">$person</span>
+		  <span ex:color="#ffa07a">$birth</span>
+		  <span ex:color="#ffd700">$death</span>
+		  <span ex:color="#d3d3d3">$marriage</span>
+		  <span ex:case="others" ex:color="red">$others</span>
+		  <span ex:case="missing" ex:color="white">$missing</span>
+		  <span ex:case="mixed" ex:color="green">$mixed</span>
 	</div>
 	<table width="100%">
 		<tr valign="top">
 			<td ex:role="viewPanel">
 				<div ex:role="view"
-					ex:label="View All Objects"
+					ex:label="$viewallobjects"
  					ex:formats="date { mode: medium; show: date; }"
  				  	ex:orders=".Surname, .Given, .label"
  				  	>
@@ -110,26 +133,26 @@ END;
  				  	ex.colorKey=".type">
 						<div>Object Type: <span ex:content=".type"></span></div>
 						<div>Label: <span ex:content=".label"></span></div>
-						<div ex:if-exists=".Surname">Surname: <span ex:content=".Surname"></span></div>
-						<div ex:if-exists=".Given">Given Name: <span ex:content=".Given"></span></div>
-						<div ex:if-exists=".Family">Family: <a ex:content=".Family.label" ex:href-content=".Family.URL"></a></div>
-						<div ex:if-exists=".Person">Person: <a ex:content=".Person.label" ex:href-content=".Person.URL"></a></div>
-						<div ex:if-exists=".Birth">Birth: <span ex:content=".Birth"></span></div>
-						<div ex:if-exists=".Death">Death: <span ex:content=".Death"></span></div>
-						<div ex:if-exists=".Marriage">Marriage: <span ex:content=".Marriage"></span></div>
-						<div ex:if-exists=".Family.Marriage">Marriage: <span ex:content=".Family.Marriage"></span></div>
-						<div ex:if-exists=".SiblingCount">Sibling Count: <span ex:content=".SiblingCount"></span></div>
-						<div ex:if-exists=".Date">Date: <span ex:content=".Date"></span></div>
-						<div ex:if-exists=".Location">Location: <span ex:content=".Location"></span></div>
-						<div ex:if-exists=".LatLon">Latitude, Longitude: <span ex:content=".LatLon"></span></div>
+						<div ex:if-exists=".Surname">$surname: <span ex:content=".Surname"></span></div>
+						<div ex:if-exists=".Given">$givenname: <span ex:content=".Given"></span></div>
+						<div ex:if-exists=".Family">$family: <a ex:content=".Family.label" ex:href-content=".Family.URL"></a></div>
+						<div ex:if-exists=".Person">$person: <a ex:content=".Person.label" ex:href-content=".Person.URL"></a></div>
+						<div ex:if-exists=".Birth">$birth: <span ex:content=".Birth"></span></div>
+						<div ex:if-exists=".Death">$death: <span ex:content=".Death"></span></div>
+						<div ex:if-exists=".Marriage">$marriage: <span ex:content=".Marriage"></span></div>
+						<div ex:if-exists=".Family.Marriage">$marriage: <span ex:content=".Family.Marriage"></span></div>
+						<div ex:if-exists=".SiblingCount">$siblingcount: <span ex:content=".SiblingCount"></span></div>
+						<div ex:if-exists=".Date">$date: <span ex:content=".Date"></span></div>
+						<div ex:if-exists=".Location">$location: <span ex:content=".Location"></span></div>
+						<div ex:if-exists=".LatLon">$latitudelongitude: <span ex:content=".LatLon"></span></div>
 					</div>
 				</div>
 				<div ex:role="exhibit-view"
 					ex:viewClass="Tabular"
 					ex:collectionID="the-people"
-					ex:label="View Sortable Columns"
+					ex:label="$viewsortablecolumns"
 					ex:columns=".Given, .Surname, .Family.Marriage.Date, .Birth.Date, .Death.Date, date-range(.Birth.Date, .Death.Date, 'year'), .SiblingCount, .Family, .label"
-					ex:columnLabels="Given Name, Surname, Marriage Date, Birth Date, Death Date, Age at Death, Sibling Count, Family, Person"
+					ex:columnLabels="$givenname, $surname, $marriagedate, $birthdate, $deathdate, $ageatdeath, $siblingcount, $family, $person"
 					ex:columnFormats="text, text, date { mode: medium; show: date; }, date { mode: medium; show: date; }, date { mode: medium; show: date; }, number, number, item, item"
 					ex:sortColumn="1"
 					ex:border="1"
@@ -142,7 +165,7 @@ END;
 				</div>
 				<div ex:role="view"
 					ex:viewClass="Timeline"
-					ex:label="View Timeline"
+					ex:label="$viewtimeline"
 					ex:start=".Birth.Date"
 					ex:end=".Death.Date"
 					ex:marker=".Family.Marriage.Date"
@@ -151,17 +174,17 @@ END;
 					ex:colorKey=".Surname">
 					<div ex:role="lens" ex:formats="date { mode: medium; show: date; }" class="popup-content" style="display: none;">
 						<ul>
-						<li><div>Person: <a ex:content=".label" ex:href-content=".URL"></a></div></li>
-						<li><div>Family: <a ex:content=".Family.label" ex:href-content=".Family.URL"></a></div></li>
-						<li><div>Birth Date: <span ex:content=".Birth.Date"></span></div></li>
-						<li><div>Death Date: <span ex:content=".Death.Date"></span></div></li>
-						<li><div ex:if-exists=".Family.Marriage.Date">Marriage Date: <span ex:content=".Family.Marriage.Date"></span></div></li>
+						<li><div>$person: <a ex:content=".label" ex:href-content=".URL"></a></div></li>
+						<li><div>$family: <a ex:content=".Family.label" ex:href-content=".Family.URL"></a></div></li>
+						<li><div>$birthdate: <span ex:content=".Birth.Date"></span></div></li>
+						<li><div>$deathdate: <span ex:content=".Death.Date"></span></div></li>
+						<li><div ex:if-exists=".Family.Marriage.Date">$marriagedate: <span ex:content=".Family.Marriage.Date"></span></div></li>
 						</ul>
 					</div>
 				</div>
 	  		  	<div ex:role="view"
 			  		ex:viewClass="Map"
-			  		ex:label="View Event Map"
+			  		ex:label="$vieweventmap"
 					ex:latlng=".LatLon"
 					ex:colorKey=".type"
 					ex:center="32, -85"
@@ -175,12 +198,12 @@ END;
 					ex:colorCoder="event-colors">
 					<div ex:role="lens" ex:formats="date { mode: medium; show: date; }" class="popup-content" style="display: none;">
 						<ul>
-						<li><div>Event: <span ex:content=".type"></span></div></li>
-						<li><div ex:if-exists=".Date">Date: <span ex:content=".Date"></span></div></li>
-						<li><div ex:if-exists=".Location">Location: <span ex:content=".Location"></span></div></li>
-						<li><div ex:if-exists=".LatLon">Latitude, Longitude: <span ex:content=".LatLon"></span></div></li>
-						<li><div ex:if-exists=".Family">Family: <a ex:content=".Family.label" ex:href-content=".Family.URL"></a></div></li>
-						<li><div ex:if-exists=".Person">Person: <a ex:content=".Person.label" ex:href-content=".Person.URL"></a></div></li>
+						<li><div>$event: <span ex:content=".type"></span></div></li>
+						<li><div ex:if-exists=".Date">$date: <span ex:content=".Date"></span></div></li>
+						<li><div ex:if-exists=".Location">$location: <span ex:content=".Location"></span></div></li>
+						<li><div ex:if-exists=".LatLon">$latitudelongitude: <span ex:content=".LatLon"></span></div></li>
+						<li><div ex:if-exists=".Family">$family: <a ex:content=".Family.label" ex:href-content=".Family.URL"></a></div></li>
+						<li><div ex:if-exists=".Person">$person: <a ex:content=".Person.label" ex:href-content=".Person.URL"></a></div></li>
 						</ul>
 					</div>
 		 		</div>
@@ -224,11 +247,13 @@ END;
 	}
 
 	$queryBoxStyle = 'width:100%;text-align:center;';
+    $personfamilytitle = wfMsg('personorfamilytitle');
+    $go = wfMsg('go');
 	$form = <<< END
 <form name="search" action="/wiki/Special:ShowExhibit" method="get">
 	<div id="searchFormDiv" style="$queryBoxStyle">
-		Person or Family page title: <input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
-		<input type="submit" value="Go" />
+		$personfamilytitle: <input type="text" name="pagetitle" size="24" maxlength="100" value="$titleText" onfocus="select()" />
+		<input type="submit" value="$go" />
 	</div>
 </form>
 END;

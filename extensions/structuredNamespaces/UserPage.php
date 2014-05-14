@@ -257,35 +257,35 @@ class UserPage extends StructuredData {
                 $values[] = '[http://'.$wrHostName.'/wiki/Special:Search?ns=User&s='.$surname.' '.$surname.']';
              }
           }
-          $researching = $this->getLV('Users Researching', array_unique($values));
+          $researching = $this->getLV(wfMsg('usersresearching'), array_unique($values));
 
           $values = array();
           foreach ($this->xml->surname as $surname) {
              $values[] = $this->formatAsLink((string)$surname, 'Surname');
           }
-          $surnames = $this->getLV('Surnames', $values);
+          $surnames = $this->getLV(wfMsg('surnames'), $values);
 
           $values = array();
           foreach ($this->xml->place as $place) {
              $values[] = $this->formatAsLink((string)$place, 'Place');
           }
-          $places = $this->getLV('Places', $values);
+          $places = $this->getLV(wfMsg('places'), $values);
 
           $fromYear = (string)$this->xml->from_year;
           $toYear = (string)$this->xml->to_year;
           $yearRange = '';
           if ($fromYear || $toYear) {
-             $yearRange = $this->getLV('Year range', "$fromYear - $toYear");
+             $yearRange = $this->getLV(wfMsg('yearrangenocolon'), "$fromYear - $toYear");
           }
 
           $values = array();
           foreach ($familyTrees as $familyTree) {
             $values[] = '<dl><dt>'.$familyTree['name'].' <span class="plainlinks">'
                    . ' ([http://'.$wrHostName.'/wiki/Special:Search?k='. urlencode('+Tree:"'.$this->userName.'/'.$familyTree['name'].'"') . " view])"
-                   . ' ([http://'.$wrHostName.'/fte/index.php?userName='. urlencode($this->userName) . '&treeName=' . urlencode($familyTree['name']) . " launch FTE])"
+                   . ' ([http://'.$wrHostName.'/fte/index.php?userName='. urlencode($this->userName) . '&treeName=' . urlencode($familyTree['name']) . " ".wfMsg('launchfte')."])"
                    . "</span><dd>people: {$familyTree['count']}</dl>";
           }
-          $familyTrees = $this->getLV('Family Trees', $values);
+          $familyTrees = $this->getLV(wfMsg('familytrees'), $values);
 
           $values = array();
           foreach ($personalResearchPages as $personalResearchPage) {
@@ -296,7 +296,7 @@ class UserPage extends StructuredData {
           }
           $personalResearchPages = $this->getLV('User pages', $values);
 
-          $heading = ($surnames || $places || $yearRange ? 'Page Covers' : '');
+          $heading = ($surnames || $places || $yearRange ? wfMsg('pagecovers') : '');
           $result = "<div class=\"wr-infobox wr-infobox-userpage\"><div class=\"wr-infobox-heading\">$heading</div><dl>{$surnames}{$places}{$yearRange}{$familyTrees}{$researching}{$personalResearchPages}</dl></div>";
 		 }
 //		 $result .= $this->showWatchers();
@@ -355,13 +355,13 @@ class UserPage extends StructuredData {
 		         if (!StructuredData::isValidYear($toYear)) {
 		            $toYearStyle = $invalidStyle;
 		         }
-		         $result .= "<p><font color=red>The year range is not valid</font></p>";
+		         $result .= "<p><font color=red>".wfMsg('yearrangenotvalid')."</font></p>";
 		      }
 	      }
-	      $result .= "<br><label for=\"surnames\">Surnames (one per line):</label><br><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea>";
-	      $result .= "<br><label for=\"places\">Places (one per line):</label><br><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea>";
+	      $result .= "<br><label for=\"surnames\">".wfMsg('surnamesperline')."</label><br><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea>";
+	      $result .= "<br><label for=\"places\">".wfMsg('placesperline')."</label><br><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea>";
 	      $result .= "<table><tr>";
-	      $result .= "<td align=left>Year range:</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>";
+	      $result .= "<td align=left>".wfMsg('yearrange')."</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>";
 	      $result .=           "&nbsp;&nbsp;-&nbsp;<input tabindex=\"1\" name=\"toYear\" value=\"$toYear\" size=\"5\"$toYearStyle/>";
 			$result .= "</td></tr></table>Text:<br>";
 		}
@@ -378,11 +378,11 @@ class UserPage extends StructuredData {
       			$i++;
       		}
    		}
-   		$result .= '<h2>Surnames and/or places you are researching' . $tm->addMsgTip('UserResearching') . '</h2>'
-   		   ."<table id=\"researching_table\" border=0 width=\"500px\" style=\"display:$display\"><tr><th>Surname</th><th>Place (state, province, or country)</th></tr>"
-   		   ."$rows</table><a href=\"javascript:void(0)\" onClick=\"addResearchInput(); return preventDefaultAction(event);\">Add Surname and/or Place</a>";
+   		$result .= wfMsg('surnamesplacesresearching', $tm->addMsgTip('UserResearching') )
+   		   ."<table id=\"researching_table\" border=0 width=\"500px\" style=\"display:$display\"><tr><th>".wfMsg('surname')."</th><th>".wfMsg('placestateorcountry')."</th></tr>"
+   		   ."$rows</table><a href=\"javascript:void(0)\" onClick=\"addResearchInput(); return preventDefaultAction(event);\">".wfMsg('addsurnameplace')."</a>";
 
-			$result .= '<br><br><h2>Text' . $tm->addMsgTip('UserText') . '</h2>';
+			$result .= '<br><br>'.wfMsg('text_', $tm->addMsgTip('UserText') );
 
 			$result .= $tm->getTipTexts();
 		}

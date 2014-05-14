@@ -602,9 +602,9 @@ END;
 
    protected function getTitleAuthor() {
       $result = '';
-      $result .= $this->getLV("Source", $this->getSourceTitle(), true);
+      $result .= $this->getLV(wfMsg('source'), $this->getSourceTitle(), true);
       $result .= $this->getLV("", $this->xml->subtitle, true);
-      $result .= $this->getLV("Author", $this->xml->author, true);
+      $result .= $this->getLV(wfMsg('author'), $this->xml->author, true);
       if (!$result) return '';
       return <<<END
 <table>
@@ -624,17 +624,18 @@ END;
             break;
          }
       }
-      $result .= $this->getLV("Place", $this->xml->place, $highlight, null, "Place");
-      $result .= $this->getLV("Year range", $this->xml->from_year, false,
+      $result .= $this->getLV(wfMsg('place'), $this->xml->place, $highlight, null, "Place");
+      $result .= $this->getLV(wfMsg('yearrangenocolon'), $this->xml->from_year, false,
                               ((string)$this->xml->from_year && !(string)$this->xml->to_year ? " " : $this->xml->to_year));
-      $result .= $this->getLV("Surname", $this->sortXml($this->xml->surname), false, null, null, ', ');
-      $result .= $this->getLV("Subject", $this->xml->subject, false, null, null, ', ');
-      $result .= $this->getLV("Ethnicity / Culture", $this->xml->ethnicity);
-      $result .= $this->getLV("Religion", $this->xml->religion);
-      $result .= $this->getLV("Occupation", $this->xml->occupation);
+      $result .= $this->getLV(wfMsg('surname'), $this->sortXml($this->xml->surname), false, null, null, ', ');
+      $result .= $this->getLV(wfMsg('subject'), $this->xml->subject, false, null, null, ', ');
+      $result .= $this->getLV(wfMsg('ethnicityculture'), $this->xml->ethnicity);
+      $result .= $this->getLV(wfMsg('religion'), $this->xml->religion);
+      $result .= $this->getLV(wfMsg('occupation'), $this->xml->occupation);
       if (!$result) return '';
+      $coverage = wfMsg('coverage');
       return <<<END
-<div class="wr-infobox-heading">Coverage</div>
+<div class="wr-infobox-heading">$coverage</div>
 <table>
 $result
 </table>
@@ -643,17 +644,18 @@ END;
 
    protected function getPublicationInfo() {
       $result = '';
-      $result .= $this->getLV("Type", $this->xml->source_type);
-      $result .= $this->getLV("Publisher", $this->xml->publisher);
-      $result .= $this->getLV("Date issued", $this->xml->date_issued);
-      $result .= $this->getLV("Place issued", $this->xml->place_issued);
-      $result .= $this->getLV("Periodical / Series name", $this->xml->series_name);
-      $result .= $this->getLV("Number of Volumes", $this->xml->volumes);
-      $result .= $this->getLV("Volume / Film# / Pages", $this->xml->pages);
-      $result .= $this->getLV("References / Cites", $this->xml->references);
+      $result .= $this->getLV(wfMsg('type'), $this->xml->source_type);
+      $result .= $this->getLV(wfMsg('publisher'), $this->xml->publisher);
+      $result .= $this->getLV(wfMsg('dateissued'), $this->xml->date_issued);
+      $result .= $this->getLV(wfMsg('placeissued'), $this->xml->place_issued);
+      $result .= $this->getLV(wfMsg('periodicalseriesname'), $this->xml->series_name);
+      $result .= $this->getLV(wfMsg('nubmerofvolumes'), $this->xml->volumes);
+      $result .= $this->getLV(wfMsg('volumefilmpages'), $this->xml->pages);
+      $result .= $this->getLV(wfMsg('referencecities'), $this->xml->references);
+      $publicationinformation = wfMsg('publicationinformation');
       if (!$result) return '';
       return <<<END
-<div class="wr-infobox-heading">Publication information</div>
+<div class="wr-infobox-heading">$publicationinformation</div>
 <table>
 $result
 </table>
@@ -754,9 +756,10 @@ END;
 
    protected function getCitation() {
       $result = $this->getCitationText();
+       $citation = wfMsg('citation');
       if (!$result) return '';
       return <<<END
-<div class="wr-infobox-heading">Citation</div>
+<div class="wr-infobox-heading">$citation</div>
 <table><tr><td>$result.</td></tr></table>
 END;
    }
@@ -778,9 +781,10 @@ END;
          $avail = (string)$repo['availability'];
          $result .= "<tr><td>$title</td><td>$sourceLocation</td><td>$avail</td></tr>";
       }
+      $repositories = wfMsg('repositories');
       if (!$result) return '';
       return <<<END
-<div class="wr-infobox-heading">Repositories</div>
+<div class="wr-infobox-heading">$repositories</div>
 <table>
 $result
 </table>
@@ -829,15 +833,15 @@ END;
    	// temporary
    	if ((!$title || !$availability) && stripos($sourceLocation, 'www.familysearch.org/Eng/Library/fhlcatalog') !== false) {
    		$availabilityStyle = '';
-   		if (!$title) $title = 'Family History Center';
-   		if (!$availability) $availability = 'Family history center';
+   		if (!$title) $title = wfMsg('familyhistorycenter');
+   		if (!$availability) $availability = wfMsg('family_historycenter');
    	}
    	
 	   return "<tr><td><input type=\"hidden\" name=\"repository_id$i\" value=\"". ($i+1) ."\"/></td>"
 	      ."<td><input tabindex=\"1\" type=\"text\" size=20 class=\"repository_input\" name=\"repository_title$i\" value=\"$title\"/></td>"
 	      ."<td><input tabindex=\"1\" type=\"text\" size=45 name=\"repository_location$i\" value=\"$sourceLocation\"/></td>"
 			."<td>".StructuredData::addSelectToHtml(1, "availability$i", self::$SOURCE_AVAILABILITY_OPTIONS, $availability, $availabilityStyle)."</td>"
-	      ."<td><a title='Remove this repository' href=\"javascript:void(0)\" onClick=\"removeRepository(".($i+1)."); return preventDefaultAction(event);\">remove</a></td>"
+	      ."<td><a title='".wfMsg('removethisrepository')."' href=\"javascript:void(0)\" onClick=\"removeRepository(".($i+1)."); return preventDefaultAction(event);\">".wfMsg('remove')."</a></td>"
 	      ."</tr>\n";
    }
    
@@ -988,34 +992,34 @@ END;
       }
       
 		// display edit fields
-      $result .= "<h2>Source information</h2><table>"
-			. '<tr><td align=right>Type:</td><td align=left>'
+      $result .= "<h2>".wfMsg('sourceinformation')."</h2><table>"
+			. '<tr><td align=right>'.wfMsg('type').'</td><td align=left>'
 			.   StructuredData::addSelectToHtml(1, 'source_type', self::$SOURCE_TYPE_OPTIONS, $sourceType, 'onChange="showSourceFields()"')
 			.   $tm->addMsgTip('SourceType').'</td></tr>'
-			. '<tr id="authors_row"><td align=right>Authors:<br/><font size=\"-1\"><i>one per line<br/>surname, given</i></font></td>'
+			. '<tr id="authors_row"><td align=right>'.wfMsg('authors:').'<br/><font size=\"-1\"><i>'.wfMsg('oneperline').'<br/>'.wfMsg('surnamegiven').'</i></font></td>'
 			.   "<td align=left><textarea tabindex=\"1\" name=\"authors\" rows=\"3\" cols=\"60\">$authors</textarea></td></tr>"
-         . "<tr id=\"source_title_row\"><td align=right>Title:</td><td align=left><input tabindex=\"1\" name=\"source_title\" value=\"$sourceTitle\" size=\"60\"/></td></tr>"
-         . "<tr id=\"subtitle_row\"><td align=right>Subtitle:</td><td align=left><input tabindex=\"1\" name=\"subtitle\" value=\"$subtitle\" size=\"60\"/></td></tr>"
-         . "<tr id=\"publisher_row\"><td align=right>Publisher:</td><td align=left><input tabindex=\"1\" name=\"publisher\" value=\"$publisher\" size=\"60\"/></td></tr>"
-         . "<tr id=\"date_issued_row\"><td align=right>Date issued:</td><td align=left><input tabindex=\"1\" name=\"date_issued\" value=\"$dateIssued\" size=\"20\"/></td></tr>"
-         . "<tr id=\"place_issued_row\"><td align=right>Place issued:</td><td align=left><input tabindex=\"1\" name=\"place_issued\" value=\"$placeIssued\" size=\"60\"/></td></tr>"
-         . "<tr id=\"series_name_row\"><td align=right>Periodical/Series name:</td><td align=left><input tabindex=\"1\" class=\"source_input\" name=\"series_name\" value=\"$seriesName\" size=\"60\"/></td></tr>"
-         . "<tr id=\"volumes_row\"><td align=right>Number of volumes:</td><td align=left><input tabindex=\"1\" name=\"volumes\" value=\"$volumes\" size=\"10\"/></td></tr>"
-         . "<tr id=\"pages_row\"><td align=right>Volume/Film#/Pages:</td><td align=left><input tabindex=\"1\" name=\"pages\" value=\"$pages\" size=\"20\"/></td></tr>"
-        	. "<tr id=\"references_row\"><td align=right>References/Cites:</td><td align=left><input tabindex=\"1\" name=\"references\" value=\"$references\" size=\"60\"/></td></tr>"
+         . "<tr id=\"source_title_row\"><td align=right>".wfMsg('title:')."</td><td align=left><input tabindex=\"1\" name=\"source_title\" value=\"$sourceTitle\" size=\"60\"/></td></tr>"
+         . "<tr id=\"subtitle_row\"><td align=right>".wfMsg('subtitle:')."</td><td align=left><input tabindex=\"1\" name=\"subtitle\" value=\"$subtitle\" size=\"60\"/></td></tr>"
+         . "<tr id=\"publisher_row\"><td align=right>".wfMsg('publisher:')."</td><td align=left><input tabindex=\"1\" name=\"publisher\" value=\"$publisher\" size=\"60\"/></td></tr>"
+         . "<tr id=\"date_issued_row\"><td align=right>".wfMsg('dateissued:')."</td><td align=left><input tabindex=\"1\" name=\"date_issued\" value=\"$dateIssued\" size=\"20\"/></td></tr>"
+         . "<tr id=\"place_issued_row\"><td align=right>".wfMsg('placeissued:')."</td><td align=left><input tabindex=\"1\" name=\"place_issued\" value=\"$placeIssued\" size=\"60\"/></td></tr>"
+         . "<tr id=\"series_name_row\"><td align=right>".wfMsg('periodicalseriesname:')."</td><td align=left><input tabindex=\"1\" class=\"source_input\" name=\"series_name\" value=\"$seriesName\" size=\"60\"/></td></tr>"
+         . "<tr id=\"volumes_row\"><td align=right>".wfMsg('numberofvolumes:')."</td><td align=left><input tabindex=\"1\" name=\"volumes\" value=\"$volumes\" size=\"10\"/></td></tr>"
+         . "<tr id=\"pages_row\"><td align=right>".wfMsg('volumefilmpages:')."</td><td align=left><input tabindex=\"1\" name=\"pages\" value=\"$pages\" size=\"20\"/></td></tr>"
+        	. "<tr id=\"references_row\"><td align=right>".wfMsg('referencecities:')."</td><td align=left><input tabindex=\"1\" name=\"references\" value=\"$references\" size=\"60\"/></td></tr>"
         	. "</table>";
-      $result .= '<h2>Coverage</h2><table>'
-      	. "<tr><td align=right>Surnames covered:<br/><i>one per line</i></td><td align=left><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea></td></tr>"
-	      . "<tr><td align=right>Places covered:<br/><i>one per line</i></td><td align=left><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea></td></tr>"
-	      . "<tr><td align=right>Year range:</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>"
+      $result .= '<h2>'.wfMsg('coverage').'</h2><table>'
+      	. "<tr><td align=right>".wfMsg('surnamescovered:')."<br/><i>one per line</i></td><td align=left><textarea tabindex=\"1\" name=\"surnames\" rows=\"3\" cols=\"60\">$surnames</textarea></td></tr>"
+	      . "<tr><td align=right>".wfMsg('placescovered:')."<br/><i>one per line</i></td><td align=left><textarea class=\"place_input\" tabindex=\"1\" name=\"places\" rows=\"3\" cols=\"60\">$places</textarea></td></tr>"
+	      . "<tr><td align=right>".wfMsg('yearrange:')."</td><td align=left><input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>"
          .   "&nbsp;&nbsp;-&nbsp;<input tabindex=\"1\" name=\"toYear\" value=\"$toYear\" size=\"5\"$toYearStyle/></td></tr>"
-         . "<tr><td align=right>Subject:</td><td align=left>"
+         . "<tr><td align=right>".wfMsg('subject:')."</td><td align=left>"
         	.   StructuredData::addSelectToHtml(1, 'subject', self::$SOURCE_SUBJECT_OPTIONS, $subjects, 'multiple="multiple"')."</td></tr>"
-         . "<tr id=\"ethnicity_row\"><td align=right>Ethnicity/Culture:</td><td align=left>"
+         . "<tr id=\"ethnicity_row\"><td align=right>".wfMsg('ethnicityculture:')."</td><td align=left>"
         	.   StructuredData::addSelectToHtml(1, 'ethnicity', self::$ETHNICITY_OPTIONS, $ethnicity)."</td></tr>"
-         . "<tr id=\"religion_row\"><td align=right>Religion:</td><td align=left>"
+         . "<tr id=\"religion_row\"><td align=right>".wfMsg('religion:')."</td><td align=left>"
         	.   StructuredData::addSelectToHtml(1, 'religion', self::$RELIGION_OPTIONS, $religion)."</td></tr>"
-         . "<tr id=\"occupation_row\"><td align=right>Occupation:</td><td align=left>"
+         . "<tr id=\"occupation_row\"><td align=right>".wfMsg('occupation:')."</td><td align=left>"
         	.   StructuredData::addSelectToHtml(1, 'occupation', self::$OCCUPATION_OPTIONS, $occupation)."</td></tr>"
 			. "</table>";
 		$rows = '';
@@ -1042,7 +1046,7 @@ END;
 		$result .= '<h2>Repositories</h2>';
       $result .= '<table id="repository_table" border="0" width="500px" style="display:block">';
       $result .= '<tr><th></th><th>Repository name</th><th>Location (call#, URL) of source within repository</th><th>Availability</th></tr>';
-		$result .= "$rows</table><a href=\"javascript:void(0)\" onClick=\"addRepository('".implode(',',self::$SOURCE_AVAILABILITY_OPTIONS)."'); return preventDefaultAction(event);\">Add Repository</a>";
+		$result .= "$rows</table><a href=\"javascript:void(0)\" onClick=\"addRepository('".implode(',',self::$SOURCE_AVAILABILITY_OPTIONS)."'); return preventDefaultAction(event);\">".wfMsg('addrepository')."</a>";
 		$result .= $tm->getTipTexts();
       $result .= "<br><br>Text:<br>";
       return $result;

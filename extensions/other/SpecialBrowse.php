@@ -110,19 +110,24 @@ END
     $pleasewait = wfMsg('pleasewait');
     $titlecasesensitive = wfMsg('titlecasesensitive');
     $pagefromlist = wfMsg('pagefromlist');
-    $threespaces = wfMsg('threespaces');
+    //$threespaces = wfMsg('threespaces');
+    $allpages = wfMsg('allpages');
+    $namespacecolon = wfMsg('namespace:');
+    $titlecolon = wfMsg('title:');
+    $go = wfMsg('go');
+    $nextpage = wfMsg('nextpage');
    $wgOut->addHTML(<<< END
 <center>
 <div class="browse">
 <form name="browse" action="/wiki/Special:Browse" method="get">
 <table style="margin: 0 .5em 1em .5em">
 <tr><td></td><td align="left"><input type="radio" name="scope" value="watched"$watchedSelected onChange="browseGo('')"> $watchedpages
-<input type="radio" name="scope" value="all"$allSelected onChange="browseGo('')"> All pages</td></tr>
-<tr><td align="right">Namespace:</td><td align="left">$nsSelector
+<input type="radio" name="scope" value="all"$allSelected onChange="browseGo('')">$allpages</td></tr>
+<tr><td align="right">$namespacecolon</td><td align="left">$nsSelector
 <span id="pleasewait" style="display: none"><span style="padding: 0 .2em; color: #fff; background-color: #888">$pleasewait</span></span>
 </td></tr>
-<tr><td align="right">Title:</td><td align="left"><input id="titleinput" type="text" name="pagetitle" size="25" maxlength="150" value="$pageTitle"/>
-<input type="submit" name="go" value="Go"/>
+<tr><td align="right">$titlecolon</td><td align="left"><input id="titleinput" type="text" name="pagetitle" size="25" maxlength="150" value="$pageTitle"/>
+<input type="submit" name="go" value="$go"/>
 </td></tr>
 <tr><td></td><td style="margin: 0; padding: 0; line-height: .7em; font-size: 80%;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$titlecasesensitive</td></tr>
 </table>
@@ -132,10 +137,10 @@ $alphaLinks
 <div id="message">$pagefromlist</div>
 <table id="results" align="center">
 <tr><td align="center"><span id="prevlink" style="display: $prevDisplay"><a title="Previous page" href="javascript:void(0)" onClick="browsePrev(); return preventDefaultAction(event);">< Prev</a></span> &nbsp;&nbsp;&nbsp;
-<span id="nextlink" style="display: $nextDisplay"><a title="Next page" href="javascript:void(0)" onClick="browseNext(); return preventDefaultAction(event);">Next ></a></span></td></tr>
+<span id="nextlink" style="display: $nextDisplay"><a title="$nextpage" href="javascript:void(0)" onClick="browseNext(); return preventDefaultAction(event);">Next ></a></span></td></tr>
 $tableRows
 <tr><td align="center"><span id="prevlink2" style="display: $prevDisplay"><a title="Previous page" href="javascript:void(0)" onClick="browsePrev(); return preventDefaultAction(event);">< Prev</a></span> &nbsp;&nbsp;&nbsp;
-<span id="nextlink2" style="display: $nextDisplay"><a title="Next page" href="javascript:void(0)" onClick="browseNext(); return preventDefaultAction(event);">Next ></a></span></td></tr>
+<span id="nextlink2" style="display: $nextDisplay"><a title="$nextpage" href="javascript:void(0)" onClick="browseNext(); return preventDefaultAction(event);">Next ></a></span></td></tr>
 </table>
 </center>
 END

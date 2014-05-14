@@ -115,7 +115,7 @@ class Name extends StructuredData {
          foreach ($this->xml->related as $related) {
             $names .= "<li>[[{$this->tagName}:{$related['name']}|{$related['name']}]]";
          }
-         $result = "<div class=\"wr-infobox wr-infobox-name\"><div class=\"wr-infobox-heading\">Related Names</div><ul>$names</ul></div>";
+         $result = "<div class=\"wr-infobox wr-infobox-name\"><div class=\"wr-infobox-heading\">".wfMsg('relatednames')."</div><ul>$names</ul></div>";
       }
 //   	$result .= $this->showWatchers();
 //		$result .= "|}\n";
@@ -135,7 +135,7 @@ class Name extends StructuredData {
 	            $relatedNames .= htmlspecialchars($related['name']) .'|' . htmlspecialchars($related['source']) ."\n";
 	        }
         }
-		return "<br>Related names (one per line): Name | Source<br><textarea tabindex=\"1\" name=\"related\" rows=\"20\" cols=\"50\">$relatedNames</textarea><br>Text:<br>";
+		return "<br>".wfMsg('namesourcetext', htmlspecialchars($relatedNames))."<br>";
     }
 
     /**

@@ -149,7 +149,7 @@ function propagatePlaceRollback(&$article, &$user) {
  * Handles places
  */
 class Place extends StructuredData {
-    const PROPAGATE_MESSAGE = 'Propagate changes to';
+    //const PROPAGATE_MESSAGE = 'Propagate changes to';// change to wfMsg('propogatechangesto');
 	protected $prefName; // from title
 	protected $locatedIn; // from title
 
@@ -283,10 +283,10 @@ class Place extends StructuredData {
      foreach ($values as $value) {
      		$title = Title::newFromText((string)$value['place'], NS_PLACE);
 			if (!$title || !$title->exists()) {
-             return "Also located in place: {$value['place']} not found";
+             return wfMsg('alsoinnotfound',$value['place']);
          }
          if (!StructuredData::isValidYear((string)$value['from_year'], true) || !StructuredData::isValidYear((string)$value['to_year'], true)) {
-             return "Also located in year range not valid: enter year, ?, or present";
+             return wfMsg('alsoinnotvalid');
          }
      }
      return null;
@@ -499,7 +499,7 @@ class Place extends StructuredData {
                  $lng = $lng * -1.0;
                  $ew = 'W';
                }
-               $coordinates = $this->getLV('Coordinates', "$lat&deg;$ns $lng&deg;$ew");
+               $coordinates = $this->getLV(wfMsg('coordinates'), "$lat&deg;$ns $lng&deg;$ew");
            }
            $fromYear = (string)$this->xml->from_year;
            $toYear = (string)$this->xml->to_year;
@@ -508,7 +508,7 @@ class Place extends StructuredData {
               $yearRange = " &nbsp;&nbsp;&nbsp; ($fromYear - $toYear)";
            }
            if ($this->locatedIn) {
-              $locatedIn = $this->getLV('Located in', "[[Place:{$this->locatedIn}|{$this->locatedIn}]]$yearRange");
+              $locatedIn = $this->getLV(wfMsg('locatedin'), "[[Place:{$this->locatedIn}|{$this->locatedIn}]]$yearRange");
            }
            else {
               $locatedIn = '';
@@ -522,7 +522,7 @@ class Place extends StructuredData {
               $place = (string)$ali['place'];
               $values[] = "[[Place:$place|$place]] &nbsp;&nbsp;&nbsp; $yearRange";
            }
-           $alsoLocatedIn = $this->getLV('Also located in', $values);
+           $alsoLocatedIn = $this->getLV(wfMsg('alsolocatedin'), $values);
            $values = array();
            foreach ($this->xml->see_also as $seeAlso) {
               $reason = '';
@@ -532,7 +532,7 @@ class Place extends StructuredData {
               $place = (string)$seeAlso['place'];
               $values[] = array("[[Place:$place|$place]]", $reason);
            }
-           $seeAlso = $this->getLV('See also', $values);
+           $seeAlso = $this->getLV(wfMsg('seealso'), $values);
            $map = '';
            $this->mapData = SpecialPlaceMap::getContainedPlaceMapData($this->xml);
 			   if ($this->mapData) {
@@ -670,33 +670,33 @@ END;
          }
       }
       if (!$this->isValidLocatedIn()) {
-         $result .= "<p><font color=red>A place cannot be added with this title because it is not located within an existing place (country, state, district, etc).</font></p>";
+         $result .= "<p><font color=red>".wfMsg('cannotaddedexisting')."</font></p>";
       }
       if (!Place::isValidType($placeType, $placeTypes)) {
          $placeTypeStyle = $invalidStyle;
-         $result .= "<p><font color=red>The place type must now be chosen from a drop-down list. The list will appear as you enter the type.</font></p>";
+         $result .= "<p><font color=red>".wfMsg('placedropdownlist')."</font></p>";
       }
       if (!Place::isValidLatitude($latitude)) {
          $latitudeStyle = $invalidStyle;
-         $result .= "<p><font color=red>The latitude is not valid: if you're entering in DD MM' SS\" format, don't forget the spaces between Degrees, Minutes, and Seconds</font></p>";
+         $result .= "<p><font color=red>".wfMsg('latitudenotvalid')."</font></p>";
       }
       if (!Place::isValidLongitude($longitude)) {
          $longitudeStyle = $invalidStyle;
-         $result .= "<p><font color=red>The longitude is not valid: if you're entering in DDD MM' SS\" format, don't forget the spaces between Degrees, Minutes, and Seconds</font></p>";
+         $result .= "<p><font color=red>".wfMsg('longitudenotvalid')."</font></p>";
       }
       if (StructuredData::isRedirect($textbox1)) {
          if ($this->getContainedPlacesElements()) {
             $sk = $wgUser->getSkin();
             $link = $sk->makeLink("User:$wrAdminUserName", "$wrAdminUserName");
-            $result .= "<p><font color=red>Places with contained places can't be redirected; (rename contained places first or leave a message for $link)</font></p>";
+            $result .= "<p><font color=red>".wfMsg('placescantredirect',$link)."</font></p>";
          }
       }
       else {
         if (!StructuredData::isEmptyOrExists($this->locatedIn, NS_PLACE)) {
-            $result .= "<p><font color=red>The &quot;{$this->locatedIn}&quot; place page does not exist (you must create it before creating this page unless you're going to make this page a redirect)</font></p>";
+            $result .= "<p><font color=red>".wfMsg('thepagenotexist',$this->locatedIn)."</font></p>";
         }
         if (mb_substr($this->titleString, 0, 1) == ',') {
-            $result .= "<p><font color=red>The page title cannot start with a comma unless it's a redirect to another page</font></p>";
+            $result .= "<p><font color=red>".wfMsg('titlecannotcomma')."</font></p>";
         }
       }
       if (isset($this->xml)) {
@@ -720,12 +720,12 @@ END;
       $result .= "<td align=left>Type:</td><td align=left><input tabindex=\"1\" id=\"input_type\" name=\"type\" value=\"$placeType\" size=\"20\"$placeTypeStyle/></td>";
       $result .= "</tr><tr>";
       $latitude = Place::displayLatLng($latitude, true);
-      $result .= "<td align=left>Latitude:</td><td align=left><input tabindex=\"1\" name=\"latitude\" value=\"$latitude\" size=\"20\"$latitudeStyle/>" .
-                  " (enter <i>DD MM' SS\"</i> or <i>D.DD</i> followed by <i>N</i> or <i>S</i>)";
+      $result .= "<td align=left>".wfMSg('latitude').":</td><td align=left><input tabindex=\"1\" name=\"latitude\" value=\"$latitude\" size=\"20\"$latitudeStyle/>" .
+                  wfMsg('enterorfollowed');
       $result .= "</tr><tr>";
       $longitude = Place::displayLatLng($longitude, false);
-      $result .= "<td align=left>Longitude:</td><td align=left><input tabindex=\"1\" name=\"longitude\" value=\"$longitude\" size=\"20\"$longitudeStyle/>" .
-                  " (enter <i>DDD MM' SS\"</i> or <i>D.DD</i> followed by <i>E</i> or <i>W</i>)";
+      $result .= "<td align=left>".wfMsg('longitude').":</td><td align=left><input tabindex=\"1\" name=\"longitude\" value=\"$longitude\" size=\"20\"$longitudeStyle/>" .
+                  wfMsg('enterorfollowed');
       $result .= "</td>";
       $result .= "</tr><tr>";
       if ($this->locatedIn) {
@@ -736,12 +736,12 @@ END;
       else {
          $liText = "From";
       }
-      $result .= "<td align=left colspan=2>$liText year: <input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>" .
-                                                " to year: <input tabindex=\"1\" name=\"toYear\" value=\"$toYear\" size=\"5\"$toYearStyle/></td>";
+      $result .= "<td align=left colspan=2>".wfMsg('_year', $liText).": <input tabindex=\"1\" name=\"fromYear\" value=\"$fromYear\" size=\"5\"$fromYearStyle/>" .
+                                                wfMsg('toyear').": <input tabindex=\"1\" name=\"toYear\" value=\"$toYear\" size=\"5\"$toYearStyle/></td>";
 		$result .= '</tr></table>';
-      $result .= "<br><label for=\"input_alsoLocatedIn\">Also located in (one per line): Place | From year | To year</label><br><textarea id=\"input_alsoLocatedIn\" class=\"place_input\" tabindex=\"1\" name=\"alsoLocatedIn\" rows=\"3\" cols=\"45\"$alsoLocatedInStyle>$alsoLocatedIn</textarea>";
-      $result .= "<br><label for=\"input_seeAlso\">See also (one per line): Place | Reason</label><br><textarea id=\"input_seeAlso\" class=\"place_input\" tabindex=\"1\" name=\"seeAlso\" rows=\"3\" cols=\"45\">$seeAlso</textarea>";
-		$result .= '<br>Text:<br>';
+      $result .= "<br><label for=\"input_alsoLocatedIn\">".wfMsg('alsolocatedone')."</label><br><textarea id=\"input_alsoLocatedIn\" class=\"place_input\" tabindex=\"1\" name=\"alsoLocatedIn\" rows=\"3\" cols=\"45\"$alsoLocatedInStyle>$alsoLocatedIn</textarea>";
+      $result .= "<br><label for=\"input_seeAlso\">".wfMsg('seealsoplacereason')."</label><br><textarea id=\"input_seeAlso\" class=\"place_input\" tabindex=\"1\" name=\"seeAlso\" rows=\"3\" cols=\"45\">$seeAlso</textarea>";
+		$result .= '<br>'.wfMsg('text:').'<br>';
       return $result;
    }
 
@@ -1080,7 +1080,7 @@ END;
    	          $updatedContent =& $this->updateContainedPlace($this->titleString, $type, $lat, $lng, $fromYear, $toYear, $content);
              }
 				if ($updatedContent) {
-					$updateResult = $parentArticle->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+					$updateResult = $parentArticle->doEdit($updatedContent, wfMsg('propogatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
 					$result = $result && $updateResult;
 				}
          }
@@ -1094,7 +1094,7 @@ END;
            $content =& $parentArticle->fetchContent();
            $updatedContent =& $this->updateContainedPlace(null, null, null, null, null, null, $content);
 			  if ($updatedContent) {
-				 $updateResult = $parentArticle->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+				 $updateResult = $parentArticle->doEdit($updatedContent, wfMsg('propogatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
              $result = $result && $updateResult;
 			  }
          }
@@ -1115,7 +1115,7 @@ END;
 	             $content =& $parentArticle->fetchContent();
 	             $updatedContent =& $this->updateContainedPlace($this->titleString, $type, $lat, $lng, (string)$pli['from_year'], (string)$pli['to_year'], $content);
 					if ($updatedContent) {
-						$updateResult = $parentArticle->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+						$updateResult = $parentArticle->doEdit($updatedContent, wfMsg('propogatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
 						$result = $result && $updateResult;
 					}
 	         }
@@ -1167,7 +1167,7 @@ END;
 	    			$content =& $article->fetchContent();
 	    			$updatedContent =& $this->updateContainedPlace($newTitleString, $type, $lat, $lng, $fromYear, $toYear, $content);
 	    			if ($updatedContent) {
-	    				$updateResult = $article->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+	    				$updateResult = $article->doEdit($updatedContent, wfMsg('propogatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
 	    				$result = $result && $updateResult;
 	    			}
 	    		}
@@ -1179,7 +1179,7 @@ END;
 	    			$content =& $parentArticle->fetchContent();
 	    			$updatedContent =& $this->updateContainedPlace(null, null, null, null, null, null, $content);
 	    			if ($updatedContent) {
-	    				$updateResult = $parentArticle->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+	    				$updateResult = $parentArticle->doEdit($updatedContent, wfMsg('propogatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
 	    				$result = $result && $updateResult;
 	    			}
 	    		}
@@ -1193,7 +1193,7 @@ END;
     			$content =& $article->fetchContent();
     			$updatedContent =& $this->updateContainedPlace($newTitleString, $type, $lat, $lng, $fromYear, $toYear, $content);
     			if ($updatedContent) {
-    				$updateResult = $article->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+    				$updateResult = $article->doEdit($updatedContent, wfMsg('propogatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
     				$result = $result && $updateResult;
     			}
     		}
@@ -1206,7 +1206,7 @@ END;
     			$content =& $article->fetchContent();
     			$updatedContent =& $this->updateContainedPlace($newTitleString, $type, $lat, $lng, (string)$pli['from_year'], (string)$pli['to_year'], $content);
     			if ($updatedContent) {
-    				$updateResult = $article->doEdit($updatedContent, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+    				$updateResult = $article->doEdit($updatedContent, wfMsg('propogatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
     				$result = $result && $updateResult;
     			}
     		}

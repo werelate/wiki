@@ -402,7 +402,7 @@ class Person extends StructuredData {
       $warning = '';
       $subtitle = '';
       if ($isParentsSiblings) {
-         $label = "Parents and Siblings";
+         $label = wfMsg('parentsandsiblings');
          $husbandLabel = 'F';
          $wifeLabel = 'M';
 			$childLabel = 'S';
@@ -413,11 +413,11 @@ class Person extends StructuredData {
                $t = Title::newFromText($pf, NS_FAMILY);
                $pfs[] = wfUrlencode($t->getDBkey());
             }
-            $warning = "Duplicate parents - <span class=\"plainlinks\">[http://$wrHostName/wiki/Special:Compare?ns=Family&compare=".join('|',$pfs)." compare]</span>";
+            $warning = wfMsg('duplicateparents')."<span class=\"plainlinks\">[http://$wrHostName/wiki/Special:Compare?ns=Family&compare=".join('|',$pfs)." compare]</span>";
          }
       }
       else {
-         $label = "Spouse and Children";
+         $label = wfMsg('spouseandchildren');
          $husbandLabel = 'H';
          $wifeLabel = 'W';
 			$childLabel = 'C';
@@ -512,15 +512,15 @@ END;
       $t = Title::makeTitle(NS_SPECIAL, 'AddPage');
       $titleParam = urlencode($this->title->getText());
       if ($mode == 0) {
-         $label = 'Add Parents and Siblings';
+         $label = wfMsg('addparentssiblings');
          $params = '&ct='.$titleParam;
       }
       else {
          if ($mode == 1) {
-            $label = 'Add Spouse and Children';
+            $label = wfMsg('addspousechildren');
          }
          else {
-            $label = 'Add another spouse & children';
+            $label = wfMsg('anotherspousechildren');
          }
          $pos = mb_strpos($given, ' ');
          if ($pos) {
@@ -607,8 +607,8 @@ END;
                $t = Title::makeTitle(NS_SPECIAL, 'Movepage');
                $url = $t->getLocalURL('target='.$this->title->getPrefixedURL().
                                       '&wpNewTitle='.wfUrlencode("Person:$correctTitle").
-                                      '&wpReason='.wfUrlencode('make page title agree with name'));
-               $parser->mOutput->mSubtitle = 'This page can be <a href="'.$url.'">renamed</a>';
+                                      '&wpReason='.wfUrlencode(wfMsg('maketitleagreename')));
+               $parser->mOutput->mSubtitle = wfMsg('pagecanrenamed',$url);
                $wgOut->setSubtitle($parser->mOutput->mSubtitle);
             }
          }
@@ -704,6 +704,7 @@ END;
          $birthPlace = Person::formatPlace($birthPlace);
          $deathPlace = Person::formatPlace($deathPlace);
 
+         $familytree = wfMsg('familytree');
          $result = <<<END
 <div class="wr-infobox wr-infobox-person clearfix">
    <div class="wr-infobox-image">
@@ -716,7 +717,7 @@ END;
 
    </div>
 </div>
-<div id="wr_familytreelink"><span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span></div>
+<div id="wr_familytreelink"><span class="wr-familytreelink-text">$familytree</span><span class="wr-familytreelink-arrow">▼</span></div>
 END;
          $familybadges = '';
          $marriageEvents = array();
@@ -799,7 +800,7 @@ END;
 		}
 		else {
 			$result .= "<td><select class=\"n_select\" tabindex=\"1\" name=\"alt_name$nameNum\">" .
-			'<option value="Unknown"' . (empty($typeString) || $typeString == 'Unknown' ? ' selected="selected"' : '') . '>Type of name</option>';
+			'<option value="Unknown"' . (empty($typeString) || $typeString == 'Unknown' ? ' selected="selected"' : '') . '>'.wfMsg('typeofname').'</option>';
 			foreach (self::$NAME_TYPES as $nameType) {
 				$result .= '<option value="'.$nameType.'"'.($typeString == $nameType ? ' selected="selected"' : '').'>'.$nameType.'</option>';
 			}
@@ -810,9 +811,9 @@ END;
       $result .= "<td><input id=\"surname$nameNum\" class=\"n_surname\" tabindex=\"1\" type=\"text\" name=\"surname$nameNum\" value=\"$surname\"/></td>";
 		$result .= "<td><input class=\"n_presuf\" tabindex=\"1\" type=\"text\" name=\"title_suffix$nameNum\" value=\"$titleSuffix\"/></td>";
 		$rowNum = $nameNum+1;
-		$result .= "<td class=\"n_plus\"><a title='Add a source for this name' href=\"#sourcesSection\" onClick=\"addRef('name_input',$rowNum,6,newSource());\">+</a></td>";
+		$result .= "<td class=\"n_plus\"><a title='".wfMsg('addsourcename')."' href=\"#sourcesSection\" onClick=\"addRef('name_input',$rowNum,6,newSource());\">+</a></td>";
 		$result .= '<td><input class="n_ref" tabindex="1" type="text" name="name_sources'.$nameNum.'" value="'.$sources.'"/></td>';
-		$result .= "<td class=\"n_plus\"><a title='Add a note for this name' href=\"#notesSection\" onClick=\"addRef('name_input',$rowNum,8,newNote());\">+</a></td>";
+		$result .= "<td class=\"n_plus\"><a title='".wfMsg('addnotename')."' href=\"#notesSection\" onClick=\"addRef('name_input',$rowNum,8,newNote());\">+</a></td>";
 		$result .= '<td><input class="n_ref" tabindex="1" type="text" name="name_notes'.$nameNum.'" value="'.$notes.'"/></td>';
 		if ($nameNum > 0) {
 			$result .= "<td><a title='Remove this name' href=\"javascript:void(0)\" onClick=\"removeName($rowNum); return preventDefaultAction(event);\">remove</a></td>";
@@ -974,11 +975,11 @@ END;
 //            $rows .= '<tr><td colspan="3"><font color="red">The family will be added when the <i>Family page</i> is saved.</font></td></tr>';
 //         }
          if ($name == 'spouse_of_family') {
-            $linkText = 'Add spouse and children';
+            $linkText = wfMsg('addspousechildren');
             $display = 'block';
          }
          else {
-            $linkText = "Add parents";
+            $linkText = wfMsg('addparents');
             $display = (count($families) == 0 ? 'block' : 'none');
          }
 			return "<h2>$header<small>".$tm->addMsgTip($msgTip, 400)."</small></h2>"
@@ -1043,28 +1044,28 @@ END;
       $this->addRequestMembers('sf', $spouseOfFamilies);
 
 		if (ESINHandler::isLiving($this->xml)) {
-		   $result .= "<p><font color=red>This person was born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be entered into WeRelate.org.</font></p>";
+		   $result .= "<p><font color=red>".wfMsg('bornlessliving')."</font></p>";
 		}
 	   else if (!$this->isGedcomPage && !StructuredData::titleStringHasId($this->titleString)) {
-	      $result .= "<p><font color=red>The page title does not have an ID; please create a page with an ID using <a href='/wiki/Special:AddPage/Person'>Add page</a></font></p>";
+	      $result .= "<p><font color=red>".wfMsg('pagenothaveid')."</p>";
 	   }
 	   if ($exists && !$genderString) {
-	   	$result .= "<p><font color=red>You must select a gender</font></p>";
+	   	$result .= "<p><font color=red>".wfMsg('mustselectgender')."</font></p>";
 	   	$genderStyle = $invalidStyle;
 	   }
 	   if (StructuredData::titlesOverlap($childOfFamilies,$spouseOfFamilies)) {
-	   	$result .= "<p><font color=red>This person cannot be a child of and a spouse of the same family</font></p>";
+	   	$result .= "<p><font color=red>".wfMsg('cannotbechildspouse')."</font></p>";
 	   	$childOfFamilyStyle = $invalidStyle;
 	   	$spouseOfFamilyStyle = $invalidStyle;
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($childOfFamilies) || !StructuredData::titlesExist(NS_FAMILY, $childOfFamilies))) {
-	   		$result .= "<p><font color=red>Parents family page not found; please remove it, save this page, then add a new one</font></p>";
+	   		$result .= "<p><font color=red>".wfMsg('parentsfamilynotfound')."</font></p>";
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($spouseOfFamilies) || !StructuredData::titlesExist(NS_FAMILY, $spouseOfFamilies))) {
-   		$result .= "<p><font color=red>Spouse family page not found; please remove it, save this page, then add a new one</font></p>";
+   		$result .= "<p><font color=red>".wfMsg('spousefamilynotfound')."</font></p>";
 	   }
       if (ESINHandler::hasAmbiguousDates($this->xml)) {
-         $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
+         $result .= "<p><font color=red>".wfMsg('writedatesformat')."</font></p>";
       }
 
 		// add name input table
@@ -1080,15 +1081,15 @@ END;
 		}
 		$result .= '<h2>Name</h2>';
 		$result .= '<table id="name_input" border=0 cellpadding=3>' .
-		'<tr><th></th><th>Name&nbsp;prefix'.$tm->addMsgTip('TitlePrefix').'</th><th>Given'.$tm->addMsgTip('GivenName').'</th><th>Surname'.$tm->addMsgTip('Surname').'</th>'.
+		'<tr><th></th><th>'.wfMsg('namesuffix').$tm->addMsgTip('TitlePrefix').'</th><th>'.wfMsg('given').$tm->addMsgTip('GivenName').'</th><th>'.wfMsg('surname').$tm->addMsgTip('Surname').'</th>'.
 			'<th>Name&nbsp;suffix'.$tm->addMsgTip('TitleSuffix').'</th>'.
-         '<th></th><th>Source(s)'.$tm->addMsgTip('NameSourceIDs').'</th><th></th><th>Note(s)'.$tm->addMsgTip('NameNoteIDs').'</th></tr>' .
+         '<th></th><th>Source(s)'.$tm->addMsgTip('NameSourceIDs').'</th><th></th><th>'.wfMsg('note(s)').$tm->addMsgTip('NameNoteIDs').'</th></tr>' .
 		$this->addNameInput(0, $name, $display) .
 		$rows .
 		'</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addName(\''.implode(',',self::$NAME_TYPES).'\'); return preventDefaultAction(event);">Add alternate name</a></div>';
 
 		// add gender input
-		$result .= '<br><br><label for="gender">Gender: </label>'
+		$result .= '<br><br><label for="gender">'.wfMsg('gender:').'</label>'
 			. StructuredData::addSelectToHtml(1, 'gender', Person::$GENDER_OPTIONS, $genderString, $genderStyle)
 			. '<br><br>';
 		// add child of family input
@@ -1549,7 +1550,7 @@ END;
 			   }
 			   // update the redir page if necessary
 				if ($updated) {
-					$result = $result && $article->doEdit($content, 'Copy data from [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+					$result = $result && $article->doEdit($content, wfMsg('copydatafrom', $this->title->getPrefixedText() ), PROPAGATE_EDIT_FLAGS);
 				}
 			}
 		}

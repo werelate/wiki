@@ -155,7 +155,7 @@ function propagateFamilyRollback(&$article, &$user) {
  * Handles families
  */
 class Family extends StructuredData {
-	const PROPAGATE_MESSAGE = 'Propagate changes to';
+	//const PROPAGATE_MESSAGE = 'Propagate changes to'; // replaced with wfMsg('propagatechangesto')
 	// if you add more standard events, you must change the javascript function addEventFact
 	public static $MARRIAGE_TAG = 'Marriage';
 	public static $ALT_MARRIAGE_TAG = 'Alt Marriage';
@@ -188,7 +188,7 @@ class Family extends StructuredData {
 	protected function formatFamilyMember($value, $parms) {
 		$title = (string)$value['title'];
 		if (isset($parms[0])) {
-		  $label = (isset($parms[1]) && $title != (string)$parms[1]['title'] ? 'Alternate ' : '') . $parms[0] . '<dd>';
+		  $label = (isset($parms[1]) && $title != (string)$parms[1]['title'] ? wfMsg('alternate') : '') . $parms[0] . '<dd>';
 		}
 		else {
 		   $label = '';
@@ -207,33 +207,33 @@ class Family extends StructuredData {
 		$uplace = (string)$value['burialplace'];
 		$pf = (string)$value['child_of_family'];
 		$birth = '';
-		if ($bdate || $bplace) {
+		if ($bdate || $bplace) {//should the text found here be translated?
 			if ($bplace) {
 				$bplace = ', [[Place:' . StructuredData::addBarToTitle($bplace) . ']]';
 			}
-			$birth = "<dd>Birth: $bdate$bplace";
+			$birth = "<dd>". wfMsg('birth:')." $bdate$bplace";
 		}
 		else if ($cdate || $cplace) {
 			if ($cplace) {
 				$cplace = ', [[Place:' . StructuredData::addBarToTitle($cplace) . ']]';
 			}
-			$birth = "<dd>Chr: $cdate$cplace";
+			$birth = "<dd>".wfMsg('chr:')." $cdate$cplace";
 		}
 		$death = '';
 		if ($ddate || $dplace) {
 			if ($dplace) {
 				$dplace = ', [[Place:' . StructuredData::addBarToTitle($dplace) . ']]';
 			}
-			$death = "<dd>Death: $ddate$dplace";
+			$death = "<dd>".wfMsg('death:')." $ddate$dplace";
 		}
 		else if ($udate || $uplace) {
 			if ($uplace) {
 				$uplace = ', [[Place:' . StructuredData::addBarToTitle($uplace) . ']]';
 			}
-			$death = "<dd>Burial: $udate$uplace";
+			$death = "<dd>".wfMsg('burial:')."$udate$uplace";
 		}
 		if ($pf) {
-			$pf = '<dd>Parents: [[Family:' . StructuredData::addBarToTitle($pf) . ']]';
+			$pf = '<dd>'.wfMsg('place:').'[[Family:' . StructuredData::addBarToTitle($pf) . ']]';
 		}
 		return "<dt>{$label}[[Person:$title$fullname]]$birth$death$pf";
 	}
@@ -438,8 +438,8 @@ END;
                $t = Title::makeTitle(NS_SPECIAL, 'Movepage');
                $url = $t->getLocalURL('target='.$this->title->getPrefixedURL().
                                       '&wpNewTitle='.wfUrlencode("Family:$correctTitle").
-                                      '&wpReason='.wfUrlencode('make page title agree with name'));
-               $parser->mOutput->mSubtitle = 'This page can be <a href="'.$url.'">renamed</a>';
+                                      '&wpReason='.wfUrlencode(wfMsg('')));
+               $parser->mOutput->mSubtitle = wfMsg('pagecanrenamed', $url);
                $wgOut->setSubtitle($parser->mOutput->mSubtitle);
             }
          }
@@ -459,7 +459,7 @@ END;
          if ($marriageFound) {
             $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span> <span class=\"wr-infobox-place\">$marriagePlace</span></div>";
          }
-
+         $familytree = wfMsg('familytree');
          $result = <<<END
 <div class="wr-infobox wr-infobox-family">
    <table class="wr-infobox-spouses">
@@ -469,7 +469,7 @@ END;
    </table>
    $marriage
 </div>
-<div id="wr_familytreelink"><span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span></div>
+<div id="wr_familytreelink"><span class="wr-familytreelink-text">$familytree</span><span class="wr-familytreelink-arrow">▼</span></div>
 END;
 
 			// add source citations, images, notes
@@ -612,7 +612,7 @@ END;
             //$label = ($name == 'child' ? '&middot;' : '&nbsp;');
 				$rows .= "<tr><td>&nbsp;<input type=\"hidden\" name=\"{$name}_id$i\" value=\"". ($i+1) ."\"/></td>".
 				   "<td><input id=\"$name$i\" class=\"person_input\" tabindex=\"1\" type=\"text\" size=40 name=\"$name$i\"$s value=\"$p\"".($editable ? '' : ' readonly="readonly"')."/></td>".
-					"<td><a href=\"javascript:void(0)\" onClick=\"removePersonFamily('$name',$i); return preventDefaultAction(event);\">remove</a></td>" .
+					"<td><a href=\"javascript:void(0)\" onClick=\"removePersonFamily('$name',$i); return preventDefaultAction(event);\">".wfMsg('remove')."</a></td>" .
 			      "</tr>";
 				$i++;
 			}
@@ -693,32 +693,32 @@ END;
       $this->addRequestMembers('ct', $children);
 
 	   if (!$this->isGedcomPage && !StructuredData::titleStringHasId($this->titleString)) {
-	      $result .= "<p><font color=red>The page title does not have an ID; please create a page with an ID using <a href='/wiki/Special:AddPage/Family'>Add page</a></font></p>";
+	      $result .= "<p><font color=red>".wfMsg('nothavecreateid')."</font></p>";
 	   }
 	   if (StructuredData::titlesOverlap($husbands,$wives)) {
-	   	$result .= "<p><font color=red>The same person cannot be both husband and wife</font></p>";
+	   	$result .= "<p><font color=red>".wfMsg('samehusbandwife')."</font></p>";
 	   	$husbandStyle = $invalidStyle;
 	   	$wifeStyle = $invalidStyle;
 	   }
 	   if (StructuredData::titlesOverlap($husbands,$children)) {
-	   	$result .= "<p><font color=red>The same person cannot be both husband and child</font></p>";
+	   	$result .= "<p><font color=red>".wfMsg('samehusbandchild')."</font></p>";
 	   	$husbandStyle = $invalidStyle;
 	   }
 	   if (StructuredData::titlesOverlap($wives,$children)) {
-	   	$result .= "<p><font color=red>The same person cannot be both wife and child</font></p>";
+	   	$result .= "<p><font color=red>".wfMsg('samewifechild')."</font></p>";
 	   	$wifeStyle = $invalidStyle;
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($husbands) || !StructuredData::titlesExist(NS_PERSON, $husbands))) {
-	   		$result .= "<p><font color=red>Husband page not found; please click remove and add a new one</font></p>";
+	   		$result .= "<p><font color=red>".wfMsg('husbandnotfound')."</font></p>";
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($wives) || !StructuredData::titlesExist(NS_PERSON, $wives))) {
-	   		$result .= "<p><font color=red>Wife page not found; please click remove and add a new one</font></p>";
+	   		$result .= "<p><font color=red>".wfMsg('wifenotfound')."</font></p>";
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($children) || !StructuredData::titlesExist(NS_PERSON, $children))) {
-	   		$result .= "<p><font color=red>Child page not found; please click remove and add a new one</font></p>";
+	   		$result .= "<p><font color=red>".wfMsg('childnotfound')."</font></p>";
 	   }
       if (ESINHandler::hasAmbiguousDates($this->xml)) {
-         $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
+         $result .= "<p><font color=red>".wfMsg('writedatesformat')."</font></p>";
       }
 
       // add spouse input
@@ -737,14 +737,14 @@ END;
          $wg = $g;
          $ws = $s;
       }
-		$result .= $this->addPersonInput($husbands, 'husband', 'Husband', $husbandStyle, $tm, $invalidStyle, $hg, $hs, $husbandParam);
-		$result .= $this->addPersonInput($wives, 'wife', 'Wife', $wifeStyle, $tm, $invalidStyle, $wg, $ws, $wifeParam);
+		$result .= $this->addPersonInput($husbands, wfMsg('husbandlowercase'), wfMsg('husband'), $husbandStyle, $tm, $invalidStyle, $hg, $hs, $husbandParam);
+		$result .= $this->addPersonInput($wives, wfMsg('wifelowercase'), wfMsg('wife'), $wifeStyle, $tm, $invalidStyle, $wg, $ws, $wifeParam);
 
 		// add event_fact input table
 		$result .= $wgESINHandler->addEventsFactsInput($this->xml, self::$STD_EVENT_TYPES, self::$OTHER_EVENT_TYPES);
 
 		// add children input
-		$result .= $this->addPersonInput($children, 'child', 'Children', $childStyle, $tm, $invalidStyle);
+		$result .= $this->addPersonInput($children, wfMsg('child'), wfMsg('children'), $childStyle, $tm, $invalidStyle);
 
 		// add sources, images, notes input tables
 		$result .= $wgESINHandler->addSourcesImagesNotesInput($this->xml);
@@ -1050,7 +1050,7 @@ END;
 			$updated = false;
 			Person::updateFamilyLink($familyTag, $this->titleString, $newTitle, $content, $updated);
 			if ($updated) {
-				$result = $article->doEdit($content, self::PROPAGATE_MESSAGE.' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+				$result = $article->doEdit($content, wfMsg('propagatechangesto').' [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
             StructuredData::purgeTitle($personTitle, +1); // purge person with a fudge factor so family link will be blue
 			}
 			else {
@@ -1208,7 +1208,7 @@ END;
 			   }
 			   // update the redir page if necessary
 				if ($updated) {
-					$result = $result && $article->doEdit($content, 'Copy data from [['.$this->title->getPrefixedText().']]', PROPAGATE_EDIT_FLAGS);
+					$result = $result && $article->doEdit($content, wfMsg('copydatafrom',htmlspecialchars( $this->title->getPrefixedText() ) ), PROPAGATE_EDIT_FLAGS);
 				}
 			}
 		}

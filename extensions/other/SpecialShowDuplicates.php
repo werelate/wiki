@@ -62,11 +62,11 @@ class ShowDuplicates {
    	
 
 		if ($this->userName) {
-			$results = '<p>Changes made in the past 24 hours are not reflected</p>';
+			$results = wfMsg('pastnotreflected');
 			
 	   	$u = User::newFromName($this->userName);
 			if (!$u || !$u->getID()) {
-				$results .= '<font color="red">User not found</font>';
+				$results .= '<font color="red">'.wfMsg('usernotfound').'</font>';
 			}
 			else {
 		   	$sk = $wgUser->getSkin();
@@ -102,7 +102,7 @@ class ShowDuplicates {
 					$results .= '</ul>';
 				}
 				else {
-					$results .= '<p>No possible duplicates found.</p>';
+					$results .= wfMsg('noduplicatesfound');
 				}
 			}
 			return $results;
@@ -114,7 +114,7 @@ class ShowDuplicates {
    		$request = new FauxRequest(array('returnto' => $wgLang->specialPage('ShowDuplicates')));
    		require_once('includes/SpecialUserlogin.php');
    		$form = new LoginForm($request);
-   		$form->mainLoginForm("You need to log in to view your possible duplicates<br/><br/>", '');
+   		$form->mainLoginForm(wfMsg('logonviewduplicates'), '');
    		return '';
    	}
    }

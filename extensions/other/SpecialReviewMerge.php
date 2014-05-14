@@ -286,7 +286,7 @@ $changestoundotext
 END;
 		}
 		if (count($familyPages) + count($nonFamilyPages) + count($unchangedPages) > 0) {
-			$output .= "<p><b>The following pages have been successfully unmerged:</b></p><ul>\n";
+			$output .= "<p><b>".wfMsg('followingsuccessfullyunmerged')."</b></p><ul>\n";
 			foreach ($familyPages as $page) {
 				$output .= "<li>".$skin->makeKnownLinkObj($page['title'])."</li>\n";
 			}
@@ -320,9 +320,9 @@ END;
 			$t = Title::makeTitle(NS_SPECIAL, 'ReviewMerge/'.$this->mergeId);
 			$markPatrolled = '<p>[' . $sk->makeKnownLinkObj($t, wfMsg('markaspatrolleddiff'), "action=markpatrolled&rcid={$this->rcid}" ) . ']</p>';
 		}
-
+        $mergeperformedby = wfMsg('mergeperformedby', htmlspecialchars($userLinks), htmlspecialchars($userToolLinks));
 		return <<<END
-<p>Merge performed by: $userLinks $userToolLinks</p>
+<p>$mergeperformedby</p>
 <p>$datetime</p>
 $markPatrolled
 END;
@@ -466,9 +466,10 @@ END;
 		$cols = count($data[0]);
 		$tblCols = $cols+1;
 		$childNum = 0;
+        $unmerge = wfMsg('_unmerge');
 		$output = <<< END
 <form name="unmerge" action="/wiki/Special:ReviewMerge/{$this->mergeId}" method="get">
-<input type="hidden" name="action" value="unmerge"/>
+<input type="hidden" name="action" value="$unmerge"/>
 <table border="0" cellspacing="0" cellpadding="4">
 END;
    	for ($i = 0; $i < count($data); $i++) {
@@ -587,7 +588,8 @@ END;
    	else {
         $unmergebuttontext = wfMsg('unmerge');
         $commentbuttontext = wfMsg('comment');
-   		$unmergeButton = 'Unmerge reason: <input type="text" name="'.$commentbuttontext.'" size=36/><br><input type="submit" value="'.$unmergebuttontext.'"/>';
+        $unmergereason = wfMsg('unmergereason');
+   		$unmergeButton = $unmergereason . '<input type="text" name="'.$commentbuttontext.'" size=36/><br><input type="submit" value="'.$unmergebuttontext.'"/>';
    	}
 		$output .= <<< END
 <tr><td align=right colspan="$tblCols">$unmergeButton</td></tr>

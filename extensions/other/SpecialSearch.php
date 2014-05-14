@@ -9,7 +9,7 @@ $wgExtensionFunctions[] = "wfSpecialSearchSetup";
 
 function wfSpecialSearchSetup() {
 	global $wgMessageCache, $wgSpecialPages, $wgParser, $wgHooks;
-	
+
 	$wgMessageCache->addMessages( array( "search" => "Search" ) );
 	$wgSpecialPages['Search'] = array('SpecialPage','Search');
 	$wgHooks['ArticleSaveComplete'][] = 'wrClearRecentChanges';
@@ -31,7 +31,7 @@ function wrClearRecentChanges() {
  */
 function wfSpecialSearch( $par=NULL, $specialPage ) {
 	global $wgOut, $wgRequest, $wgScriptPath, $wrSidebarHtml;
-	
+
 	$searchForm = new SearchForm();
 
 	// read query parameters into variables
@@ -69,12 +69,13 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 <p>$formHtml</p>
 $results
 END
-		);		
+		);
 	}
 	else {
 		$sideText = $searchForm->getStatsHtml();
-		$endText = wfMsgWikiHtml('searchend');
+		$endText = wfMsgWikiHtml('searchend');//Should work, but doesn't read wikitext
       $wrSidebarHtml = "<div id=\"wr-search-sidebar\">$sideText</div>";
+        //wgout doesn't send out wikitext
 		$wgOut->addHTML(<<< END
 <p>$formHtml</p><p> </p>
 $endText
@@ -148,6 +149,7 @@ class SearchForm {
    const THUMB_HEIGHT = 96;
 
 	public static $NAMESPACE_OPTIONS = array(
+        //what to do
 		'All' => 'All',
 		'Person' => 'Person',
 		'Family' => 'Family',
@@ -295,7 +297,7 @@ class SearchForm {
 			}
     	}
    }
-	
+
    private function setFamilyMatchVars($gedcomData) {
    	if ($gedcomData) {
    		$xml = GedcomUtil::getGedcomXml($gedcomData, $this->pagetitle);
@@ -335,7 +337,7 @@ class SearchForm {
 			}
     	}
    }
-	
+
    public function readQueryParms($par) {
       global $wgRequest, $wgUser;
 
@@ -383,7 +385,7 @@ class SearchForm {
       }
       if ($ns == 'Person') {
       	if ($this->pagetitle && $this->match == 'on') {
-				$this->givenname = $this->surname = $this->birthdate = $this->birthplace = $this->deathdate = $this->deathplace = 
+				$this->givenname = $this->surname = $this->birthdate = $this->birthplace = $this->deathdate = $this->deathplace =
 						$this->fatherGivenname = $this->fatherSurname = $this->motherGivenname = $this->motherSurname = $this->spouseGivenname = $this->spouseSurname =
 		      		$this->birthrange = $this->deathrange = $this->personGender = $this->parentFamily = $this->spouseFamily =
                   $this->wifeGivenname = $this->wifeSurname = '';
@@ -476,7 +478,7 @@ class SearchForm {
 		$this->go = $wgRequest->getVal('go');
       $this->start = $wgRequest->getVal('start');
    }
-   
+
    public function getRedirTitle() {
    	if (!$this->go || strpos($this->keywords, ':') === false) {
    		return '';
@@ -487,7 +489,7 @@ class SearchForm {
 		else {
 			$titleString = $this->keywords;
 		}
-   	
+
    	$t = Title::newFromText($titleString);
    	if ($t) {
    		if ($t->exists()) {
@@ -506,7 +508,7 @@ class SearchForm {
 		}
 		return $value;
 	}
-	
+
 	private function getRange($date, $range) {
 		if ($range) {
 			$year = substr(StructuredData::getDateKey($date), 0, 4);
@@ -516,7 +518,7 @@ class SearchForm {
 		}
 		return $this->addQuotes($date);
 	}
-	
+
 	private function repeatFieldName($value, $required, $fieldName='', $removeSpecialChars=false, $allowWildcards=false) {
 		if ($removeSpecialChars) {
          if ($allowWildcards) {
@@ -768,7 +770,7 @@ class SearchForm {
          else {
 				$sortSpec = '';
 			}
-			
+
 			if ($this->sort == 'title' && $this->titleLetter) {
 				$filters .= '&fq=' . urlencode('TitleFirstLetter:'.$this->titleLetter);
 			}
@@ -788,7 +790,7 @@ class SearchForm {
 		}
       return $query;
 	}
-	
+
 	private function getSelfQuery() {
 		$result = '/wiki/Special:Search?ns=' . urlencode($this->namespace)
          .($this->target ? '&target=' . urlencode($this->target) : '')
@@ -858,7 +860,7 @@ class SearchForm {
 		$v = str_replace(array('&lt;b&gt;','&lt;/b&gt;'), array('<b>','</b>'), htmlspecialchars($v));
 		return $v;
 	}
-	
+
 	private function formatValue($label, $value, $twoCol=false, $prepare=true) {
       if (!$value) return '';
 
@@ -872,10 +874,10 @@ class SearchForm {
 			return '';
 		}
 	}
-	
+
 	private function getStarsImage($score) {
 		global $wgStylePath;
-		
+
 		$n = (int)($score * 2);
 		if ($n < 0) {
 			$n = 0;
@@ -885,10 +887,10 @@ class SearchForm {
 		}
 		return "<img src=\"$wgStylePath/common/images/stars/stars$n.png\"/>";
 	}
-	
+
 	private function makeUserLinks($userText, $max = 90) {
 		global $wgUser;
-		
+
 		if (!$userText) {
 			return '';
 		}
@@ -930,12 +932,12 @@ class SearchForm {
       return $this->target &&
         ($this->target != 'AddPage' || $this->parentFamily || $this->spouseFamily || $this->childTitle || $this->husbandTitle || $this->wifeTitle);
    }
-	
+
 	private function getSelectButton($nsText, $titleString) {
 		$titleString = rawurlencode($titleString);
 		return "<input type=\"submit\" value=\"Select\" onClick=\"selectPage('{$this->target}','$nsText','$titleString')\"/> ";
 	}
-	
+
 	private function getMatchCheckbox($titleString, $pos) {
 		return '<input type="checkbox" name="compare_'.$pos.'" value="'.htmlspecialchars($titleString).'"/> ';
 	}
@@ -1081,7 +1083,7 @@ class SearchForm {
 //      return str_replace("'", '', htmlspecialchars($s));
 //		//return str_replace(array("'",'"'), array("\'",'&quot;'), $s);
 //	}
-	
+
 	private function getAddJSFunction() {
 		if ($this->namespace == 'Person') {
 			return "addPersonPage('{$this->target}')";
@@ -1106,7 +1108,7 @@ class SearchForm {
 
 	private function formatResults($response, $recentDocs, $selfQuery) {
 		global $wgUser;
-		
+
 		$output = '';
       $start = $response['response']['start'];
       $numFound = $response['response']['numFound'];
@@ -1124,7 +1126,7 @@ class SearchForm {
                  ? '<br/>'.FamilyTreeUtil::generateTreeCheckboxes($wgUser, null, true) : '')
 				.'</td></tr></table><hr/>';
 		}
-		
+
       if ($numFound == 0 && count($recentDocs) == 0) {
           $output .= '<p></p><p><font size=+1>'.wfMsg('searchnotmatchdocuments').'</font></p>';
       }
@@ -1142,7 +1144,7 @@ class SearchForm {
 			        ($end < $numFound ? " | <a href=\"$selfQuery&start=$end\">Next&nbsp;&raquo;</a>" : '');
 
 			$output .= "<div class=\"prev_next_links_top\">$prevNextLinks</div>\n";
-	
+
 			// add compare button
 			if ($this->match) {
 		   	$skin =& $wgUser->getSkin();
@@ -1159,7 +1161,7 @@ class SearchForm {
 								'<input type="hidden" name="ns" value="'.$this->namespace.'"/>'.
 								'<input type="hidden" name="compare_0" value="'.$ts.'"/>';
 			}
-			
+
 			// generate the result list
          $docs = $response['response']['docs'];
 	      $highlighting = $response['highlighting'];
@@ -1175,12 +1177,12 @@ class SearchForm {
 	      	$pos++;
 			}
 			$output .= '</table>';
-	
+
 			// add compare button
 			if ($this->match) {
 				$output .= $compareButton.'</form>';
 			}
-			
+
 			// display prev..next navigation
          if ($this->namespace == 'Person' || $this->namespace == 'Family') {
             $similarNamesProject = wfMsgWikiHtml('SimilarNamesProjectLink');
@@ -1196,10 +1198,10 @@ class SearchForm {
 </tr></table>
 END;
       }
-      
+
 		return $output;
 	}
-	
+
 	private function populateField($queryField, $luceneField, $fieldSources, $q, $place = false) {
 		if (preg_match('/&k=([^&]*)/', $q, $matches)) {
 			$keywords = urldecode($matches[1]);
@@ -1223,10 +1225,10 @@ END;
 		if ($match) {
 			$q .= "&$queryField=$match";
 		}
-		
+
 		return $q;
 	}
-	
+
 	private function populateKeywords($fieldSources, $q) {
 		if (strpos($q, '&k=') === false) {
 			$q .= '&k=';
@@ -1238,7 +1240,7 @@ END;
 		}
 		return $q;
 	}
-	
+
 	private function getNamespaceFacetHtml($response, $selfQuery) {
       $result = '';
 		if ($this->namespace) {
@@ -1276,15 +1278,15 @@ END;
 				$result .= '</ul>';
 			}
 		}
-		
+
 		return $result;
 	}
-	
+
 	private function getSubjectFacetHtml($response, $selfQuery, $numFound) {
 		if ($this->namespace != 'Source') {
 			return '';
 		}
-		
+
 		$result = '<h3>Subjects</h3>';
 		if ($this->sourceSubject) {
 			$selfQuery = preg_replace('/&su=[^&]*/', '', $selfQuery);
@@ -1302,15 +1304,15 @@ END;
 			}
 			$result .= '</ul>';
 		}
-		
+
 		return $result;
 	}
-	
+
 	private function getAvailabilityFacetHtml($response, $selfQuery, $numFound) {
 		if ($this->namespace != 'Source') {
 			return '';
 		}
-		
+
 		$result = '<h3>Availability</h3>';
 		if ($this->sourceAvailability) {
 			$selfQuery = preg_replace('/&sa=[^&]*/', '', $selfQuery);
@@ -1328,15 +1330,15 @@ END;
 			}
 			$result .= '</ul>';
 		}
-		
+
 		return $result;
 	}
-	
+
 	private function getTitleLetterFacetHtml($response, $selfQuery) {
 		if ($this->sort != 'title') {
 			return '';
 		}
-		
+
 		$result = "<h3>Title index</h3>";
 		if ($this->titleLetter) {
 			$selfQuery = preg_replace('/&tl=[^&]*/', '', $selfQuery);
@@ -1366,17 +1368,17 @@ END;
 				$result .= '</ul>';
 			}
 		}
-		
+
 		return $result;
 	}
-	
+
 	private function getWatchingFacetHtml($response, $selfQuery, $numFound) {
 		global $wgUser;
 
 		if (!$wgUser->isLoggedIn()) {
 			return '';
 		}
-		
+
 		$result = '<h3>Watching</h3>';
       $selfQuery = preg_replace('/&watch='.$this->watch.'/', '', $selfQuery);
 		if ($this->watch != 'wu') {
@@ -1387,14 +1389,14 @@ END;
 			if (count($facets) > 0) {
 				$result .= '<ul>';
 				foreach ($facets as $userName => $count) {
-					$result .= '<li><a href="$selfQuery&watch=w">'.wfMsg('watched').'</a> ($count)</li>' .
+					$result .= '<li><a href="$selfQuery&watch=w">'.wfMsg('watched').'</a> ('.$count.')</li>' .
 					           '<li><a href="$selfQuery&watch=u">'.wfMsg('unwatched').'</a>'.($numFound ? ' ('.($numFound - $count).')' : '').'</li>';
 					break;
 				}
 				$result .= '</ul>';
 			}
 		}
-		
+
 		return $result;
 	}
 
@@ -1453,10 +1455,10 @@ END;
       }
       return $match;
    }
-	
+
 	public function getRecentContribs($start) {
 		global $wgUser, $wgLang;
-		
+
       $recentDocs = array();
 		if ($wgUser->isLoggedIn() && !$this->match && $start == 0 &&
           ($this->givenname || $this->surname || $this->husbandGivenname || $this->husbandSurname ||
@@ -1514,7 +1516,7 @@ END;
 		eval('$response = ' . $responseString . ';');
 
 		// construct title index from facets
-		
+
 		// create basic re-query for use in various links
 		$selfQuery = $this->getSelfQuery();
 
@@ -1522,7 +1524,7 @@ END;
 		$facetSelfQuery = preg_replace('/&ti=[^&]*/', '', $selfQuery); // remove title index from self query for facet links
       $numFound = @$response['response']['numFound'];
 
-		$sidebar = ($this->target ? '' : $this->getNamespaceFacetHtml($response, $facetSelfQuery)) . 
+		$sidebar = ($this->target ? '' : $this->getNamespaceFacetHtml($response, $facetSelfQuery)) .
 					  $this->getSubjectFacetHtml($response, $facetSelfQuery, $numFound) .
 					  $this->getAvailabilityFacetHtml($response, $facetSelfQuery, $numFound) .
 					  $this->getWatchingFacetHtml($response, $facetSelfQuery, $numFound) .
@@ -1532,13 +1534,13 @@ END;
       $start = @$response['response']['start'];
       $recentDocs = $this->getRecentContribs($start);
 		$results = $this->formatResults($response, $recentDocs, $selfQuery);
-		
+
 		return array($sidebar, $results);
 	}
-	
+
 	public function getStatsHtml() {
 		global $wrSearchHost, $wrSearchPort, $wrSearchPath, $wgUser;
-		
+
 		$searchServerQuery = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/stats?q=" . urlencode($wgUser->isLoggedIn() ? $wgUser->getName() : '');
 		$responseString = file_get_contents($searchServerQuery);
 		if (!$responseString) {
@@ -1557,10 +1559,10 @@ END;
    private function addHiddenInput($name, $value) {
       return ($value ? "<input type=\"hidden\" id=\"input_$name\" name=\"$name\" value=\"".htmlspecialchars($value).'"/>' : '');
    }
-	
+
    public function getFormHtml() {
 	   global $wgUser;
-	   
+
 		$target = htmlspecialchars($this->target);
 		$givenname = htmlspecialchars($this->givenname);
 		$surname = htmlspecialchars($this->surname);
@@ -1638,7 +1640,7 @@ END;
 		$sourceAvailabilitySelect = StructuredData::addSelectToHtml(0, 'sa', Source::$SOURCE_AVAILABILITY_OPTIONS, $this->sourceAvailability);
       $rowsSelector = StructuredData::addSelectToHtml(0, 'rows', self::$ROWS_OPTIONS, $this->rows, '', false);
       $ecpSelector = StructuredData::addSelectToHtml(0, 'ecp', self::$ECP_OPTIONS, $this->ecp, '', false);
-      $heading = ($this->target && $this->namespace != 'Image' ? '<h2 style="padding-bottom:4px">Step 2. Review possible matches. Select a match or click Add Page</h2>' : '');
+      $heading = ($this->target && $this->namespace != 'Image' ? '<h2 style="padding-bottom:4px">'.wfMsg('steptworeview').'</h2>' : '');
       $condensedChecked = ($this->condensedView ? ' checked="checked"' : '');
 
        $surnamecolon = wfMsg('surname:');
@@ -1666,6 +1668,7 @@ END;
 
         $search = wfMsg('search');
        $namespacecolon = wfMsg('namespace:');
+       $sortby = wfMsg('sortby');
        $authorcolon = wfMsg('author:');
        $titlecolon = wfMsg('title:');
        $coverscolon = wfMsg('covers:');
@@ -1684,14 +1687,16 @@ END;
        $availabilitycolon = wfMsg('availability:');
        $pagetitlecolon = wfMsg('pagetitle:');
        $keywordscolon = wfMsg('keywords:');
-       $resultsperpage = wfMsg('resultsperpage', $rowsSelector, $condensedChecked, $ecpSelector);
+       $resultsperpage = wfMsg('resultsperpage');
+       $condensed = wfMsg('condensed');
+       $searchme = wfMsg('search');
 
 		$result = <<< END
-$heading
+		$heading
 <form id="search_form" name="$search" action="/wiki/Special:Search" method="get">
 $hiddenFields
 <table id="searchform" class="searchform"><tr>
-<td colspan=6 align=right><span class="sort_label">Sort by</span>$sortSelect</td>
+<td colspan=6 align=right><span class="sort_label">$sortby</span>$sortSelect</td>
 </tr><tr>
 <td align=right>$namespacecolon</td><td>$nsSelect</td><td>$talkSpan</td>
 <td colspan=3 align=right>$watchSelect</td>
@@ -1726,7 +1731,7 @@ $relativeRows
 <td align=right>$marriagedatecolon</td><td colspan=2><input id="input_md" class="input_short" type="text" name="md" size=14 maxlength=25 value="$marriagedate" onfocus="select()"/> &nbsp;$marriageRangeSelect</td>
 <td align=right>$placecolon</td><td colspan=2><input id="input_mp" class="input_medium place_input" type="text" name="mp" maxlength=130 value="$marriageplace" onfocus="select()"/></td>
 </tr><tr id="placename_row">
-"<td align=right>$placenamecolon</td><td colspan=2><input id="input_pn" class="input_medium" type="text" name="pn" maxlength=50 value="$placename" onfocus="select()"/></td>
+<td align=right>$placenamecolon</td><td colspan=2><input id="input_pn" class="input_medium" type="text" name="pn" maxlength=50 value="$placename" onfocus="select()"/></td>
 <td align=right>$locatedincolon</td><td colspan=2><input id="input_li" class="input_medium place_input" type="text" name="li" maxlength=130 value="$locatedinplace" onfocus="select()"/></td>
 </tr><tr id="subject_row">
 <td align=right>$subjectcolon</td><td colspan=2>$sourceSubjectSelect</td>
@@ -1736,8 +1741,8 @@ $relativeRows
 </tr><tr>
 <td align=right>$keywordscolon</td><td colspan=5><input id="input_k" class="input_long" type="text" name="k" maxlength=100 value="$keywords" onfocus="select()"/></td>
 </tr><tr>
-<td colspan=2>$resultsperpage</td>
-</tr></table></form>"
+<td colspan=2>$rowsSelector$resultsperpage <input type="checkbox" name="cv"$condensedChecked>$condensed</td><td align="right" colspan=4>$ecpSelector <input type="submit" value="$searchme"/></td>
+</tr></table></form>
 END;
 	   return $result;
    }
