@@ -5,7 +5,7 @@
 # recreate them later.
 
 $IP=realpath(dirname(__FILE__));
-ini_set( "include_path", ".:$IP:$IP/includes:$IP/languages" );
+ini_set( "include_path", ".".PATH_SEPARATOR.$IP.PATH_SEPARATOR.$IP.DIRECTORY_SEPARATOR."includes".PATH_SEPARATOR.$IP.DIRECTORY_SEPARATOR."languages" );
 require_once("includes/DefaultSettings.php" );
 $wgDBhost           = getenv('DB_HOST');
 $wgDBserver         = $wgDBhost;
@@ -34,7 +34,7 @@ $wgUseGoogleAnalytics = getenv('USE_GOOGLE_ANALYTICS');
 $wgFileStore['deleted']['directory'] = getenv('DELETED_IMAGES_DIR');
 $wgDebugLogFile = getenv('LOG_DIR').'/mw-debug.log';
 $wgRateLimitLog = getenv('LOG_DIR').'/rate-limit.log';
-$wgUseMemCached = getenv('USE_MEMCACHED');
+$wgUseMemCached = (getenv('USE_MEMCACHED') == 'true');
 $wgMemCachedServers = array( getenv('MEMCACHED_SERVER') );
 $wgProxyKey = getenv('PROXY_KEY');
 $wrAdCode = getenv('AD_CODE');
@@ -61,13 +61,12 @@ if ( $wgCommandLineMode ) {
 
 $wgSitename         = "WeRelate";
 
-$wgScriptPath	    = "/w";
+$wgScriptPath       = getenv('WG_SCRIPT_PATH') ? getenv('WG_SCRIPT_PATH') : "/w";
 $wgScript           = "$wgScriptPath/index.php";
 $wgRedirectScript   = "$wgScriptPath/redirect.php";
 
 ## If using PHP as a CGI module, use the ugly URLs
-$wgArticlePath      = "/wiki/$1";
-# $wgArticlePath      = "$wgScript?title=$1";
+$wgArticlePath      = getenv('WG_ARTICLE_PATH') ? getenv('WG_ARTICLE_PATH') : "/wiki/$1";
 
 $wgStylePath        = "$wgScriptPath/skins";
 $wgStyleDirectory   = "$IP/skins";
@@ -121,10 +120,12 @@ $wgDisableSearchUpdate = true;
 $wgNamespacesWithSubpages[NS_MAIN]=true;
 $wgWantedPagesThreshold = 10;
 
-$wgMainCacheType = CACHE_MEMCACHED;
-$wgMessageCacheType = CACHE_MEMCACHED;
-$wgParserCacheType = CACHE_MEMCACHED;
-$wgMemCachedPersistent = true;
+if ($wgUseMemCached) {
+	$wgMainCacheType = CACHE_MEMCACHED;
+	$wgMessageCacheType = CACHE_MEMCACHED;
+	$wgParserCacheType = CACHE_MEMCACHED;
+	$wgMemCachedPersistent = true;
+}
 $wgCacheEpoch = '20030516000000';
 $wgMemCachedDebug   = false;
 $wgMiserMode = true;

@@ -10,6 +10,8 @@
 	SetEnv DB_NAME
 	SetEnv DB_USER
 	SetEnv DB_PASSWORD
+	SetEnv WG_SCRIPT_PATH /w
+	SetEnv WG_ARTICLE_PATH /wiki/$1
 	SetEnv SEARCH_HOST localhost
 	SetEnv SEARCH_PORT 80
 	SetEnv SEARCH_PATH /solr
