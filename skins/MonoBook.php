@@ -97,6 +97,28 @@ class SkinMonoBook extends SkinTemplate {
  * @subpackage Skins
  */
 class MonoBookTemplate extends QuickTemplate {
+
+    /**
+     * Get a local URL given any page title (optionally with namespace prefix).
+     *
+     * This is a rather verbose workaround to avoid Title calling
+     * Namespac::getCanonicalIndex() statically and so throwing an error in
+     * newer PHP versions. It can be replaced by Title::newFromText($text)->getLocalURL()
+     * one day.
+     *
+     * @param string $title Page title, possibly with colon-separated NS prefix
+     * @return string The local URL as given by Title::getLocalURL()
+     */
+    function getLocalUrl($title) {
+        $targetParts = explode(':', $title);
+        $ns = (count($targetParts)==2) ? $targetParts[0] : '';
+        $title = (count($targetParts)==2) ? $targetParts[1] : $targetParts[0];
+        $namespace = new Namespac();
+        $nsIndex = $namespace->getCanonicalIndex(strtolower($ns));
+        $url = Title::makeTitle($nsIndex, $title)->getLocalURL();
+        return $url;
+    }
+
    function getMenuText($text, $target) {
       $msg = str_replace(' ','&nbsp;',htmlspecialchars(wfMsg($text)));
       $value = "<li id=\"menu-{$text}\">";
@@ -109,12 +131,12 @@ class MonoBookTemplate extends QuickTemplate {
                $innerText = substr($innerText,1);
             }
             $msg = str_replace(' ','&nbsp;',htmlspecialchars(wfMsg($innerText)));
-            $value .= "<li id=\"menu-{$innerText}\"><a href=\"{$innerTarget}\">$msg</a></li>";
+            $value .= "<li id=\"menu-{$innerText}\"><a href=\"".$this->getLocalUrl($innerTarget)."\">$msg</a></li>";
          }
          $value .= "</ul>";
       }
       else {
-         $value .= "<a href=\"{$target}\">$msg</a>";
+         $value .= "<a href=\"".$this->getLocalUrl($target)."\">$msg</a>";
       }
       $value .= "</li>";
       return $value;
@@ -163,36 +185,66 @@ END;
   if ($mainPage) {
   		$overrideTitle = '<span class="wr-maintitle">The World\'s Largest Genealogy Wiki</span>';
   }
-  $menulinks = array('home' => '/wiki/Main_Page',
-  							'search' => array('all' => '/wiki/Special:Search', 'articles' => '/wiki/Special:Search/Article', 'people' => '/wiki/Special:Search/Person',
-  										'images' => '/wiki/Special:Search/Image', 'sources' => '/wiki/Special:Search/Source', 'places' => '/wiki/Special:Search/Place'),
-                     'list' => array('people' => ($wgUser->isLoggedIn() ? '/wiki/Special:ListPages/' . urlencode($wgUser->getName()) : '/wiki/Special:Userlogin'),
-                                     'contributions' => ($wgUser->isLoggedIn() ? '/wiki/Special:Contributions/' . urlencode($wgUser->getName()) : '/wiki/Special:Userlogin')),
-  							'add' => array('article' => '/wiki/Special:AddPage/Article', 'person' => '/wiki/Special:AddPage/Person',
-										'family' => '/wiki/Special:AddPage/Family', 'image' => '/wiki/Special:Upload',
-										'mysource' => '/wiki/Special:AddPage/MySource', 'source' => '/wiki/Special:AddPage/Source',
-                              'transcript' => '/wiki/Special:AddPage/Transcript',
-										'repository' => '/wiki/Special:AddPage/Repository', 'place' => '/wiki/Special:AddPage/Place',
-										'userpage' => '/wiki/Special:AddPage/User',
-										'otherpage' => '/wiki/Special:AddPage', '-importgedcom' => '/wiki/Special:ImportGedcom'),
-  							'myrelate' => array('dashboard' => '/wiki/Special:Dashboard',
-										'network' => ($wgUser->isLoggedIn() ? '/wiki/Special:Network/' . urlencode($wgUser->getName()) : '/wiki/Special:Userlogin'), 
-										'watchlist' => ($wgUser->isLoggedIn() ? '/wiki/Special:Watchlist/' . urlencode($wgUser->getName()) : '/wiki/Special:Userlogin'),
-  										'userprofile' => ($wgUser->isLoggedIn() ? '/wiki/User:' . urlencode($wgUser->getName()) : '/wiki/Special:Userlogin'),
-  										'talkpage' => ($wgUser->isLoggedIn() ? '/wiki/User_talk:' . urlencode($wgUser->getName()) : '/wiki/Special:Userlogin'), 
-  										'trees' => '/wiki/Special:Trees', 
-  										'showduplicates' => ($wgUser->isLoggedIn() ? '/wiki/Special:ShowDuplicates/' . urlencode($wgUser->getName()) : '/wiki/Special:Userlogin'), 
-  										'-launchfte' => '/fte'),
-  							'admin' => array('recentchanges' => '/wiki/Special:Recentchanges', 
-  										'nominate' => '/wiki/WeRelate:Featured_page_nominations', 'logs' => '/wiki/Special:Log',
-										'newimages' => '/wiki/Special:Newimages', 'reviewneeded' => '/wiki/Category:Review_needed',
-                              'gedcomreview' => '/wiki/Special:Gedcoms', 'speedydelete' => '/wiki/Category:Speedy_Delete',
-                              'nameslog' => '/wiki/Special:NamesLog',
-										'browseall' => '/wiki/Special:Browse', 'comparepages' => '/wiki/Special:Compare',
-										'specialpages' => '/wiki/Special:Specialpages'),
-                     );
-  $helpLinks = array('contents' => '/wiki/Help:Contents', 'search' => '/wiki/Special:Search/Help', 'faq' => '/wiki/Help:FAQ',
-  							'support' => '/wiki/WeRelate_talk:Support', 'portals' => '/wiki/Portal:Community', 'watercooler' => '/wiki/WeRelate_talk:Watercooler', 'suggestions'=>'/wiki/WeRelate:Suggestions');
+  $menulinks = array(
+        'home' => 'Main_Page',
+        'search' => array(
+            'all' => 'Special:Search',
+            'articles' => 'Special:Search/Article',
+            'people' => 'Special:Search/Person',
+            'images' => 'Special:Search/Image',
+            'sources' => 'Special:Search/Source',
+            'places' => 'Special:Search/Place'
+        ),
+        'list' => array(
+            'people' => ($wgUser->isLoggedIn() ? 'Special:ListPages/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
+            'contributions' => ($wgUser->isLoggedIn() ? 'Special:Contributions/' . urlencode($wgUser->getName()) : 'Special:Userlogin')
+        ),
+        'add' => array('article' => 'Special:AddPage/Article',
+            'person' => 'Special:AddPage/Person',
+            'family' => 'Special:AddPage/Family',
+            'image' => 'Special:Upload',
+            'mysource' => 'Special:AddPage/MySource',
+            'source' => 'Special:AddPage/Source',
+            'transcript' => 'Special:AddPage/Transcript',
+            'repository' => 'Special:AddPage/Repository',
+            'place' => 'Special:AddPage/Place',
+            'userpage' => 'Special:AddPage/User',
+            'otherpage' => 'Special:AddPage',
+            '-importgedcom' => 'Special:ImportGedcom'
+        ),
+        'myrelate' => array(
+            'dashboard' => 'Special:Dashboard',
+            'network' => ($wgUser->isLoggedIn() ? 'Special:Network/' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
+            'watchlist' => ($wgUser->isLoggedIn() ? 'Special:Watchlist/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
+            'userprofile' => ($wgUser->isLoggedIn() ? 'User:' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
+            'talkpage' => ($wgUser->isLoggedIn() ? 'User_talk:' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
+            'trees' => 'Special:Trees',
+            'showduplicates' => ($wgUser->isLoggedIn() ? 'Special:ShowDuplicates/' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
+            '-launchfte' => '/fte'
+        ),
+        'admin' => array(
+            'recentchanges' => 'Special:Recentchanges',
+            'nominate' => 'WeRelate:Featured_page_nominations',
+            'logs' => 'Special:Log',
+            'newimages' => 'Special:Newimages',
+            'reviewneeded' => 'Category:Review_needed',
+            'gedcomreview' => 'Special:Gedcoms',
+            'speedydelete' => 'Category:Speedy_Delete',
+            'nameslog' => 'Special:NamesLog',
+            'browseall' => 'Special:Browse',
+            'comparepages' => 'Special:Compare',
+            'specialpages' => 'Special:Specialpages'
+        ),
+  );
+  $helpLinks = array(
+      'contents' => 'Help:Contents',
+      'search' => 'Special:Search/Help',
+      'faq' => 'Help:FAQ',
+      'support' => 'WeRelate_talk:Support',
+      'portals' => 'Portal:Community',
+      'watercooler' => 'WeRelate_talk:Watercooler',
+      'suggestions'=>'WeRelate:Suggestions'
+  );
   $moreActions = array('protect', 'unprotect','delete', 'share','pedigree', 'match', 'compare-parents', 'compare-spouses', 'compare-husbands', 'compare-wives');
   ?>
 <head>
@@ -225,7 +277,9 @@ END;
 	if ($wgOut->getOnloadHandler()) { echo htmlspecialchars($wgOut->getOnloadHandler()); } ?>;"<?php } ?>>
 <div id="wr-header">
    <div id="wr-logo">
-      <a href="/" title="<?php $this->msg('mainpage') ?>"><img src="<?php $this->text('logopath') ?>"/></a>
+       <a href="<?php echo Title::makeTitle('', 'Main_Page')->getLocalURL()?>" title="<?php $this->msg('mainpage') ?>">
+           <img src="<?php $this->text('logopath') ?>"/>
+       </a>
       <div class="wr-sidebar-separator"></div>
    </div>
    <div id="wr-navtitle">
@@ -267,7 +321,7 @@ END;
       </div>
       <div id="wr-titlearea">
          <div id="wr-searchbox">
-            <form method="get" action="/wiki/Special:Search">
+             <form method="get" action="<?php echo Title::makeTitle(NS_SPECIAL, 'Search')->getLocalURL() ?>">
                <input type="hidden" name="go" value="true"/>
                <input class="wr-searchbox-text" type="text" title="Search" name="k"/>
                <button type="submit" title="Search WeRelate">&nbsp;</button>
