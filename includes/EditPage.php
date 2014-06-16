@@ -976,8 +976,6 @@ class EditPage {
 		}
 		if ( $this->tooBig || $this->kblength > $wgMaxArticleSize ) {
 			$wgOut->addWikiText( wfMsg( 'longpageerror', $wgLang->formatNum( $this->kblength ), $wgMaxArticleSize ) );
-		} elseif( $this->kblength > 29 ) {
-			$wgOut->addWikiText( wfMsg( 'longpagewarning', $wgLang->formatNum( $this->kblength ) ) );
 		}
 
 		$rows = $wgUser->getIntOption( 'rows' );
