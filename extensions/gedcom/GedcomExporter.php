@@ -153,7 +153,7 @@ class GedcomExporter {
 		$this->wl("1 FILE {$this->treeName}.ged");
 		$this->wl("1 GEDC");
 		$this->wl("2 VERS 5.5");
-		$this->wl("2 FORM LINEAGE_LINKED");
+		$this->wl("2 FORM LINEAGE-LINKED");
 		$this->wl("1 CHAR UTF-8");
 		$this->wl("0 @SUB1@ SUBM");
 		$this->wl("1 NAME {$this->userName}");
