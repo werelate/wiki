@@ -110,8 +110,15 @@ class MonoBookTemplate extends QuickTemplate {
      * @return string The local URL as given by Title::getLocalURL()
      */
     function getLocalUrl($title) {
+        global $wgSitename;
         $targetParts = explode(':', $title);
         $ns = (count($targetParts)==2) ? $targetParts[0] : '';
+        if ($ns == $wgSitename) {
+          $ns = 'Project';
+        }
+        else if ($ns == $wgSitename.'_talk') {
+          $ns = 'Project_talk';
+        }
         $title = (count($targetParts)==2) ? $targetParts[1] : $targetParts[0];
         $namespace = new Namespac();
         $nsIndex = $namespace->getCanonicalIndex(strtolower($ns));
