@@ -138,12 +138,14 @@ class MonoBookTemplate extends QuickTemplate {
                $innerText = substr($innerText,1);
             }
             $msg = str_replace(' ','&nbsp;',htmlspecialchars(wfMsg($innerText)));
-            $value .= "<li id=\"menu-{$innerText}\"><a href=\"".$this->getLocalUrl($innerTarget)."\">$msg</a></li>";
+            $value .= "<li id=\"menu-{$innerText}\"><a href=\"".
+               (substr($innerTarget, 0, 1) === "/" ? $innerTarget : $this->getLocalUrl($innerTarget)).
+               "\">$msg</a></li>";
          }
          $value .= "</ul>";
       }
       else {
-         $value .= "<a href=\"".$this->getLocalUrl($target)."\">$msg</a>";
+         $value .= "<a href=\"".(substr($target, 0, 1) === "/" ? $target : $this->getLocalUrl($target))."\">$msg</a>";
       }
       $value .= "</li>";
       return $value;
