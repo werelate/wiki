@@ -591,24 +591,6 @@ END;
              '|'.StructuredData::removePreBar($deathFound ? $deathPlace : $burPlace);
    }
 
-   public static function constructFARLink($place, $date, $tag, $label) {
-      // remove | from place
-		$pos = mb_strpos($place, '|');
-		if ($pos !== false) {
-			$place = mb_substr($place, 0, $pos);
-		}
-      // $yearRange
-		$yearRange = '';
-		if ($date) {
-         $date = StructuredData::getDateKey($date, false);
-         if (strlen($date) >= 4) {
-            $year = (int)substr($date, 0, 4);
-            $yearRange = '&from='.($year-2).'&to='.($year+2);
-         }
-      }
-      return '<wr_a>http://findarecord.com/search#s='.urlencode($place).$yearRange.'&t='.$tag.'|'.$label.'|_blank</wr_a>';
-   }
-
 	/**
 	 * Create wiki text from xml property
 	 */
@@ -758,31 +740,8 @@ END;
             $ix++;
          }
 
-         // find a record
-         $farBirthLink = '';
-         $farMarriageLink = '';
-         $farDeathLink = '';
-         if ($birthFound && $birthPlace && !$birthSource) {
-            $farBirthLink = Person::constructFARLink($birthPlace, $birthDate, 'birth', 'birth');
-         }
-         if ($deathFound && $deathPlace && !$deathSource) {
-            $farDeathLink = Person::constructFARLink($deathPlace, $deathDate, 'death', 'death');
-         }
-         foreach ($marriageEvents as $marriageEvent) {
-            if ((string)$marriageEvent['place'] && !(string)$marriageEvent['srcs']) {
-               $farMarriageLink = Person::constructFARLink((string)$marriageEvent['place'], (string)$marriageEvent['date'], 'marriage', 'marriage');
-            }
-         }
-         $farLinks = '';
-         if ($farBirthLink || $farMarriageLink || $farDeathLink) {
-            $farLinks = '<span><strong>Find records:</strong> '
-               .join(" ",array($farBirthLink, $farMarriageLink, $farDeathLink))
-               .'</span>';
-         }
-
          $result = <<<END
 <div class="wr-infobox wr-infobox-person clearfix">
-   <div style="clear:right; float:right; margin:2px 6px;">$farLinks</div>
    <div class="wr-infobox-image">
       $imageText
    </div>
