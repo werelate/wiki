@@ -149,6 +149,7 @@ $places
 $yearRange
 </table>
 </div>
+<wr_ad></wr_ad>
 END;
          $result .= StructuredData::addCategories($this->xml->surname, $this->xml->place, true, $this->titleString, $this->ns);
       }

@@ -657,6 +657,20 @@ class PreferencesForm {
 				);
 			}
 		}
+		// WERELATE ADDED
+      if ($wgUser->getOption('wrnoads') > '') {
+         $donateLink = '';
+         if ($wgUser->getOption('wrnoads') < wfTimestampNow()) {
+            $donateLink = ' - <a href="/wiki/WeRelate:Donate">Donate</a>';
+         }
+         $wgOut->addHTML(
+            $this->addRow(
+               '<label for="wrNoAds">' . 'Ads disabled until:' . '</label>',
+               '<span id="wrNoAds">' . $wgLang->date($wgUser->getOption('wrnoads')) . $donateLink . '</span>'
+            )
+         );
+      }
+
 		$wgOut->addHTML('</table>');
 
 		# Password

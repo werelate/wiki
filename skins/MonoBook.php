@@ -73,6 +73,10 @@ class SkinMonoBook extends SkinTemplate {
 			);
 		}
       $personal_urls['donate'] = array(
+         'text' => 'Donate',
+         'href' => $this->makeNSUrl('Donate', '', NS_PROJECT)
+      );
+      $personal_urls['volunteer'] = array(
          'text' => 'Volunteer',
          'href' => $this->makeNSUrl('Maintenance', '', NS_PORTAL)
       );
@@ -181,6 +185,7 @@ END;
   <?php
   global $wgTitle, $wgUser, $wgUseGoogleAnalytics, $wgOut, $wgScriptPath, $wgArticle, $wgRequest;
 
+  $now = wfTimestampNow(); // WERELATE
   $sk = $wgUser->getSkin();
   $ns = $wgTitle->getNamespace();
   $titleString = $wgTitle->getText();
@@ -208,7 +213,8 @@ END;
             'people' => ($wgUser->isLoggedIn() ? 'Special:ListPages/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
             'contributions' => ($wgUser->isLoggedIn() ? 'Special:Contributions/' . urlencode($wgUser->getName()) : 'Special:Userlogin')
         ),
-        'add' => array('article' => 'Special:AddPage/Article',
+        'add' => array(
+           'article' => 'Special:AddPage/Article',
             'person' => 'Special:AddPage/Person',
             'family' => 'Special:AddPage/Family',
             'image' => 'Special:Upload',
@@ -261,7 +267,7 @@ END;
 	<?php $this->html('headlinks') ?>
 	<title><?php $this->text('pagetitle') ?></title>
    <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/themes/redmond/jquery-ui.css">
-   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.72.css"; /*]]>*/</style>
+   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.75.css"; /*]]>*/</style>
 	<link rel="stylesheet" type="text/css" <?php if(empty($this->data['printable']) ) { ?>media="print"<?php } ?> href="<?php $this->text('stylepath') ?>/common/commonPrint.7.css" />
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
@@ -446,8 +452,23 @@ END;
                <?php
                if ($mainPage) {
                ?><div id="awards"><?php
-                  echo wfMsg('awards');
+                  //echo wfMsg('awards');
                ?></div><?php
+               }
+               else if ($wgUser->getOption('wrnoads') < $now) {
+               ?><div id="lhsadbox">
+<div style="text-align: right"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
+<!-- remove or replace -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- lhs -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-5042243421154153"
+     data-ad-slot="4780960811"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+               </div><?php
                }
             }
             else {
@@ -463,15 +484,33 @@ END;
                <?php if($this->data['catlinks']) { ?><div id="catlinks"><?php $this->html('catlinks') ?></div><?php } ?>
                <!-- end content -->
             </td>
-            <?php if (!$suppressAds) { ?>
-               <td id="adbox">
-                  <div id="ads">
-                     <?php
-                        global $wrAdCode;
-                        if (@$wrAdCode) {
-                           echo $wrAdCode;
-                        }
-                     ?>
+            <?php if (!$suppressAds && $wgUser->getOption('wrnoads') < $now) { ?>
+               <td id="rhsadbox">
+<!--
+<div style="padding: 12px 2px; text-align: center; border: 2px #ed5800 solid; border-radius: 12px; background-color: #fffbf7; margin-right: 4px; margin-bottom: 24px;">
+ <div style="color: #ed5800; font-size: 29px; margin-bottom: 16px">Fundraiser</div>
+ <div style="font-weight: bold; margin-bottom: 12px;">Help fund new features!</div>
+ <div><a href="/wiki/WeRelate:Donate">Donate Now</a></div>
+</div>
+-->
+                  <div id="rhsads" style="margin: 0 !important">
+<div style="text-align: right; border-bottom: 1px solid #aaa"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
+                  <!-- remove or replace -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- rhs160
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-5042243421154153"
+     data-ad-slot="5881944012"></ins>
+-->
+<!-- rhs -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:300px;height:600px"
+     data-ad-client="ca-pub-5042243421154153"
+     data-ad-slot="3583429215"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
                   </div>
                </td>
             <?php } ?>
@@ -535,10 +574,17 @@ var userName="<?php echo ($wgUser->isLoggedIn() ? htmlspecialchars($wgUser->getN
 var userId="<?php echo ($wgUser->isLoggedIn() ? htmlspecialchars($wgUser->getID()) : ''); ?>";
 var skin='<?php $this->text('skinname')?>';
 var stylepath='<?php $this->text('stylepath')?>';</script>
-<?php if ($wgUseGoogleAnalytics) { ?>
-   <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
-   <script type="text/javascript"> _uacct = "UA-251952-1"; urchinTracker();</script>
-<?php } ?>
+<!-- remove this or replace Tracking ID with your ID -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-61266128-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
 </body></html>
 <?php
 	wfRestoreWarnings();

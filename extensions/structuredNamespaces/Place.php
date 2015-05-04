@@ -568,6 +568,7 @@ $locatedIn
 $alsoLocatedIn
 $seeAlso
 </table></div>
+<wr_ad></wr_ad>
 $containedPlaces
 END;
 		$result .= "[[Category:$placeCat" . ($placeCat == $this->titleString ? "|*" : "") . "]]";

@@ -819,6 +819,7 @@ $publicationInfo
 $citation
 $repos
 </div>
+<wr_ad></wr_ad>
 END;
 			$result = $infobox.StructuredData::addCategories($this->xml->surname, $this->xml->place);
       }

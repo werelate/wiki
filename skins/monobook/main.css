@@ -178,14 +178,17 @@ span.subpages
 #infobox
 {
    margin: 0;
-   padding: 0 0 0 12px;
-	width: 116px;
-   min-width: 116px;
-   max-width: 116px;
+   padding: 0;
+	width: 160px;
+   min-width: 160px;
+   max-width: 160px;
 	background-color: #fff;
 	text-align: left;
 	vertical-align: top;
    border-right: 1px solid #ccc;
+}
+#infobox .portlet {
+   padding-left: 12px;
 }
 
 .infobox-header, .infobox-subheader, #watchers th
@@ -266,18 +269,28 @@ span.subpages
 }
 */
 
-#ads
+#rhsads
 {
-	width: 160px;
-   height: 600px;
+	width: 300px;
    overflow: hidden;
-	margin: 145px 0 0 0;
+	margin: 120px 0 0 0;
 }
-#adbox {
-   width: 160px;
+#rhsadbox {
+   width: 300px;
    vertical-align: top;
    margin: 0;
    padding: 0 0 0 8px;
+}
+#lhsadbox {
+   width: 160px;
+   margin: 12px 0 0 0;
+   padding: 0;
+}
+#topadbox {
+   width: 728px;
+   height: 90px;
+   margin: 8px 0;
+   padding: 0;
 }
 /********** NAVIGATION **********/
 
@@ -430,15 +443,11 @@ span.subpages
 
 .wr-sidebar-separator
 {
-   width: 102px;
-   margin: 16px 12px 0;
+   width: 136px;
+   margin: 16px 0 0 12px;
    border-top: 1px solid #eee;
    font-size: 1px;
    height: 1px;
-}
-
-#infobox .wr-sidebar-separator {
-   margin-left: 0;
 }
 
 /* wr-watchers */
@@ -472,6 +481,7 @@ span.subpages
 
 #awards {
    margin-top: 100px;
+   padding-left: 12px;
 }
 /********** HEADER **********/
 
@@ -484,9 +494,12 @@ span.subpages
    top: 0;
    left: 0;
 }
+#wr-logo a {
+   padding-left: 22px;
+}
 #wr-navtitle
 {
-   margin-left: 128px;
+   margin-left: 160px;
 }
 /********** FOOTER **********/
 
@@ -3260,6 +3273,7 @@ div.exhibit-pedigree-lens-padding {
    border-radius: 8px;
    line-height: 1.1;
    margin-bottom: 16px;
+   min-height: 110px;
 }
 .wr-infobox td {
    vertical-align: baseline;

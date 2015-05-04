@@ -469,9 +469,9 @@ END;
    </table>
    $marriage
 </div>
+<wr_ad></wr_ad>
 <div id="wr_familytreelink"><span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span></div>
 END;
-
 			// add source citations, images, notes
 			$result .= $wgESINHandler->addSourcesImagesNotes($this, $parser);
 

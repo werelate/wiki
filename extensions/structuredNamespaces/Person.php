@@ -752,6 +752,7 @@ END;
 
    </div>
 </div>
+<wr_ad></wr_ad>
 <div style="margin-top:2px" class="clearfix"><div id="wr_familytreelink" style="float:left">
 <span class="wr-familytreelink-text">Family tree</span><span class="wr-familytreelink-arrow">▼</span>
 </div><div style="float:right; margin-right:10px;">
