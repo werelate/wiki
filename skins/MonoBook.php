@@ -457,7 +457,7 @@ END;
                }
                else if ($wgUser->getOption('wrnoads') < $now) {
                ?><div id="lhsadbox">
-<div style="text-align: right"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
+<div style="text-align: right; border-bottom: 1px solid #aaa; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
 <!-- remove or replace -->
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- lhs -->
@@ -494,7 +494,7 @@ END;
 </div>
 -->
                   <div id="rhsads" style="margin: 0 !important">
-<div style="text-align: right; border-bottom: 1px solid #aaa"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
+<div style="text-align: right; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
                   <!-- remove or replace -->
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- rhs160
