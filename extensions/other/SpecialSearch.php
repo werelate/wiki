@@ -45,7 +45,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	}
 	
 	$wgOut->setPageTitle($searchForm->target ? 'Search for possible matches' : 'Search WeRelate');
-   $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.yui.30.js\"></script>");
+   $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.31.js\"></script>");
 	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
 
    // construct query to send to server
@@ -102,9 +102,11 @@ class SearchForm {
 	private $birthdate;
 	private $birthrange;
 	private $birthplace;
+	private $birthType;
 	private $deathdate;
 	private $deathrange;
 	private $deathplace;
+	private $deathType;
 	private $fatherGivenname;
 	private $fatherSurname;
 	private $motherGivenname;
@@ -386,7 +388,7 @@ class SearchForm {
 				$this->givenname = $this->surname = $this->birthdate = $this->birthplace = $this->deathdate = $this->deathplace = 
 						$this->fatherGivenname = $this->fatherSurname = $this->motherGivenname = $this->motherSurname = $this->spouseGivenname = $this->spouseSurname =
 		      		$this->birthrange = $this->deathrange = $this->personGender = $this->parentFamily = $this->spouseFamily =
-                  $this->wifeGivenname = $this->wifeSurname = '';
+                  $this->wifeGivenname = $this->wifeSurname = $this->birthType = $this->deathType = '';
       		$this->setPersonMatchVars($gedcomData);
       	}
       	else {
@@ -405,6 +407,8 @@ class SearchForm {
 		      $this->spouseGivenname = trim($wgRequest->getVal('sg'));
 		      $this->spouseSurname = trim($wgRequest->getVal('ss'));
 		      $this->personGender = trim($wgRequest->getVal('gnd'));
+		      $this->birthType = trim($wgRequest->getVal('bt'));
+		      $this->deathType = trim($wgRequest->getVal('dt'));
             $this->parentFamily = trim($wgRequest->getVal('pf'));
             $this->spouseFamily = trim($wgRequest->getVal('sf'));
             $this->wifeGivenname = trim($wgRequest->getVal('wg')); // if we're adding a father, remember the mother's name
@@ -830,6 +834,8 @@ class SearchForm {
          .($this->placename ? '&pn=' . urlencode($this->placename) : '')
          .($this->locatedinplace ? '&li=' . urlencode($this->locatedinplace) : '')
          .($this->personGender ? '&gnd=' . urlencode($this->personGender) : '')
+         .($this->birthType ? '&bt=' . urlencode($this->birthType) : '')
+         .($this->deathType ? '&dt=' . urlencode($this->deathType) : '')
          .($this->sub ? '&sub=true' : '')
          .($this->sup ? '&sup=true' : '')
          .($this->sourceSubject ? '&su=' . urlencode($this->sourceSubject) : '')
@@ -1612,6 +1618,8 @@ END;
 	   	$nsSelectExtra = 'onChange="showSearchFields()"';
 	   }
       $hiddenFields .= $this->addHiddenInput('gnd', $this->personGender);
+      $hiddenFields .= $this->addHiddenInput('bt', $this->birthType);
+      $hiddenFields .= $this->addHiddenInput('dt', $this->deathType);
       $hiddenFields .= $this->addHiddenInput('sty', $this->sourceType);
       $hiddenFields .= $this->addHiddenInput('pi', $this->placeIssued);
       $hiddenFields .= $this->addHiddenInput('pu', $this->publisher);
@@ -1647,13 +1655,13 @@ END;
          $relativeRows = <<< END
 <tr id="father_row">
 <td align=right>Father given: </td><td colspan=2><input id="input_fg" class="input_medium" type="text" name="fg" maxlength=50 value="$fathergivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_fs" class="input_medium" type="text" name="fs" maxlength=50 value="$fathersurname" onfocus="select()"/></td>
+<td align=right>Surname: </td><td colspan=2><input id="input_fs" class="input_wider" type="text" name="fs" maxlength=50 value="$fathersurname" onfocus="select()"/></td>
 </tr><tr id="mother_row">
 <td align=right>Mother given: </td><td colspan=2><input id="input_mg" class="input_medium" type="text" name="mg" maxlength=50 value="$mothergivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_ms" class="input_medium" type="text" name="ms" maxlength=50 value="$mothersurname" onfocus="select()"/></td>
+<td align=right>Surname: </td><td colspan=2><input id="input_ms" class="input_wider" type="text" name="ms" maxlength=50 value="$mothersurname" onfocus="select()"/></td>
 </tr><tr id="spouse_row">
 <td align=right>Spouse given: </td><td colspan=2><input id="input_sg" class="input_medium" type="text" name="sg" maxlength=50 value="$spousegivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_ss" class="input_medium" type="text" name="ss" maxlength=50 value="$spousesurname" onfocus="select()"/></td>
+<td align=right>Surname: </td><td colspan=2><input id="input_ss" class="input_wider" type="text" name="ss" maxlength=50 value="$spousesurname" onfocus="select()"/></td>
 </tr>
 END;
       }
@@ -1675,31 +1683,31 @@ $hiddenFields
 <td align=right></td><td colspan=5>Covers:</td>
 </tr><tr id="name_row">
 <td id="givenname_cell1" align=right>Given name: </td><td id="givenname_cell2" colspan=2><input id="input_g" class="input_medium" type="text" name="g" maxlength=50 value="$givenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_s" class="input_medium" type="text" name="s" maxlength=50 value="$surname" onfocus="select()"/></td>
+<td align=right>Surname: </td><td colspan=2><input id="input_s" class="input_wider" type="text" name="s" maxlength=50 value="$surname" onfocus="select()"/></td>
 </tr><tr id="place_row">
 <td align=right>Place: </td><td colspan=5><input id="input_p" class="input_long place_input" type="text" name="p" maxlength=130 value="$place" onfocus="select()"/></td>
 </tr><tr id="source_place_row">
 <td align=right></td><td colspan=5>&nbsp; Include sources for <input type="checkbox" name="sub"$subChecked/>subordinate places <input type="checkbox" name="sup"$supChecked/>superior places</td>
 </tr><tr id="birth_row">
-<td align=right>Birth date: </td><td colspan=2><input id="input_bd" class="input_short" type="text" name="bd" size=14 maxlength=25 value="$birthdate" onfocus="select()"/> &nbsp;$birthRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_bp" class="input_medium place_input" type="text" name="bp" maxlength=130 value="$birthplace" onfocus="select()"/></td>
+<td align=right>Birth/Chr date: </td><td colspan=2><input id="input_bd" class="input_short" type="text" name="bd" size=14 maxlength=25 value="$birthdate" onfocus="select()"/> &nbsp;$birthRangeSelect</td>
+<td align=right>Place: </td><td colspan=2><input id="input_bp" class="input_wider place_input" type="text" name="bp" maxlength=130 value="$birthplace" onfocus="select()"/></td>
 </tr><tr id="death_row">
-<td align=right>Death date: </td><td colspan=2><input id="input_dd" class="input_short" type="text" name="dd" size=14 maxlength=25 value="$deathdate" onfocus="select()"/> &nbsp;$deathRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_dp" class="input_medium place_input" type="text" name="dp" maxlength=130 value="$deathplace" onfocus="select()"/></td>
+<td align=right>Death/Bur date: </td><td colspan=2><input id="input_dd" class="input_short" type="text" name="dd" size=14 maxlength=25 value="$deathdate" onfocus="select()"/> &nbsp;$deathRangeSelect</td>
+<td align=right>Place: </td><td colspan=2><input id="input_dp" class="input_wider place_input" type="text" name="dp" maxlength=130 value="$deathplace" onfocus="select()"/></td>
 </tr>
 $relativeRows
 <tr id="husband_row">
 <td align=right>Husband given: </td><td colspan=2><input id="input_hg" class="input_medium" type="text" name="hg" maxlength=50 value="$husbandgivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_hs" class="input_medium" type="text" name="hs" maxlength=50 value="$husbandsurname" onfocus="select()"/></td>
+<td align=right>Surname: </td><td colspan=2><input id="input_hs" class="input_wider" type="text" name="hs" maxlength=50 value="$husbandsurname" onfocus="select()"/></td>
 </tr><tr id="wife_row">
 <td align=right>Wife given: </td><td colspan=2><input id="input_wg" class="input_medium" type="text" name="wg" maxlength=50 value="$wifegivenname" onfocus="select()"/></td>
-<td align=right>Surname: </td><td colspan=2><input id="input_ws" class="input_medium" type="text" name="ws" maxlength=50 value="$wifesurname" onfocus="select()"/></td>
+<td align=right>Surname: </td><td colspan=2><input id="input_ws" class="input_wider" type="text" name="ws" maxlength=50 value="$wifesurname" onfocus="select()"/></td>
 </tr><tr id="marriage_row">
 <td align=right>Marriage date: </td><td colspan=2><input id="input_md" class="input_short" type="text" name="md" size=14 maxlength=25 value="$marriagedate" onfocus="select()"/> &nbsp;$marriageRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_mp" class="input_medium place_input" type="text" name="mp" maxlength=130 value="$marriageplace" onfocus="select()"/></td>
+<td align=right>Place: </td><td colspan=2><input id="input_mp" class="input_wider place_input" type="text" name="mp" maxlength=130 value="$marriageplace" onfocus="select()"/></td>
 </tr><tr id="placename_row">
 <td align=right>Place name: </td><td colspan=2><input id="input_pn" class="input_medium" type="text" name="pn" maxlength=50 value="$placename" onfocus="select()"/></td>
-<td align=right>Located in: </td><td colspan=2><input id="input_li" class="input_medium place_input" type="text" name="li" maxlength=130 value="$locatedinplace" onfocus="select()"/></td>
+<td align=right>Located in: </td><td colspan=2><input id="input_li" class="input_wider place_input" type="text" name="li" maxlength=130 value="$locatedinplace" onfocus="select()"/></td>
 </tr><tr id="subject_row">
 <td align=right>Subject: </td><td colspan=2>$sourceSubjectSelect</td>
 <td align=right>Availability: </td><td colspan=2>$sourceAvailabilitySelect</td>

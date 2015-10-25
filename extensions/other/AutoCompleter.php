@@ -170,6 +170,7 @@ class AutoCompleter {
 		foreach ($results as $result) {
 		   $xml .= '<result><name>'.AutoCompleter::escape($result['name']).'</name><title>'.AutoCompleter::escape($result['title']).'</title></result>';
 		}
+      $status = 'success';
 	   return '<'.AutoCompleter::RESULTS_TAG." status=\"$status\">\n".$xml.'</'.AutoCompleter::RESULTS_TAG.'>';
    }
 

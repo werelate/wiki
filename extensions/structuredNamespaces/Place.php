@@ -1204,9 +1204,11 @@ END;
             list ($origAlsoLocatedIn, $origType, $origLat, $origLng, $origFromYear, $origToYear) = Place::getPropagatedData($origXml);
 
             // maintain place_abbrevs
-            if (Place::placeAbbrevsChanged($origXml, $this->xml)) {
+            if (!isset($this->xml) || Place::placeAbbrevsChanged($origXml, $this->xml)) {
                Place::placeAbbrevsDelete($this->titleString);
-               Place::placeAbbrevsAdd($this->titleString, $this->xml);
+               if (isset($this->xml)) {
+                  Place::placeAbbrevsAdd($this->titleString, $this->xml);
+               }
             }
          }
          else {
@@ -1250,8 +1252,30 @@ END;
 //            }
 //		}
 
-     // update type, lat, or lng if changed, or this place has been redirected or this place is new
 	  $isRedirect = StructuredData::isRedirect($text);
+	  // add alt name to redirect target
+	  if ($isRedirect) {
+   		list($prefName, $locatedIn) = Place::getPrefNameLocatedIn($this->titleString);
+         $prefName = StructuredData::mb_str_replace($prefName, '_', ' '); // convert _'s back to spaces
+	      $targetArticle = StructuredData::getArticle(Title::newFromRedirect($text), true);
+	      $targetContent =& $targetArticle->fetchContent();
+	      $targetXml = StructuredData::getXml('place', $targetContent);
+	      $found = false;
+         foreach ($targetXml->alternate_name as $an) {
+            $altName = (string)$an['name'];
+            if ($altName == $prefName) {
+              $found = true;
+              break;
+            }
+         }
+         if (!$found) {
+            $altName = '<alternate_name name="'.StructuredData::escapeXml($prefName).'" source="from redirect"/>';
+            $targetContent = StructuredData::mb_str_replace($targetContent, "<place>", "<place>\n".$altName);
+            $targetArticle->doEdit($targetContent, 'Add alternate name from redirect', PROPAGATE_EDIT_FLAGS);
+         }
+	  }
+
+     // update type, lat, or lng if changed, or this place has been redirected or this place is new
      if ($this->locatedIn && ($isRedirect || !isset($origXml) || $type != $origType || $lat != $origLat || $lng != $origLng || $fromYear != $origFromYear || $toYear != $origToYear)) {
          $parentArticle = StructuredData::getArticle(Title::newFromText($this->locatedIn, NS_PLACE), true);
          if ($parentArticle) {

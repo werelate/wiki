@@ -1599,9 +1599,13 @@ span.diffchange
    width: 225px;
 }
 
+.input_wider {
+   width: 350px;
+}
+
 .input_long
 {
-   width: 525px;
+   width: 650px;
 }
 
 /*** Search ***/
@@ -2122,7 +2126,7 @@ div.noarticletext
 
 .ac_results
 {
-	width: 400px;
+	width: 300px;
 	background: #EEEEEE;
 	cursor: pointer;
 	position: absolute;
@@ -2134,7 +2138,7 @@ div.noarticletext
 
 .ac_results ul
 {
-	width: 380px;
+	width: 280px;
 	list-style-position: outside;
    list-style: none none;
 	padding: 0;

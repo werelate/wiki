@@ -1348,7 +1348,7 @@ class MergeForm {
 		   		}
 		   		else if ($match == self::$MATCH_EQ) {
 		   			$class = self::$CLASS_MATCH;
-		   			$nobox = true;
+		   			//$nobox = true;
 		  			}
 		  			else if ($match == self::$MATCH_SUP) {
 		  				$class = self::$CLASS_PARTIAL;

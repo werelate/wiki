@@ -34,7 +34,7 @@ class WhatLinksHerePage {
 		if ( $this->limit <= 0 ) {
 			$this->limit = 50;
 		}
-		$this->from = $this->request->getInt( 'from' );
+		$this->from = $this->request->getText( 'from' );
 		$this->dir = $this->request->getText( 'dir', 'next' );
 		if ( $this->dir != 'prev' ) {
 			$this->dir = 'next';
@@ -64,6 +64,16 @@ class WhatLinksHerePage {
 		$this->showIndirectLinks( 0, $this->target, $this->limit, $this->from, $this->dir );
 	}
 
+	function padNs($ns) {
+		if ($ns < 10) {
+			return '00'.$ns;
+		}
+		if ($ns < 100) {
+			return '0'.$ns;
+		}
+		return $ns;
+	}
+
 	/**
 	 * @param int       $level      Recursion level
 	 * @param Title     $target     Target title
@@ -72,7 +82,7 @@ class WhatLinksHerePage {
 	 * @param string    $dir        'next' or 'prev', whether $fromTitle is the start or end of the list
 	 * @private
 	 */
-	function showIndirectLinks( $level, $target, $limit, $from = 0, $dir = 'next' ) {
+	function showIndirectLinks( $level, $target, $limit, $from = '', $dir = 'next' ) {
 		global $wgOut;
 		$fname = 'WhatLinksHerePage::showIndirectLinks';
 
@@ -81,7 +91,6 @@ class WhatLinksHerePage {
 		extract( $dbr->tableNames( 'pagelinks', 'templatelinks', 'page' ) );
 
 		// Some extra validation
-		$from = intval( $from );
 		if ( !$from && $dir == 'prev' ) {
 			// Before start? No make sense
 			$dir = 'next';
@@ -100,17 +109,21 @@ class WhatLinksHerePage {
 			'tl_title' => $target->getDBkey(),
 		);
 
-		if ( $from ) {
+		$options = array();
+		if ( $from && strpos($from, ':')) {
+			$flds = split(":", $from, 2);
+			$fromNamespace = $dbr->addQuotes($flds[0]);
+			$fromTitle = $dbr->addQuotes($flds[1]);
 			if ( 'prev' == $dir ) {
-				$offsetCond = "page_id < $from";
-				$options = array( 'ORDER BY page_id DESC' );
+				$offsetCond = "(page_namespace < $fromNamespace OR (page_namespace = $fromNamespace AND page_title < $fromTitle))";
+				$options['ORDER BY'] = 'page_namespace DESC, page_title DESC';
 			} else {
-				$offsetCond = "page_id >= $from";
-				$options = array( 'ORDER BY page_id' );
+				$offsetCond = "(page_namespace > $fromNamespace OR (page_namespace = $fromNamespace AND page_title >= $fromTitle))";
+				$options['ORDER BY'] = 'page_namespace, page_title';
 			}
 		} else {
 			$offsetCond = false;
-			$options = array( 'ORDER BY page_id,is_template DESC' );
+			$options['ORDER BY'] = 'page_namespace, page_title';
 		}
 		// Read an extra row as an at-end check
 		$queryLimit = $limit + 1;
@@ -136,14 +149,15 @@ class WhatLinksHerePage {
 		// Read the rows into an array and remove duplicates
 		// templatelinks comes second so that the templatelinks row overwrites the
 		// pagelinks row, so we get (inclusion) rather than nothing
+		$rows = array();
 		while ( $row = $dbr->fetchObject( $plRes ) ) {
 			$row->is_template = 0;
-			$rows[$row->page_id] = $row;
+			$rows[$this->padNs($row->page_namespace).':'.$row->page_title] = $row;
 		}
 		$dbr->freeResult( $plRes );
 		while ( $row = $dbr->fetchObject( $tlRes ) ) {
 			$row->is_template = 1;
-			$rows[$row->page_id] = $row;
+			$rows[$this->padNs($row->page_namespace).':'.$row->page_title] = $row;
 		}
 		$dbr->freeResult( $tlRes );
 
@@ -155,16 +169,17 @@ class WhatLinksHerePage {
 
 		// Work out the start and end IDs, for prev/next links
 		if ( $dir == 'prev' ) {
+			$rows = array_reverse($rows);
 			// Descending order
 			if ( $numRows > $limit ) {
 				// More rows available before these ones
-				// Get the ID from the next row past the end of the displayed set
-				$prevId = $rows[$limit]->page_id;
+				// Get the ID from the top row displayed
+				$prevId = $rows[$limit-1]->page_namespace.':'.$rows[$limit-1]->page_title;
 				// Remove undisplayed rows
 				$rows = array_slice( $rows, 0, $limit );
 			} else {
 				// No more rows available before
-				$prevId = 0;
+				$prevId = '';
 			}
 			// Assume that the ID specified in $from exists, so there must be another page
 			$nextId = $from;
@@ -176,7 +191,7 @@ class WhatLinksHerePage {
 			if ( $numRows > $limit ) {
 				// More rows available after these ones
 				// Get the ID from the last row in the result set
-				$nextId = $rows[$limit]->page_id;
+				$nextId = $rows[$limit]->page_namespace.':'.$rows[$limit]->page_title;
 				// Remove undisplayed rows
 				$rows = array_slice( $rows, 0, $limit );
 			} else {

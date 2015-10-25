@@ -1045,8 +1045,34 @@ function wfAddPage($args) {
          else {
             if (!$title) $title = StructuredData::constructPersonTitle($args['g'], $args['s']);
             if ($title) {
-               $text = Person::getPageText($args['g'], $args['s'], $args['gnd'], $args['bd'], $args['bp'], $args['dd'], $args['dp'],
-                                           $title->getText(), null, @$args['pf'], @$args['sf']);
+            	if ($args['bt'] == 'chr') {
+						$bird = '';
+						$birp = '';
+						$chrd = $args['bd'];
+						$chrp = $args['bp'];
+            	}
+            	else {
+						$bird = $args['bd'];
+						$birp = $args['bp'];
+						$chrd = '';
+						$chrp = '';
+            	}
+            	if ($args['dt'] == 'bur') {
+						$dead = '';
+						$deap = '';
+						$burd = $args['dd'];
+						$burp = $args['dp'];
+            	}
+            	else {
+						$dead = $args['dd'];
+						$deap = $args['dp'];
+						$burd = '';
+						$burp = '';
+            	}
+
+               $text = Person::getPageText($args['g'], $args['s'], $args['gnd'], $bird, $birp, $dead, $deap,
+                                           $title->getText(), null, @$args['pf'], @$args['sf'],
+                                           $chrd, $chrp, $burd, $burp);
             }
          }
 		}

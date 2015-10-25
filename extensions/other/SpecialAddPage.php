@@ -64,7 +64,7 @@ function wfSpecialAddPage($par) {
    $wgOut->setArticleRelated(false);
    $wgOut->setRobotpolicy('noindex,nofollow');
    if ($addPageForm->namespace == NS_PERSON || $addPageForm->namespace == NS_FAMILY || $addPageForm->namespace == NS_SOURCE || $addPageForm->namespace == NS_PLACE) {
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.yui.30.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.31.js\"></script>");
    	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
    }
 
@@ -81,7 +81,16 @@ function wfSpecialAddPage($par) {
   * Search form used in Special:Search and <search> hook
   */
 class AddPageForm {
-	private static $MSGIDS = array(NS_GIVEN_NAME => 'addgivennamepageend', NS_SURNAME => 'addsurnamepageend', NS_PERSON => 'addpersonpageend', 
+	public static $BIRTH_TYPE_OPTIONS = array(
+		'Birth' => '',
+		'Chr' => 'chr',
+	);
+	public static $DEATH_TYPE_OPTIONS = array(
+		'Death' => '',
+		'Burial' => 'bur',
+	);
+
+	private static $MSGIDS = array(NS_GIVEN_NAME => 'addgivennamepageend', NS_SURNAME => 'addsurnamepageend', NS_PERSON => 'addpersonpageend',
 											NS_FAMILY => 'addfamilypageend', NS_SOURCE => 'addsourcepageend', NS_MYSOURCE => 'addmysourcepageend', 
 											NS_MAIN => 'addarticleend', NS_USER => 'adduserpageend', NS_PLACE => 'addplacepageend',
                                  NS_TRANSCRIPT => 'addtranscriptpageend', NS_REPOSITORY => 'addrepositorypageend');
@@ -141,8 +150,10 @@ class AddPageForm {
    	$this->gender = $wgRequest->getVal('gnd');
    	$this->birthdate = $wgRequest->getVal('bd');
    	$this->birthplace = $wgRequest->getVal('bp');
+   	$this->birthType = $wgRequest->getVal('bt');
    	$this->deathdate = $wgRequest->getVal('dd');
    	$this->deathplace = $wgRequest->getVal('dp');
+   	$this->deathType = $wgRequest->getVal('dt');
    	$this->husbandGivenname = $wgRequest->getVal('hg');
    	$this->husbandSurname = $wgRequest->getVal('hs');
    	$this->wifeGivenname = $wgRequest->getVal('wg');
@@ -262,8 +273,10 @@ class AddPageForm {
 					.'&gnd='.urlencode($this->gender)
 					.'&bd='.urlencode($this->birthdate)
 					.'&bp='.urlencode($this->birthplace)
+					.'&bt='.urlencode($this->birthType)
 					.'&dd='.urlencode($this->deathdate)
                .'&dp='.urlencode($this->deathplace)
+					.'&dt='.urlencode($this->deathType)
                .'&pf='.urlencode($this->parentFamily)
                .'&sf='.urlencode($this->spouseFamily);
 		}
@@ -307,8 +320,10 @@ class AddPageForm {
 	   if ($this->namespace == NS_PERSON) {
 	   	$givenname = htmlspecialchars($this->givenname);
 	   	$surname = htmlspecialchars($this->surname);
+	   	$birthSelect = StructuredData::addSelectToHtml(1, 'bt', AddPageForm::$BIRTH_TYPE_OPTIONS, $this->birthType);
 	   	$birthdate = htmlspecialchars($this->birthdate);
 	   	$birthplace = htmlspecialchars($this->birthplace);
+	   	$deathSelect = StructuredData::addSelectToHtml(1, 'dt', AddPageForm::$DEATH_TYPE_OPTIONS, $this->deathType);
 	   	$deathdate = htmlspecialchars($this->deathdate);
 	   	$deathplace = htmlspecialchars($this->deathplace);
 			$genderSelect = StructuredData::addSelectToHtml(1, 'gnd', Person::$GENDER_OPTIONS, $this->gender);
@@ -329,9 +344,9 @@ class AddPageForm {
 <tr><td align="right">Given name: </td><td><input type="text" id="givenname_input" name="g" size=15 maxlength="50" value="$givenname" tabindex="1"/></td>
   <td align="right">Surname: </td><td><input type="text" name="s" size=35 maxlength="50" value="$surname" tabindex="1"/></td></tr>
 <tr><td align="right">Gender: </td><td>$genderSelect</td></tr>
-<tr><td align="right">Birth date: </td><td><input type="text" name="bd" size=15 maxlength="25" value="$birthdate"  tabindex="1" /></td>
+<tr><td align="right">$birthSelect date: </td><td><input type="text" name="bd" size=15 maxlength="25" value="$birthdate"  tabindex="1" /></td>
   <td align="right">Place: </td><td><input class="place_input" type="text" name="bp" size=35 maxlength="130" value="$birthplace" tabindex="1" /></td></tr>
-<tr><td align="right">Death date: </td><td><input type="text" name="dd" size=15 maxlength="25" value="$deathdate" tabindex="1" /></td>
+<tr><td align="right">$deathSelect date: </td><td><input type="text" name="dd" size=15 maxlength="25" value="$deathdate" tabindex="1" /></td>
   <td align="right">Place: </td><td><input class="place_input" type="text" name="dp" size=35 maxlength="130" value="$deathplace" tabindex="1" /></td></tr>
 <tr><td colspan=4 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1"/></td></tr></table>
 </form>

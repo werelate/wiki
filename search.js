@@ -402,14 +402,18 @@ function addPersonPage(target) {
    var gender = getFormValue('gnd');
    var birthDate = getFormValue('bd');
    var birthPlace = getFormValue('bp');
+   var birthType = getFormValue('bt');
    var deathDate = getFormValue('dd');
    var deathPlace = getFormValue('dp');
+   var deathType = getFormValue('dt');
    var parentFamily = getFormValue('pf');
    var spouseFamily = getFormValue('sf');
    var wifeGivenname = getFormValue('wg'); // if we're adding a father we need to remember the mother
    var wifeSurname = getFormValue('ws');
-	addPage('Person', target, {g:givenname, s:surname, gnd:gender, bd:birthDate, bp:birthPlace, dd:deathDate, dp:deathPlace,
-                               pf:parentFamily, sf:spouseFamily, wg:wifeGivenname, ws:wifeSurname});
+	addPage('Person', target, {g:givenname, s:surname, gnd:gender,
+	                           bd:birthDate, bp:birthPlace, bt:birthType,
+	                           dd:deathDate, dp:deathPlace, dt:deathType,
+                              pf:parentFamily, sf:spouseFamily, wg:wifeGivenname, ws:wifeSurname});
 }
 
 function addFamilyPage(target) {

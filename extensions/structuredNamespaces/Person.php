@@ -831,8 +831,9 @@ END;
 		return $result;
 	}
 
-	public static function getPageText($givenname, $surname, $gender, $birthdate, $birthplace, $deathdate, $deathplace, $titleString,
-                                       $pageids = NULL, $parentFamily='', $spouseFamily='') {
+	public static function getPageText($givenname, $surname, $gender, $birthdate, $birthplace, $deathdate, $deathplace,
+	                                    $titleString, $pageids = NULL, $parentFamily='', $spouseFamily='',
+                                       $chrdate='', $chrplace='', $burdate='', $burplace='') {
       // standardize places
       $placeTitles = array();
       if ($birthplace && mb_strpos($birthplace, '|') === false) $placeTitles[] = $birthplace;
@@ -915,6 +916,12 @@ END;
       if ($deathdate || $deathplace) {
          $result .= '<event_fact type="Death" date="'.StructuredData::escapeXml($deathdate).'" place="'.StructuredData::escapeXml($deathplace)."\"/>\n";
       }
+      if ($chrdate || $chrplace) {
+         $result .= '<event_fact type="Christening" date="'.StructuredData::escapeXml($chrdate).'" place="'.StructuredData::escapeXml($chrplace)."\"/>\n";
+      }
+      if ($burdate || $burplace) {
+         $result .= '<event_fact type="Burial" date="'.StructuredData::escapeXml($burdate).'" place="'.StructuredData::escapeXml($burplace)."\"/>\n";
+      }
       $result .= $images;
 		$result .= "</person>\n";
 		return $result;
@@ -931,16 +938,38 @@ END;
 				$surname = $m[2];
 			}
 			$gender = $request->getVal('gnd');
-			$birthdate = $request->getVal('bd');
-			$birthplace = $request->getVal('bp');
-			$deathdate = $request->getVal('dd');
-			$deathplace = $request->getVal('dp');
+			if ($request->getval('bt') == 'chr') {
+			   $birthdate = '';
+			   $birthplace = '';
+   			$chrdate = $request->getVal('bd');
+	   		$chrplace = $request->getVal('bp');
+			}
+			else {
+            $birthdate = $request->getVal('bd');
+            $birthplace = $request->getVal('bp');
+            $chrdate = '';
+            $chrplace = '';
+			}
+			if ($request->getval('dt') == 'bur') {
+			   $deathdate = '';
+			   $deathplace = '';
+   			$burdate = $request->getVal('dd');
+	   		$burplace = $request->getVal('dp');
+			}
+			else {
+            $deathdate = $request->getVal('dd');
+            $deathplace = $request->getVal('dp');
+            $burdate = '';
+            $burplace = '';
+			}
 		}
 		else {
-			$givenname = $surname = $gender = $birthdate = $birthplace = $deathdate = $deathplace = '';
+			$givenname = $surname = $gender = $birthdate = $birthplace = $deathdate = $deathplace = $chrdate = $chrplace = $burdate = $burplace = '';
 		}
 		$pageids = $this->getWhatLinksHere();
-		return Person::getPageText($givenname, $surname, $gender, $birthdate, $birthplace, $deathdate, $deathplace, $this->titleString, $pageids);
+		return Person::getPageText($givenname, $surname, $gender, $birthdate, $birthplace, $deathdate, $deathplace,
+		                           $this->titleString, $pageids, '', '',
+		                           $chrdate, $chrplace, $burdate, $burplace);
 	}
 
 	protected function addFamilyInput($families, $name, $header, $msgTip, $style, $tm, $invalidStyle) {
