@@ -268,7 +268,8 @@ $.autocomplete = function(input, options) {
       storeSelected(v, li.infoValue);
 		input.lastSelected = v;
 		$results.html("");
-		$input.val(splitMultiLine($input.val(),0)+v);
+		var v0 = splitMultiLine($input.val(),0);
+		$input.val(v0+v);
 		// scroll textarea to end
 		if (input.type == 'textarea') {
 		   input.scrollTop = input.scrollHeight;
@@ -371,32 +372,16 @@ $.autocomplete = function(input, options) {
 		 return 0;
 	};
 	
-	function getMorePlaces(data) {
-		if (!data) return false;
-	   data = data.response[0].places;
-		return (data != null && data.length >= 100); // must be == org.werelate.search.PlaceSearcher.MAX_AUTOCOMPLETE_PLACES
-	}
-
-	function parseDataPlaces(data, more) {
-	  if (!data) return null;
-	  data = data.response[0].places;
+	function parsePlaceData(data) {
 	  if (!data) return null;
 	  var records = [];
+	  var elms = data.getElementsByTagName('result');
      var fields;
-	  for (var i = 0; i < data.length; i++) {
+	  for (var i = 0; i < elms.length; i++) {
 	  	 fields = [];
-	    fields[0] = data[i]['PlaceTitle'];
-	    fields[1] = data[i]['PlaceType'];
-	    if (fields[1] && fields[1].substr(0, 6) == 'Place:') {
-	    	fields[1] = options.redirSymbol + fields[1].substr(6);
-	    }
+	  	 fields[0] = elms[i].getElementsByTagName('name')[0].firstChild.nodeValue;
+	  	 fields[1] = elms[i].getElementsByTagName('title')[0].firstChild.nodeValue;
 	    records[i] = fields;
-	  }
-	  records.sort(sortRecords);
-	  if (more) {
-	     fields = [];
-	     fields[0] = 'more not shown';
-	     records[data.length] = fields;
 	  }
 	  return records.length > 0 ? records : null;
 	};
@@ -418,7 +403,12 @@ $.autocomplete = function(input, options) {
 			else {
 			   li.innerHTML = row[0];
 			}
-   		li.selectValue = row[0];
+			if (options.matchCommaPhrases && row[0] != row[1]) {
+				li.selectValue = row[1]+'|'+row[0];
+			}
+			else {
+	   		li.selectValue = row[0];
+			}
 			ul.appendChild(li);
 			$(li).hover(
 				function() {
@@ -457,9 +447,11 @@ $.autocomplete = function(input, options) {
 	function requestData(q) {
 		q = $.trim(q);
 		if (options.ignoreCase) q = q.toLowerCase();
-		var data = options.useCache ? loadFromCache(q) : null;
+		var data = !options.dontCache ? loadFromCache(q) : null;
 		if (data) {
-         data = addStoredMatches(q, data);
+			if (!options.matchCommaPhrases) {
+	         data = addStoredMatches(q, data);
+			}
 			receiveData(data);
 		}
 		else {
@@ -472,22 +464,30 @@ $.autocomplete = function(input, options) {
 					resetRequestTimeout();
 					var more = false;
 					if (options.matchCommaPhrases) {
-					   data = eval("("+data+")");
-	  					more = getMorePlaces(data);
-						data = parseDataPlaces(data, more);
+						data = parsePlaceData(data);
 					}
 					else {
 						more = getMore(data);
 						data = parseData(data, more);
 					}
 					if (data) {
-						addToCache(q, data, more);
+						if (!options.dontCache) {
+							addToCache(q, data, more);
+						}
 						var currText = splitMultiLine(input.value,1);
-						if (options.ignoreCase) currText = currText.toLowerCase();
-	         		if (options.matchCommaPhrases) currText = currText.replace(/^(\s*,\s*)+/,'');  // remove opening comma
-						data = loadFromCache(currText);
+						if (options.ignoreCase) {
+							currText = currText.toLowerCase();
+						}
+	         		if (options.matchCommaPhrases) {
+	         			currText = currText.replace(/^(\s*,\s*)+/,'');  // remove opening comma
+	         		}
+	         		if (!options.dontCache) {
+	         			data = loadFromCache(currText);
+	         		}
 					}
-               data = addStoredMatches(q, data);
+					if (!options.matchCommaPhrases) {
+      	         data = addStoredMatches(q, data);
+      	      }
 					receiveData(data);
 				});
 			}
@@ -607,7 +607,7 @@ $.autocomplete = function(input, options) {
 	}
 
 	function addToCache(q, data, more) {
-		if (!data || !q || !options.useCache) return;
+		if (!data || !q || options.dontCache) return;
 		if (acCache.length > 20) { // max number of cache entries
 			flushCache();
 		}
@@ -653,15 +653,15 @@ $.fn.autocomplete = function(options) {
 	options.resultsClass = options.resultsClass || "ac_results";
 	options.ignoreCase = options.ignoreCase || 0;
 	options.matchSubset = options.matchSubset || 1;
-	options.useCache = options.useCache || 1;
+	options.dontCache = options.dontCache || false;
 	options.mustMatch = options.mustMatch || 0;
 	options.extraParams = options.extraParams || {};
 	options.loadingClass = options.loadingClass || "ac_loading";
 	options.selectFirst = options.selectFirst || false;
 	options.selectOnly = options.selectOnly || false;
-	options.shortDelay = options.shortDelay || 250;
-	options.longDelay = options.longDelay || 1500;
-	options.requestDelay = options.requestDelay || 2500;
+	options.shortDelay = options.shortDelay || 200;
+	options.longDelay = options.longDelay || 1000;
+	options.requestDelay = options.requestDelay || 2000;
 	options.defaultNs = options.defaultNs || '';
 	options.userid = options.userid || '';
 	options.matchCommaPhrases = options.matchCommaPhrases || 0;
@@ -680,7 +680,7 @@ $.fn.autocomplete = function(options) {
 		new $.autocomplete(input, options);
 	});
 
-	// Don't break the chain
+	// Don't break Ethe chain
 	return this;
 }
 
@@ -706,7 +706,7 @@ $.fn.autocompleteRemove = function() {
 }
 
 $(document).ready(function() {
-	$(".place_input").autocomplete({ url:'/pac?q=', pgSize:4, matchCommaPhrases:1, ignoreCase:1});
+	$(".place_input").autocomplete({ defaultNs:'Place', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
 	$(".person_input").autocomplete({ defaultNs:'Person', userid:userId});
 	$(".family_input").autocomplete({ defaultNs:'Family', userid:userId});
 	$(".image_input").autocomplete({ defaultNs:'Image', userid:userId});

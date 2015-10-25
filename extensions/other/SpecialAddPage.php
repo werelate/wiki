@@ -65,7 +65,7 @@ function wfSpecialAddPage($par) {
    $wgOut->setRobotpolicy('noindex,nofollow');
    if ($addPageForm->namespace == NS_PERSON || $addPageForm->namespace == NS_FAMILY || $addPageForm->namespace == NS_SOURCE || $addPageForm->namespace == NS_PLACE) {
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.yui.30.js\"></script>");
-   	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.yui.8.js\"></script>");
+   	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
    }
 
    $wgOut->addHTML("<h2>$pageHeading</h2>");

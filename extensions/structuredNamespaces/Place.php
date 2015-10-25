@@ -632,7 +632,7 @@ END;
 		// add javascript functions
       $wgOut->addScript("<script type=\"text/javascript\">$placeTypesBuf</script>");
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/place.1.js\"></script>");
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.yui.8.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
 //      if ($target == 'gedcom'&& $target != 'AddPage') {
 //         $result .= "<p><font color=red>Add any additional information you have about this place".
 //                     ($target == 'gedcom' ? ' and save the page' : ', save the page, then close this window').
@@ -1018,6 +1018,171 @@ END;
 		return $result;
     }
 
+   private static function placeAbbrevsGetData($xml) {
+       $alsoLocatedIn = array();
+       $altNames = array();
+       if (isset($xml)) {
+          foreach ($xml->also_located_in as $pli) {
+             $alsoLocatedIn[] = (string)$pli['place'];
+          }
+          foreach ($xml->alternate_name as $an) {
+            $altNames[] = (string)$an['name'];
+          }
+      }
+      return array($alsoLocatedIn, $altNames);
+   }
+
+
+    protected function placeAbbrevsChanged($origXml, $xml) {
+      list ($origAlis, $origAltNames) = Place::placeAbbrevsGetData($origXml);
+      list ($alis, $altNames) = Place::placeAbbrevsGetData($xml);
+
+      if (count($origAlis) != count($alis) || count($origAltNames) != count($altNames)) {
+         return true;
+      }
+      foreach ($origAlis as $origAli) {
+         if (!in_array($origAli, $alis)) {
+            return true;
+         }
+      }
+      foreach ($origAltNames as $origAltName) {
+         if (!in_array($origAltName, $altNames)) {
+            return true;
+         }
+      }
+
+      return false;
+    }
+
+    protected function placeAbbrevsDelete($titleString) {
+      $title = Title::newFromText($titleString, NS_PLACE);
+      $dbkey = $title->getDBkey();
+      //error_log("placeAbbrevsDelete dbkey=$dbkey\n");
+		$dbw =& wfGetDB( DB_MASTER );
+      $dbw->delete( 'place_abbrevs', array( 'title' => $dbkey ), 'placeAbbrevsDelete');
+    }
+
+    protected function placeAbbrevsGetParents($titleString) {
+      $parents = array();
+      $dbr =& wfGetDB(DB_SLAVE);
+      $title = Title::newFromText($titleString, NS_PLACE);
+      $dbkey = $title->getDBkey();
+
+      // read all place_abbrev rows for $titleString
+		$rows = $dbr->select('place_abbrevs', array('primary_name','priority'), array('title' => $dbkey), 'placeAbbrevsGetParents');
+      $errno = $dbr->lastErrno();
+      while ($row = $dbr->fetchObject($rows)) {
+         // keep distinct primary_name's with lowest priorities
+         if (!@$parents[$row->primary_name] || $parents[$row->primary_name] > $row->priority) {
+            $parents[$row->primary_name] = $row->priority;
+         }
+      }
+      $dbr->freeResult($rows);
+
+      return $parents;
+    }
+
+    protected function placeAbbrevsInsertAbbrev($abbrev, $name, $primaryName, $titleString, $priority) {
+      $key = $abbrev . '|' . $titleString;
+      if (@$this->placeAbbrevsSeenPlaces[$key]) {
+         return;
+      }
+      $this->placeAbbrevsSeenPlaces[$key] = true;
+
+      //error_log("placeAbbrevsInsertAbbrev abbrev=$abbrev name=$name primaryName=$primaryName titleString=$titleString priority=$priority\n");
+		$dbw =& wfGetDB( DB_MASTER );
+		$dbw->insert('place_abbrevs',
+		   array(
+		      'abbrev' => $abbrev,
+		      'name' => $name,
+		      'primary_name' => $primaryName,
+		      'title' => $titleString,
+		      'priority' => $priority
+		));
+    }
+
+   // keep in sync with Autocompleter.php
+    protected function placeAbbrevsClean($s) {
+      $s = StructuredData::mb_str_replace($s, '_', ' '); // convert _'s back to spaces
+      $s = preg_replace_callback(
+         '/\(([^)]*)/',
+         function ($matches) {
+            return "(" . mb_convert_case($matches[1], MB_CASE_TITLE);
+         },
+         $s);
+      $s = preg_replace('/\(Independent City\)|\(City Of\)/', "(City)", $s);
+      $s = StructuredData::mb_str_replace($s, '(', ' ');
+      $s = StructuredData::mb_str_replace($s, ')', ' ');
+      $s = preg_replace('/\s+/', ' ', $s);
+      $s = StructuredData::mb_str_replace($s, ' ,', ',');
+      $s = trim($s);
+      return $s;
+    }
+
+   // keep in sync with Autocompleter.php
+    protected function placeAbbrevsCleanAbbrev($s) {
+      // remove accents must be called before mb_strtolower; otherwise the German SS isn't handled correctly
+      $s = StructuredData::removeAccents($s);
+      $s = Place::placeAbbrevsClean($s);
+      $s = mb_strtolower($s);
+      $s = StructuredData::mb_str_replace($s, "'", '');
+      $s = preg_replace('/[^a-z0-9]/', ' ', $s);
+      $s = preg_replace('/\s+/', ' ', $s);
+      $s = trim($s);
+      return $s;
+    }
+
+    protected function placeAbbrevsInsertAbbrevs($name, $primaryName, $suffix, $titleString, $priority) {
+      // clean names
+      if (!$suffix) {
+         Place::placeAbbrevsInsertAbbrev(Place::placeAbbrevsCleanAbbrev($name), Place::placeAbbrevsClean($name),
+                                          Place::placeAbbrevsClean($primaryName), $titleString, $priority);
+         return;
+      }
+
+      $primaryFullName = Place::placeAbbrevsClean($primaryName . ", " . $suffix);
+      $fullName = Place::placeAbbrevsClean($name . ", " . $suffix);
+      $levels = explode(",", $suffix);
+      for ($i = 0; $i < count($levels); $i++) {
+         $levels[$i] = trim($levels[$i]);
+      }
+      for ($i = 0; $i < count($levels); $i++) {
+         // construct abbrevs
+         $abbrevSuffix = join(", ", array_slice($levels, $i));
+         $abbrev = Place::placeAbbrevsCleanAbbrev($name . ", " . $abbrevSuffix);
+         Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority);
+         $pos = mb_strpos($name, "(");
+         if ($pos > 0) {
+            $abbrev = Place::placeAbbrevsCleanAbbrev(mb_substr($name, 0, $pos) . ", " . $abbrevSuffix);
+            Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority);
+         }
+      }
+    }
+
+    protected function placeAbbrevsAdd($titleString, $xml) {
+      $this->placeAbbrevsSeenPlaces = array();
+      $title = Title::newFromText($titleString, NS_PLACE);
+      $titleString = $title->getDBkey();
+		list($prefName, $locatedIn) = Place::getPrefNameLocatedIn($titleString);
+		list($alis, $altNames) = Place::placeAbbrevsGetData($xml);
+		$parents = Place::placeAbbrevsGetParents($locatedIn);
+		foreach ($parents as $parentName => $priority) {
+   		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $priority + 10);
+	   	foreach ($altNames as $altName) {
+		      Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $parentName, $titleString, $priority + 24);
+		   }
+		}
+		foreach ($alis as $ali) {
+   		$parents = Place::placeAbbrevsGetParents($ali);
+   		foreach ($parents as $primaryName => $priority) {
+            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $priority + 11);
+            foreach ($altNames as $altName) {
+               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $priority + 25);
+            }
+         }
+		}
+    }
+
     /**
      * Propagate data in xml property to other articles if necessary
      * @param string $oldText contains text being replaced
@@ -1034,10 +1199,27 @@ END;
 		// determine original parents by retrieving current version
 		list ($origAlsoLocatedIn, $origType, $origLat, $origLng, $origFromYear, $origToYear) = array(array(), null, null, null, null, null);
 		if ($oldText) {
-            $origXml = StructuredData::getXml('place', $oldText);
-            if (isset($origXml)) {
-					list ($origAlsoLocatedIn, $origType, $origLat, $origLng, $origFromYear, $origToYear) = Place::getPropagatedData($origXml);
+         $origXml = StructuredData::getXml('place', $oldText);
+         if (isset($origXml)) {
+            list ($origAlsoLocatedIn, $origType, $origLat, $origLng, $origFromYear, $origToYear) = Place::getPropagatedData($origXml);
+
+            // maintain place_abbrevs
+            if (Place::placeAbbrevsChanged($origXml, $this->xml)) {
+               Place::placeAbbrevsDelete($this->titleString);
+               Place::placeAbbrevsAdd($this->titleString, $this->xml);
             }
+         }
+         else {
+            // new place comes here or below
+            // add to place_abbrevs
+            Place::placeAbbrevsDelete($this->titleString);
+            Place::placeAbbrevsAdd($this->titleString, $this->xml);
+         }
+		}
+		else {
+		   // add to place_abbrevs
+		   Place::placeAbbrevsDelete($this->titleString);
+		   Place::placeAbbrevsAdd($this->titleString, $this->xml);
 		}
 
 //		$delAlsoLocatedIn = StructuredData::mapDiff($origAlsoLocatedIn, $alsoLocatedIn, 'place');
@@ -1139,6 +1321,16 @@ END;
      */
     protected function propagateMoveDeleteUndelete($newTitleString, $newNs, &$text, &$textChanged) {
     	$result = true;
+
+      // maintain place abbrevs
+      if ($newTitleString && $newTitleString != $this->titleString) {
+		   Place::placeAbbrevsDelete($this->titleString);
+		   Place::placeAbbrevsDelete($newTitleString);
+		   Place::placeAbbrevsAdd($newTitleString, $this->xml);
+      }
+      else if (!$newTitleString) {
+		   Place::placeAbbrevsDelete($this->titleString);
+      }
 
     	// determine parents and type and lat and lng
     	list ($alsoLocatedIn, $type, $lat, $lng, $fromYear, $toYear) = Place::getPropagatedData($this->xml);

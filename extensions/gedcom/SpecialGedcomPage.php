@@ -164,11 +164,10 @@ class GedcomPage {
             $author = htmlspecialchars($this->xml->author);
             $matchButton = <<<END
 <div id="matchButton" class="inline-block">
-<form name="search" action="/wiki/Special:AddPage" method="get">
-<input type="hidden" name="namespace" value="$nsSrc"/>
+<form name="search" action="/wiki/Special:Search" method="get">
+<input type="hidden" name="ns" value="Source"/>
 <input type="hidden" name="target" value="gedcom"/>
-<input type="hidden" name="gedcomtab" value="$gedcomtab"/>
-<input type="hidden" name="gedcomkey" value="$gedcomkey"/>
+<input type="hidden" name="add" value="next"/>
 <input type="hidden" name="st" value="$title"/>
 <input type="hidden" name="a" value="$author"/>
 <input type="submit" value="Find a matching Source"/>

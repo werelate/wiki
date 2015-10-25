@@ -163,7 +163,7 @@ END;
 		global $wgOut, $wgScriptPath;
 
 		// add javascript functions
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.yui.8.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
 
 		//$tm = new TipManager();
 

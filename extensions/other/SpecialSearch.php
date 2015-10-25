@@ -46,7 +46,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	
 	$wgOut->setPageTitle($searchForm->target ? 'Search for possible matches' : 'Search WeRelate');
    $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.yui.30.js\"></script>");
-	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.yui.8.js\"></script>");
+	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
 
    // construct query to send to server
    $errMsg = $searchForm->validateQuery();
@@ -1637,7 +1637,7 @@ END;
 		$sourceAvailabilitySelect = StructuredData::addSelectToHtml(0, 'sa', Source::$SOURCE_AVAILABILITY_OPTIONS, $this->sourceAvailability);
       $rowsSelector = StructuredData::addSelectToHtml(0, 'rows', self::$ROWS_OPTIONS, $this->rows, '', false);
       $ecpSelector = StructuredData::addSelectToHtml(0, 'ecp', self::$ECP_OPTIONS, $this->ecp, '', false);
-      $heading = ($this->target && $this->namespace != 'Image' ? '<h2 style="padding-bottom:4px">Step 2. Review possible matches. Select a match or click Add Page</h2>' : '');
+      $heading = ($this->target && $this->namespace != 'Image' ? '<h2 style="padding-bottom:4px">Review possible matches. Select a match or click Add Page</h2>' : '');
       $condensedChecked = ($this->condensedView ? ' checked="checked"' : '');
 
       if ($this->target) {

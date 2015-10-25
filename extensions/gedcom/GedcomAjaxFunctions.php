@@ -32,6 +32,8 @@ $wgAjaxExportList[] = "wfUpdateGedcomPotentialMatches";
 $wgAjaxExportList[] = "wfUpdateGedcomStatus";
 $wgAjaxExportList[] = "wfMatchFamily";
 $wgAjaxExportList[] = "wfAddPage"; // used by Special:AddPage, not gedcom
+$wgAjaxExportList[] = "wfAddGedcomSourceMatches";
+$wgAjaxExportList[] = "wfMatchSource";
 
 
 define( 'GE_SUCCESS', 0);
@@ -456,8 +458,8 @@ function wfMatchFamily($args) {
 						$totalScores[1] >= 4 &&
 						($gedcomHusbandCount == 0 || $matchHusbandCount == 0 || $husbandScores[1] > 0) &&
 						($gedcomWifeCount == 0 || $matchWifeCount == 0 || $wifeScores[1] > 0);
-wfDebug("MATCHCOMPARE gedcomTitle=$gedcomTitleString matchTitle=$matchTitleString ghc=$gedcomHusbandCount gwc=$gedcomWifeCount mhc=$matchHusbandCount mwc=$matchWifeCount".
-			" totalScore={$totalScores[1]} husbandScore={$husbandScores[1]} wifeScore={$wifeScores[1]} matched=$matched\n");		
+//wfDebug("MATCHCOMPARE gedcomTitle=$gedcomTitleString matchTitle=$matchTitleString ghc=$gedcomHusbandCount gwc=$gedcomWifeCount mhc=$matchHusbandCount mwc=$matchWifeCount".
+//			" totalScore={$totalScores[1]} husbandScore={$husbandScores[1]} wifeScore={$wifeScores[1]} matched=$matched\n");
 		if ($matched) {
 			$unmatchedGedcomChild = false;
 			$unmatchedWikiChild = false;
@@ -473,7 +475,7 @@ wfDebug("MATCHCOMPARE gedcomTitle=$gedcomTitleString matchTitle=$matchTitleStrin
 			}
 			if ($unmatchedGedcomChild && $unmatchedWikiChild) { // could be a mismatched child
 				$matched = false;
-wfDebug("MATCHCOMPARE failed on children\n");
+//wfDebug("MATCHCOMPARE failed on children\n");
 			}
 		}
 		
@@ -672,14 +674,14 @@ function wfReserveIndexNumbers($args) {
    	   $titleString = (string)$page['title'];
    	   $title = Title::newFromText($titleString, $ns);
    	   if (!$title) {
-wfDebug("wfReserve error $ns $titleString\n");
+//wfDebug("wfReserve error $ns $titleString\n");
    	      $status = GE_INVALID_ARG;
    	      $result = '';
    	      break;
    	   }
          $titleId = StructuredData::appendUniqueId($title, $dbw);
          if ($titleId == null) {
-wfDebug("wfReserve iderror $ns $titleString\n");
+//wfDebug("wfReserve iderror $ns $titleString\n");
             $status = GE_DB_ERROR;
             $result = '';
             break;
@@ -782,7 +784,7 @@ function wfGenerateFamilyTreePage($args) {
    	$uid = (string)$xml['uid'];
 //   	wfDebug("wfGenerateFamilyTreePage ns=$ns title=$titleString treeId=$treeId\n");
    	if (!$titleString || !$treeId) {
-wfDebug("wfGenerate parmerr $treeId:$titleString\n");
+//wfDebug("wfGenerate parmerr $treeId:$titleString\n");
    	   $status = GE_INVALID_ARG;
    	}
 	}
@@ -808,7 +810,7 @@ wfDebug("wfGenerate parmerr $treeId:$titleString\n");
    	$title = Title::newFromText($titleString, $ns);
       $text = $xml->content;
       if ($title == null || !$treeId) {
-wfDebug("wfGenerate error $treeId $ns $titleString\n");
+//wfDebug("wfGenerate error $treeId $ns $titleString\n");
          $status = GE_INVALID_ARG;
       }
       else {
@@ -970,7 +972,7 @@ function wfAddPagesToTree($args) {
 	   	$uid = (string)$page['uid'];
 	   	$title = Title::newFromText($titleString, $ns);
    	   if (!$titleString || $title == null) {
-wfDebug("wfAddPagesToTree error $ns $titleString\n");
+//wfDebug("wfAddPagesToTree error $ns $titleString\n");
 	         $status = GE_INVALID_ARG;
    	   }
    	   if ($status == GE_SUCCESS) {
@@ -1171,6 +1173,212 @@ function wfAddPage($args) {
   	return "<addpage status=\"$status\" title=\"$titleString\" error=\"$error\"></addpage>";
 }
 
+function fgGetSourcePageTitle($dbr, $minCount, $sql) {
+	$rows = $dbr->query($sql);
+	$errno = $dbr->lastErrno();
+	if ($errno > 0) {
+		return '';
+	}
+	else if ($rows !== false) {
+		$titles = array();
+		while ($row = $dbr->fetchObject($rows)) {
+			$title = $row->title;
+         if (@$titles[$title]) {
+         	$titles[$title] = $titles[$title] + 1;
+         }
+         else {
+         	$titles[$title] = 1;
+         }
+		}
+		$dbr->freeResult($rows);
+
+		$maxTitle = '';
+		$maxCount = 0;
+		$countMaxCount = 0;
+		foreach($titles as $title => $count) {
+			if ($count > $maxCount) {
+				$maxCount = $count;
+				$countMaxCount = 1;
+				$maxTitle = $title;
+			}
+			else if ($count == $maxCount) {
+				$countMaxCount++;
+			}
+		}
+		if ($maxCount >= $minCount && $countMaxCount == 1) {
+			return $maxTitle;
+		}
+	}
+	return '';
+}
+
+function wfMatchSource($args) {
+	global $wgUser, $wgAjaxCachePolicy, $wrBotUserID;
+
+   // set cache policy
+	$wgAjaxCachePolicy->setPolicy(0);
+	$status = GE_SUCCESS;
+
+	if (!$wgUser->isLoggedIn()) {
+	   $status = GE_NOT_LOGGED_IN;
+	}
+	else if (wfReadOnly() || $wgUser->getID() != $wrBotUserID) {
+	   $status = GE_NOT_AUTHORIZED;
+	}
+
+   $args = AjaxUtil::getArgs($args);
+
+	if ($status == GE_SUCCESS) {
+   	$dbr =& wfGetDB(DB_SLAVE);
+		$dbr->ignoreErrors(true);
+		$maxLen = 50;
+		$pageTitle = '';
+
+		// lookup on userid, (AT, AA, T, A)
+		if (!$pageTitle && $args['author'] && $args['title']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 1, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where user_id = '.$dbr->addQuotes($args['userID']).
+					 ' AND source LIKE '.$dbr->addQuotes(substr($args['author'].$args['title'],0,$maxLen).'%'));
+		}
+		if (!$pageTitle && $args['author'] && $args['abbrev']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 1, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where user_id = '.$dbr->addQuotes($args['userID']).
+					 ' AND source LIKE '.$dbr->addQuotes(substr($args['author'].$args['abbrev'],0,$maxLen).'%'));
+		}
+		if (!$pageTitle && $args['title']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 1, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where user_id = '.$dbr->addQuotes($args['userID']).
+					 ' AND source LIKE '.$dbr->addQuotes(substr($args['title'],0,$maxLen).'%'));
+		}
+		if (!$pageTitle && $args['abbrev']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 1, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where user_id = '.$dbr->addQuotes($args['userID']).
+					 ' AND source LIKE '.$dbr->addQuotes(substr($args['abbrev'],0,$maxLen).'%'));
+		}
+
+		// lookup without userid (AT, AA, T, A)
+		if (!$pageTitle && $args['author'] && $args['title']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 2, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where source LIKE '.$dbr->addQuotes(substr($args['author'].$args['title'],0,$maxLen).'%'));
+		}
+		if (!$pageTitle && $args['author'] && $args['abbrev']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 2, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where source LIKE '.$dbr->addQuotes(substr($args['author'].$args['abbrev'],0,$maxLen).'%'));
+		}
+		if (!$pageTitle && $args['title']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 2, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where source LIKE '.$dbr->addQuotes(substr($args['title'],0,$maxLen).'%'));
+		}
+		if (!$pageTitle && $args['abbrev']) {
+			$pageTitle = fgGetSourcePageTitle($dbr, 2, 'SELECT DISTINCT title, user_id FROM gedcom_source_matches '.
+					 'where source LIKE '.$dbr->addQuotes(substr($args['abbrev'],0,$maxLen).'%'));
+		}
+
+		// if find match, add it to db
+		if ($pageTitle) {
+			$dbw =& wfGetDB( DB_MASTER );
+			$dbw->ignoreErrors(true);
+			$dbw->begin();
+
+		   $record = array(
+		   	'fgd_gedcom_id' => $args['gedcomID'],
+		   	'fgd_gedcom_key' => $args['gedcomKey'],
+		   	'fgd_exclude' => 0,
+		   	'fgd_living' => 0,
+		   	'fgd_merged' => -1,
+		   	'fgd_match_namespace' => 104,
+		   	'fgd_match_title' => $pageTitle);
+	      if (!$dbw->insert('familytree_gedcom_data', $record)) {
+	         // MYSQL specific
+	         $status = ($dbw->lastErrno() == 1062 ? GE_SUCCESS : GE_DB_ERROR);
+			}
+			if ($status == GE_SUCCESS) {
+				$dbw->commit();
+			}
+			else {
+				$dbw->rollback();
+			}
+      }
+      else {
+         $status = GE_NOT_FOUND;
+      }
+   }
+
+	// return status
+  	return "<match status=\"$status\"/>";
+}
+
+function fgAddGedcomSourceMatch($dbw, $userID, $source, $sourceType, $pageTitle) {
+	$status = GE_SUCCESS;
+	$record = array(
+		'user_id' => $userID,
+		'source' => substr($source, 0, 255),
+		'source_type' => $sourceType,
+		'title' => $pageTitle);
+	if (!$dbw->insert('gedcom_source_matches', $record)) {
+		// MYSQL specific
+		$status = ($dbw->lastErrno() == 1062 ? GE_SUCCESS : GE_DB_ERROR);
+	}
+	return $status;
+}
+
+function wfAddGedcomSourceMatches($args) {
+	global $wgUser, $wgAjaxCachePolicy, $wrBotUserID;
+
+   // set cache policy
+	$wgAjaxCachePolicy->setPolicy(0);
+	$status = GE_SUCCESS;
+
+	if (!$wgUser->isLoggedIn()) {
+	   $status = GE_NOT_LOGGED_IN;
+	}
+	else if (wfReadOnly() || $wgUser->getID() != $wrBotUserID) {
+	   $status = GE_NOT_AUTHORIZED;
+	}
+
+   $args = AjaxUtil::getArgs($args);
+
+	if ($status == GE_SUCCESS) {
+		$dbw =& wfGetDB( DB_MASTER );
+		$dbw->ignoreErrors(true);
+		$dbw->begin();
+
+		if ($args['author'] && $args['title']) {
+			$stat = fgAddGedcomSourceMatch($dbw, $args['userID'], $args['author'].$args['title'], 'AT', $args['pageTitle']);
+			if ($stat != GE_SUCCESS) {
+				$status = $stat;
+			}
+		}
+		if ($args['author'] && $args['abbrev']) {
+			$stat = fgAddGedcomSourceMatch($dbw, $args['userID'], $args['author'].$args['abbrev'], 'AA', $args['pageTitle']);
+			if ($stat != GE_SUCCESS) {
+				$status = $stat;
+			}
+		}
+		if ($args['title']) {
+			$stat = fgAddGedcomSourceMatch($dbw, $args['userID'], $args['title'], 'T', $args['pageTitle']);
+			if ($stat != GE_SUCCESS) {
+				$status = $stat;
+			}
+		}
+		if ($args['abbrev']) {
+			$stat = fgAddGedcomSourceMatch($dbw, $args['userID'], $args['abbrev'], 'A', $args['pageTitle']);
+			if ($stat != GE_SUCCESS) {
+				$status = $stat;
+			}
+		}
+
+		if ($status != GE_SUCCESS) {
+			$dbw->rollback();
+		}
+		else {
+			$dbw->commit();
+		}
+   }
+
+	// return status
+  	return "<addGedcomSourceMatches status=\"$status\"/>";
+}
 
 //////////////////
 // Support functions
@@ -1384,7 +1592,7 @@ function fgReviewNeeded($gedcomId, $filename, $dbw) {
 	$reasons[] = 'initial launch';
  	
  	$reason = join('; ', $reasons);
- 	wfDebug("fgReviewGedcom gedcomId=$gedcomId reason=$reason\n");
+// 	wfDebug("fgReviewGedcom gedcomId=$gedcomId reason=$reason\n");
  	return $reason;
 }
 
