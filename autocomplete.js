@@ -133,7 +133,7 @@ $.autocomplete = function(input, options) {
             for (var i = titles.length-1; i >= 0; i--) {
                var test = titles[i].substr(0, q.length);
                if (options.ignoreCase) test = test.toLowerCase();
-               if (test === q) {
+               if (test === q && (!options.matchCommaPhrases || titles[i].indexOf('#') > 0)) {
                   var titleInfo = titles[i].split('#');
                   var title = titleInfo[0];
                   var info = titleInfo.length > 1 ? titleInfo[1] : '';
@@ -142,7 +142,7 @@ $.autocomplete = function(input, options) {
                      // remove from later in array
                      for (var j = data.length-1; j >= 0; j--) {
                         if (data[j].length > 1) multiLine = true;
-                        if (data[j][0] === title) {
+                        if (data[j][0] === title && (!options.matchCommaPhrases || data[j][1] === info)) {
                            data.splice(j,1);
                         }
                      }
@@ -449,9 +449,7 @@ $.autocomplete = function(input, options) {
 		if (options.ignoreCase) q = q.toLowerCase();
 		var data = !options.dontCache ? loadFromCache(q) : null;
 		if (data) {
-			if (!options.matchCommaPhrases) {
-	         data = addStoredMatches(q, data);
-			}
+         data = addStoredMatches(q, data);
 			receiveData(data);
 		}
 		else {
@@ -485,9 +483,7 @@ $.autocomplete = function(input, options) {
 	         			data = loadFromCache(currText);
 	         		}
 					}
-					if (!options.matchCommaPhrases) {
-      	         data = addStoredMatches(q, data);
-      	      }
+     	         data = addStoredMatches(q, data);
 					receiveData(data);
 				});
 			}

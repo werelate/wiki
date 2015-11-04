@@ -139,7 +139,7 @@ function addEventFact(eventTypes) {
 	cell.getElementsByTagName('select')[0].focus();
 	cell=row.insertCell(1); cell.innerHTML='<input class="ef_date" tabindex="1" type="text" name="date'+efNum+'"/>';
 	cell=row.insertCell(2); cell.innerHTML='<input class="ef_place" tabindex="1" type="text" name="place'+efNum+'"/>';
-	$('input', cell).autocomplete({ url:'/pac?q=', pgSize:4, matchCommaPhrases:1, ignoreCase:1});
+	$('input', cell).autocomplete({ defaultNs:'Place', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
 	cell=row.insertCell(3); cell.colSpan=2; cell.innerHTML='<input class="ef_desc" tabindex="1" type="text" name="desc'+efNum+'"/>';
    cell=row.insertCell(4); cell.innerHTML='<a title="Remove this event/fact" href="javascript:void(0);" onClick="removeEventFact('+(efNum+1)+'); return preventDefaultAction(event);">remove</a>';
    row=tbl.insertRow(rowNum+1);

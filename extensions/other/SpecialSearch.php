@@ -46,7 +46,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	
 	$wgOut->setPageTitle($searchForm->target ? 'Search for possible matches' : 'Search WeRelate');
    $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.31.js\"></script>");
-	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
+	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
    // construct query to send to server
    $errMsg = $searchForm->validateQuery();

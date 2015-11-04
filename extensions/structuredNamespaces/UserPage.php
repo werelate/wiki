@@ -325,8 +325,8 @@ class UserPage extends StructuredData {
 		global $wgOut, $wgScriptPath;
 
 		// add javascript functions
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/userpage.3.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/userpage.4.js\"></script>");
 
    	$tm = new TipManager();
 

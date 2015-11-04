@@ -632,7 +632,7 @@ END;
 		// add javascript functions
       $wgOut->addScript("<script type=\"text/javascript\">$placeTypesBuf</script>");
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/place.1.js\"></script>");
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.9.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 //      if ($target == 'gedcom'&& $target != 'AddPage') {
 //         $result .= "<p><font color=red>Add any additional information you have about this place".
 //                     ($target == 'gedcom' ? ' and save the page' : ', save the page, then close this window').
@@ -1165,19 +1165,41 @@ END;
       $titleString = $title->getDBkey();
 		list($prefName, $locatedIn) = Place::getPrefNameLocatedIn($titleString);
 		list($alis, $altNames) = Place::placeAbbrevsGetData($xml);
+
+		// get wlh
+      $dbr =& wfGetDB(DB_SLAVE);
+      $sql = 'select * from pagelinks'.
+             ' where pl_namespace = 106 and pl_title = '.$dbr->addQuotes($titleString).
+             // Page might not exist if it's being added, but in that case it's unlikely that someone links to it
+             ' and exists (select * from page where page_namespace = 106 and page_title = pl_title and page_is_redirect = 0)'.
+             ' and exists (select * from page where page_id = pl_from and page_namespace = 108)'.
+             ' limit 1';
+		$rows = $dbr->query($sql, 'placeAbbrevsCountPagelinks');
+      $errno = $dbr->lastErrno();
+      $wlh = 1;
+      while ($row = $dbr->fetchObject($rows)) {
+         $wlh = 0;
+      }
+      $dbr->freeResult($rows);
+
+      // $priority includes $numSpaces from parent places, which it shouldn't
 		$parents = Place::placeAbbrevsGetParents($locatedIn);
 		foreach ($parents as $parentName => $priority) {
-   		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $priority + 10);
+         $numSpaces = substr_count($prefName, ' ');
+   		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 10);
 	   	foreach ($altNames as $altName) {
-		      Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $parentName, $titleString, $priority + 24);
+            $numSpaces = substr_count($altName, ' ');
+		      Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 24);
 		   }
 		}
 		foreach ($alis as $ali) {
    		$parents = Place::placeAbbrevsGetParents($ali);
    		foreach ($parents as $primaryName => $priority) {
-            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $priority + 11);
+            $numSpaces = substr_count($prefName, ' ');
+            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 11);
             foreach ($altNames as $altName) {
-               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $priority + 25);
+               $numSpaces = substr_count($altName, ' ');
+               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 25);
             }
          }
 		}

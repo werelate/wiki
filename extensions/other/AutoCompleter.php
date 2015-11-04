@@ -142,7 +142,7 @@ class AutoCompleter {
 
 	private static function lookupPlaceDB($conn, $abbrev) {
 		$abbrev = mysql_real_escape_string($abbrev, $conn);
-		$sql = "SELECT name, title FROM place_abbrevs WHERE abbrev LIKE '$abbrev%' ORDER BY priority, CHAR_LENGTH(name) LIMIT 32";
+		$sql = "SELECT name, title FROM place_abbrevs WHERE abbrev LIKE '$abbrev%' ORDER BY priority LIMIT 32";
 		$res = @mysql_query($sql, $conn);
 		if ($res === false) {
 			return false;
