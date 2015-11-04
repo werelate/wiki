@@ -129,6 +129,12 @@ class SearchForm {
 	private $locatedinplace;
 	private $sourceSubject;
 	private $sourceAvailability;
+	private $personSurnameFacet;
+	private $personGivennameFacet;
+	private $personCountryFacet;
+	private $personStateFacet;
+	private $personCenturyFacet;
+	private $personDecadeFacet;
    private $sub;
    private $sup;
 	private $personGender;
@@ -413,6 +419,12 @@ class SearchForm {
             $this->spouseFamily = trim($wgRequest->getVal('sf'));
             $this->wifeGivenname = trim($wgRequest->getVal('wg')); // if we're adding a father, remember the mother's name
             $this->wifeSurname = trim($wgRequest->getVal('ws'));
+				$this->personSurnameFacet = $wgRequest->getVal('psf');
+				$this->personGivennameFacet = $wgRequest->getVal('pgf');
+				$this->personCountryFacet = $wgRequest->getVal('pcof');
+				$this->personStateFacet = $wgRequest->getVal('pstf');
+				$this->personCenturyFacet = $wgRequest->getVal('pcf');
+				$this->personDecadeFacet = $wgRequest->getVal('pdf');
       	}
       }
       if ($ns == 'Family') {
@@ -762,6 +774,25 @@ class SearchForm {
 		if ($this->sourceAvailability) {
 			$filters .= '&fq=' . urlencode('SourceAvailability:' . $this->addQuotes($this->sourceAvailability));
 		}
+		if ($this->personSurnameFacet) {
+			$filters .= '&fq=' . urlencode('PersonSurnameFacet:' . $this->addQuotes($this->personSurnameFacet));
+		}
+		if ($this->personGivennameFacet) {
+			$filters .= '&fq=' . urlencode('PersonGivennameFacet:' . $this->addQuotes($this->personGivennameFacet));
+		}
+		if ($this->personCountryFacet) {
+			$filters .= '&fq=' . urlencode('PersonCountryFacet:' . $this->addQuotes($this->personCountryFacet));
+		}
+		if ($this->personStateFacet) {
+			$filters .= '&fq=' . urlencode('PersonStateFacet:' . $this->addQuotes($this->personStateFacet));
+		}
+		if ($this->personCenturyFacet) {
+			$filters .= '&fq=' . urlencode('PersonCenturyFacet:' . $this->addQuotes($this->personCenturyFacet));
+		}
+		if ($this->personDecadeFacet) {
+			$filters .= '&fq=' . urlencode('PersonDecadeFacet:' . $this->addQuotes($this->personDecadeFacet));
+		}
+
 		if ($query) {
 			if ($this->sort == 'title') {
             $sortSpec = '&sort=TitleSortValue+asc';
@@ -779,8 +810,16 @@ class SearchForm {
 			$facets = ($this->namespace ? '' : '&facet.field=Namespace') .
 						 ($wgUser->isLoggedIn() && $this->watch == "wu" ? '&facet.query='.urlencode('User:'.$this->addQuotes($wgUser->getName())) : '') .
 						 ($this->sort == 'title' && !$this->titleLetter ? '&facet.field=TitleFirstLetter' : '') .
-						 ($this->namespace == 'Source' && !$this->sourceSubject ? '&facet.field=SourceSubject' : '') .
-						 ($this->namespace == 'Source' && !$this->sourceAvailability ? '&facet.field=SourceAvailability' : '');
+						 ($this->namespace == 'Person' && !$this->personSurnameFacet   ? '&facet.field=PersonSurnameFacet&f.PersonSurnameFacet.facet.limit=10' : '') .
+						 ($this->namespace == 'Person' && !$this->personGivennameFacet ? '&facet.field=PersonGivennameFacet&f.PersonGivennameFacet.facet.limit=10' : '') .
+						 ($this->namespace == 'Person' && !$this->personCountryFacet   ? '&facet.field=PersonCountryFacet&f.PersonCountryFacet.facet.limit=10' : '') .
+						 ($this->namespace == 'Person' && $this->personCountryFacet && $this->personCountryFacet != 'Unknown' && !$this->personStateFacet
+						 	? ('&facet.field=PersonStateFacet&f.PersonStateFacet.facet.limit=10&f.PersonStateFacet.facet.prefix='.urlencode($this->personCountryFacet)) : '') .
+						 ($this->namespace == 'Person' && !$this->personCenturyFacet   ? '&facet.field=PersonCenturyFacet' : '') .
+						 ($this->namespace == 'Person' && $this->personCenturyFacet && $this->personCenturyFacet != 'pre1600' && $this->personCenturyFacet != 'Unknown' && !$this->personDecadeFacet
+						 	? ('&facet.field=PersonDecadeFacet&f.PersonDecadeFacet.facet.prefix='.urlencode(substr($this->personCenturyFacet, 0, 2))) : '') .
+						 ($this->namespace == 'Source' && !$this->sourceSubject        ? '&facet.field=SourceSubject' : '') .
+						 ($this->namespace == 'Source' && !$this->sourceAvailability   ? '&facet.field=SourceAvailability' : '');
 			if ($facets) {
 				$facets .= '&facet=true';
 			}
@@ -840,6 +879,12 @@ class SearchForm {
          .($this->sup ? '&sup=true' : '')
          .($this->sourceSubject ? '&su=' . urlencode($this->sourceSubject) : '')
          .($this->sourceAvailability ? '&sa=' . urlencode($this->sourceAvailability) : '')
+         .($this->personSurnameFacet ? '&psf=' . urlencode($this->personSurnameFacet) : '')
+         .($this->personGivennameFacet ? '&pgf=' . urlencode($this->personGivennameFacet) : '')
+         .($this->personCountryFacet ? '&pcof=' . urlencode($this->personCountryFacet) : '')
+         .($this->personStateFacet ? '&pstf=' . urlencode($this->personStateFacet) : '')
+         .($this->personCenturyFacet ? '&pcf=' . urlencode($this->personCenturyFacet) : '')
+         .($this->personDecadeFacet ? '&pdf=' . urlencode($this->personDecadeFacet) : '')
          .($this->author ? '&a=' . urlencode($this->author) : '')
          .($this->sourceType ? '&sty=' . urlencode($this->sourceType) : '')
          .($this->sourceTitle ? '&st=' . urlencode($this->sourceTitle) : '')
@@ -1337,7 +1382,69 @@ END;
 		
 		return $result;
 	}
-	
+
+	private function getPersonFacetHtml($response, $selfQuery, $heading, $facet, $abbrev, $allLabel, $facetLabel, $facetStart = 0) {
+		if ($this->namespace != 'Person') {
+			return '';
+		}
+
+		$result = '';
+		if ($facet) {
+			$selfQuery = preg_replace('/&'.$abbrev.'=[^&]*/', '', $selfQuery);
+			$result .= "<h3>$heading</h3>";
+			$result .= "<p>&laquo <a href=\"$selfQuery\">$allLabel</a></p>";
+		}
+		else {
+			$facets = @$response['facet_counts']['facet_fields'][$facetLabel];
+			if (count($facets) > 0) {
+				$result .= "<h3>$heading</h3>";
+				$result .= '<ul>';
+				foreach ($facets as $facet => $count) {
+					$result .= "<li><a href=\"$selfQuery&$abbrev=".urlencode($facet)."\">".htmlspecialchars(substr($facet,$facetStart))."</a> ($count)</li>\n";
+				}
+				$result .= '</ul>';
+			}
+		}
+
+		return $result;
+	}
+
+	private function getSurnameFacetHtml($response, $selfQuery, $numFound) {
+		return $this->getPersonFacetHtml($response, $selfQuery, 'Top 10 Surnames', $this->personSurnameFacet, 'psf', 'All Surnames', 'PersonSurnameFacet');
+	}
+
+	private function getGivennameFacetHtml($response, $selfQuery, $numFound) {
+		return $this->getPersonFacetHtml($response, $selfQuery, 'Top 10 Given names', $this->personGivennameFacet, 'pgf', 'All Givennames', 'PersonGivennameFacet');
+	}
+
+	private function getCountryFacetHtml($response, $selfQuery, $numFound) {
+		if ($this->personStateFacet) {
+			return '';
+		}
+		return $this->getPersonFacetHtml($response, $selfQuery, 'Top 10 Countries', $this->personCountryFacet, 'pcof', 'All Countries', 'PersonCountryFacet');
+	}
+
+	private function getStateFacetHtml($response, $selfQuery, $numFound) {
+		if (!$this->personCountryFacet) {
+			return '';
+		}
+		return $this->getPersonFacetHtml($response, $selfQuery, 'Top 10 States', $this->personStateFacet, 'pstf', 'All States', 'PersonStateFacet', strlen($this->personCountryFacet)+2);
+	}
+
+	private function getCenturyFacetHtml($response, $selfQuery, $numFound) {
+		if ($this->personDecadeFacet) {
+			return '';
+		}
+		return $this->getPersonFacetHtml($response, $selfQuery, 'Birth Century', $this->personCenturyFacet, 'pcf', 'All Centuries', 'PersonCenturyFacet');
+	}
+
+	private function getDecadeFacetHtml($response, $selfQuery, $numFound) {
+		if (!$this->personCenturyFacet) {
+			return '';
+		}
+		return $this->getPersonFacetHtml($response, $selfQuery, 'Birth Decade', $this->personDecadeFacet, 'pdf', 'All Decades', 'PersonDecadeFacet');
+	}
+
 	private function getTitleLetterFacetHtml($response, $selfQuery) {
 		if ($this->sort != 'title') {
 			return '';
@@ -1531,6 +1638,12 @@ END;
 					  $this->getSubjectFacetHtml($response, $facetSelfQuery, $numFound) .
 					  $this->getAvailabilityFacetHtml($response, $facetSelfQuery, $numFound) .
 					  $this->getWatchingFacetHtml($response, $facetSelfQuery, $numFound) .
+					  $this->getSurnameFacetHtml($response, $facetSelfQuery, $numFound) .
+					  $this->getGivennameFacetHtml($response, $facetSelfQuery, $numFound) .
+					  $this->getCountryFacetHtml($response, $facetSelfQuery, $numFound) .
+					  $this->getStateFacetHtml($response, $facetSelfQuery, $numFound) .
+					  $this->getCenturyFacetHtml($response, $facetSelfQuery, $numFound) .
+					  $this->getDecadeFacetHtml($response, $facetSelfQuery, $numFound) .
 					  $this->getTitleLetterFacetHtml($response, $facetSelfQuery);
 
 		// get results
