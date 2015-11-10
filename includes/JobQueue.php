@@ -3,6 +3,7 @@ require_once("$IP/extensions/familytree/DeleteFamilyTreeJob.php");
 require_once("$IP/extensions/familytree/WatchTreePagesJob.php");
 require_once("$IP/extensions/familytree/AddTreePagesJob.php");
 require_once("$IP/extensions/gedcom/GedcomExportJob.php");
+require_once("$IP/extensions/structuredNamespaces/Place.php");
 
 if ( !defined( 'MEDIAWIKI' ) ) {
 	die( "This file is part of MediaWiki, it is not a valid entry point\n" );
@@ -113,6 +114,8 @@ abstract class Job {
 		      return new AddTreePagesJob($params, $id);
 		   case 'gedcomExport':
 		      return new GedcomExportJob($params, $id);
+		   case 'placeRedirect':
+		   	return new PlaceRedirectJob($params, $id);
 			case 'refreshLinks':
 				return new RefreshLinksJob( $title, $params, $id );
 			case 'htmlCacheUpdate':

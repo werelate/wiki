@@ -1275,11 +1275,12 @@ END;
 //		}
 
 	  $isRedirect = StructuredData::isRedirect($text);
-	  // add alt name to redirect target
 	  if ($isRedirect) {
-   		list($prefName, $locatedIn) = Place::getPrefNameLocatedIn($this->titleString);
+         // add alt name to redirect target
+     		list($prefName, $locatedIn) = Place::getPrefNameLocatedIn($this->titleString);
          $prefName = StructuredData::mb_str_replace($prefName, '_', ' '); // convert _'s back to spaces
-	      $targetArticle = StructuredData::getArticle(Title::newFromRedirect($text), true);
+         $newTitle = Title::newFromRedirect($text);
+	      $targetArticle = StructuredData::getArticle($newTitle, true);
 	      $targetContent =& $targetArticle->fetchContent();
 	      $targetXml = StructuredData::getXml('place', $targetContent);
 	      $found = false;
@@ -1295,6 +1296,10 @@ END;
             $targetContent = StructuredData::mb_str_replace($targetContent, "<place>", "<place>\n".$altName);
             $targetArticle->doEdit($targetContent, 'Add alternate name from redirect', PROPAGATE_EDIT_FLAGS);
          }
+
+         // edit wlh pages to point to the target title
+         $job = new PlaceRedirectJob(array('old_title' => $this->titleString, 'new_title' => $newTitle->getText()));
+         $job->insert();
 	  }
 
      // update type, lat, or lng if changed, or this place has been redirected or this place is new
@@ -1458,4 +1463,57 @@ END;
     	return $result;
     }
 }
+
+class PlaceRedirectJob extends Job {
+
+	function __construct($params, $id = 0 ) {
+	   // pass up a fake title
+		parent::__construct('placeRedirect', Title::makeTitle(NS_SPECIAL, 'PlaceRedirect'), $params, $id );
+	}
+
+	/**
+	 * Run a refreshLinks job
+	 * @return boolean success
+	 */
+	function run() {
+		global $wgTitle, $wgUser, $wgLang;
+
+		$wgTitle = $this->title;  // FakeTitle (the default) generates errors when accessed, and sometimes I log wgTitle, so set it to something else
+		$wgUser = User::newFromName('WeRelate agent'); // set the user
+		$oldTitle = Title::newFromText($this->params['old_title'], NS_PLACE);
+		$newTitle = Title::newFromText($this->params['new_title'], NS_PLACE);
+		$oldPlace = '<place>'.StructuredData::protectRegexSearch(StructuredData::escapeXml($oldTitle->getText())).'((\|[^<]*)?)</place>';
+      $newPlace = '<place>'.StructuredData::protectRegexReplace(StructuredData::escapeXml($newTitle->getText())).'\1</place>';
+
+		// get wlh pages
+      $dbr =& wfGetDB(DB_SLAVE);
+		$plConds = array(
+			'page_id=pl_from',
+			'pl_namespace' => $oldTitle->getNamespace(),
+			'pl_title' => $oldTitle->getDBkey(),
+			'page_is_redirect' => 0
+		);
+		$fields = array('page_namespace', 'page_title');
+		$plRes = $dbr->select( array( 'pagelinks', 'page' ), $fields, $plConds, 'PlaceRedirectJob');
+
+		// for each wlh page in a target namespace
+		while ( $row = $dbr->fetchObject( $plRes ) ) {
+		   if ($row->page_namespace == NS_SOURCE) {
+            // update place title in page contents
+            $article = StructuredData::getArticle(Title::newFromText($row->page_title, $row->page_namespace), true);
+            $content =& $article->fetchContent();
+            $updatedContent = preg_replace('$'.$oldPlace.'$', $newPlace, $content);
+
+            // save page
+            if ($content != $updatedContent) {
+               $article->doEdit($updatedContent, 'Redirect place', PROPAGATE_EDIT_FLAGS);
+            }
+		   }
+		}
+		$dbr->freeResult( $plRes );
+
+		return true;
+	}
+}
+
 ?>
