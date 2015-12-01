@@ -1373,11 +1373,16 @@ END;
     protected function propagateMoveDeleteUndelete($newTitleString, $newNs, &$text, &$textChanged) {
     	$result = true;
 
-      // maintain place abbrevs
+      // move: maintain place abbrevs and add place redirect job
       if ($newTitleString && $newTitleString != $this->titleString) {
 		   Place::placeAbbrevsDelete($this->titleString);
 		   Place::placeAbbrevsDelete($newTitleString);
 		   Place::placeAbbrevsAdd($newTitleString, $this->xml);
+
+         // edit wlh pages to point to the target title
+         $newTitle = Title::newFromText($newTitleString, NS_PLACE);
+         $job = new PlaceRedirectJob(array('old_title' => $this->titleString, 'new_title' => $newTitle->getText()));
+         $job->insert();
       }
       else if (!$newTitleString) {
 		   Place::placeAbbrevsDelete($this->titleString);
