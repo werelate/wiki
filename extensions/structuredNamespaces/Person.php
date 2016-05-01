@@ -597,7 +597,7 @@ END;
 	protected function toWikiText($parser) {
 //        wfDebug("toWikiText=" . $this->xml->asXML() . "\n");
 
-		global $wgESINHandler, $wgOut;
+		global $wgESINHandler, $wgOut, $wgUser;
 
 		$result= '';
 		if (isset($this->xml)) {
@@ -771,6 +771,109 @@ END;
 
 			// add source citations, images, notes
 			$result .= $wgESINHandler->addSourcesImagesNotes($this, $parser, $marriageEvents);
+
+            //
+            // MyHeritage Ad
+            //
+            $now = wfTimestampNow();
+            if ($wgUser->getOption('wrnoads') < $now) {
+                    $firstNames = mb_split(' ', (string)@$this->xml->name['given']);
+                    $lastNames = mb_split(' ', (string)@$this->xml->name['surname']);
+                    $events = array();
+                    $dateKey = StructuredData::getDateKey($birthDate);
+                    $birthDay = intval(substr($dateKey, 6, 2));
+                    $birthMonth = intval(substr($dateKey, 4, 2));
+                    $birthYear = intval(substr($dateKey, 0, 4));
+                    $birthPlace = trim($birthPlace);
+                    $events = array();
+                    if ($birthYear > 0 || strlen($birthPlace) > 0) {
+                            $birthEvent = array(
+                                    "type" => "birth",
+                                    "is_exact" => true,
+                                    "is_place_required" => false
+                            );
+                            if ($birthYear > 0) {
+                                    $birthEvent['year'] = $birthYear;
+                                    $birthEvent['year_range'] = 0;
+                                    if ($birthDay > 0) {
+                                            $birthEvent['day'] = $birthDay;
+                                    }
+                                    if ($birthMonth > 0) {
+                                            $birthEvent['month'] = $birthMonth;
+                                    }
+                            }
+                            if (strlen($birthPlace) > 0) {
+                                    $pos = mb_strpos($birthPlace, '|');
+                                    $birthEvent['place'] = ($pos !== false) ? mb_substr($birthPlace, 0, $pos) : $birthPlace;
+                            }
+                            $events[] = $birthEvent;
+                    }
+                    $seconds = time();
+                    $payload = "2.ef9898a359d609687dc084175ffba6de.3401.{$seconds}.1.4225";
+                    $sig = hash_hmac('md5', $payload, "5bba22f7a92683d907a33d9ffecefe8f");
+                    $url = "http://familygraph.myheritage.com/search/query?bearer_token={$payload}.{$sig}";
+                    $query = array(
+                            "request" => array(
+                                    "general_info" => array(
+                                            "first_name" => array(
+                                                    "data" => $firstNames,
+                                                    "advanced_options" => array(
+                                                            "is_exact" => true
+                                                    )
+                                            ),
+                                            "last_name" => array(
+                                                    "data" => $lastNames,
+                                                    "advanced_options" => array(
+                                                            "is_exact" => true
+                                                    )
+                                            ),
+                                            "gender" => "M"
+                                    ),
+                                    "events" => $events,
+                                    "relatives" => array(),
+                                    "additional_options" => array(
+                                            "fallback_policy" => "ppc",
+                                            "use_translations" => true,
+                                            "categories" => array(
+                                                    "birth-marriage-death"
+                                            )
+                                    )
+                            )
+                    );
+                    $query = json_encode($query);
+
+                    $ch = curl_init($url);
+                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $query);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                        'Content-Type: application/json',
+                        'Content-Length: ' . strlen($query))
+                    );
+                    $response = curl_exec($ch);
+                    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    if ($code == 200) {
+                            $response = json_decode($response);
+                            if (response != null) {
+                                    $count = $response->response->summary->category_counts[0]->count;
+                                    $link = $response->response->summary->category_counts[0]->link;
+                                    if ($count > 0) {
+                                            $isare = $count == 1 ? 'is' : 'are';
+                                            $records = $count == 1 ? 'record' : 'records';
+                                            $ad = <<<END
+<div class="h2like">Vital Records</div>
+<p>There $isare '''$count''' vital $records available on MyHeritage for $fullname, including [$link birth records, marriage records, and death records].
+Vital records are historical records that are typically recorded around the actual time of the event, which means they are likely accurate.
+Vital records include information like the event date and place, and the person's occupation and residence.
+Vital records also often include information about the person's relatives.
+For example, birth and marriage records include names of parents and divorce records list the names of children.</p>
+<p>[$link See all vital records for $fullname]</p>
+END;
+                                            $result .= $ad;
+                                    }
+                            }
+                    }
+            }
 
 			// add categories
 			$surnames = array();
