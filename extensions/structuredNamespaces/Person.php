@@ -597,7 +597,7 @@ END;
 	protected function toWikiText($parser) {
 //        wfDebug("toWikiText=" . $this->xml->asXML() . "\n");
 
-		global $wgESINHandler, $wgOut, $wgUser;
+		global $wgESINHandler, $wgOut, $wgUser, $wrMyHeritageKey;
 
 		$result= '';
 		if (isset($this->xml)) {
@@ -810,7 +810,7 @@ END;
                     }
                     $seconds = time();
                     $payload = "2.ef9898a359d609687dc084175ffba6de.3401.{$seconds}.1.4225";
-                    $sig = hash_hmac('md5', $payload, "5bba22f7a92683d907a33d9ffecefe8f");
+                    $sig = hash_hmac('md5', $payload, $wrMyHeritageKey);
                     $url = "http://familygraph.myheritage.com/search/query?bearer_token={$payload}.{$sig}";
                     $query = array(
                             "request" => array(
