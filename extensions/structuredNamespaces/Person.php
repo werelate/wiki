@@ -8,6 +8,7 @@ require_once("$IP/extensions/structuredNamespaces/PropagationManager.php");
 require_once("$IP/extensions/structuredNamespaces/ESINHandler.php");
 require_once("$IP/extensions/structuredNamespaces/TipManager.php");
 require_once("$IP/extensions/other/PlaceSearcher.php");
+require_once("$IP/extensions/Mobile_Detect.php");
 
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfPersonExtensionSetup";
@@ -939,7 +940,22 @@ END;
             return "";
         }
 
-        $link = $response->response->summary->category_counts[0]->link;
+        // detect mobile/tablet/desktop
+        $detect = new Mobile_Detect;
+        $device = 'c';
+        if ($detect->isMobile()) {
+            if ($detect->isTablet()) {
+                $device = 't';
+            }
+            else {
+                $device = 'm';
+            }
+        }
+        else if ($detect->isTablet()) {
+            $device = 't';
+        }
+
+        $link = $response->response->summary->category_counts[0]->link . '&utm_source=partner_werelate&utm_medium=partner&utm_campaign=werelate_api_may16&utm_content=api&tr_ad_group=person_page&tr_device='.$device;
         $isare = $count == 1 ? 'is' : 'are';
         $records = $count == 1 ? 'record' : 'records';
         return <<<END
