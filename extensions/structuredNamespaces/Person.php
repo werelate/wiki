@@ -773,7 +773,7 @@ END;
 			// add source citations, images, notes
 			$result .= $wgESINHandler->addSourcesImagesNotes($this, $parser, $marriageEvents);
 
-            $result .= $this->getMyHeritageAd($birthDate, $birthPlace, $fullname);
+            $result .= $this->getMyHeritageAd($birthDate, $birthPlace, $deathDate, $deathPlace, $gender, $fullname);
 
 			// add categories
 			$surnames = array();
@@ -789,7 +789,7 @@ END;
 		return $result;
 	}
 
-	protected function getMyHeritageAd($birthDate, $birthPlace, $fullname) {
+	protected function getMyHeritageAd($birthDate, $birthPlace, $deathDate, $deathPlace, $gender, $fullname) {
 		global $wgUser, $wgMemc, $wrMyHeritageKey;
 
         // ignore bots
@@ -813,159 +813,206 @@ END;
             return "";
         }
 
-        $currTime = time();
-
-        // rate limited?
-        $tryAgainTime = $wgMemc->get('myheritage');
-        if (isset($tryAgainTime) && intval($tryAgainTime) > $currTime) {
-            return "";
+        // look up cache
+        $count = '';
+        $link = '';
+        $countLink = $wgMemc->get('myheritage:'.$this->titleString);
+        if ($countLink) {
+            $countLinkFields = explode('|', $countLink, 2);
+            if (count($countLinkFields) == 2) {
+                $count = $countLinkFields[0];
+                $link = $countLinkFields[1];
+            }
         }
 
-        $firstNames = mb_split(' ', (string)@$this->xml->name['given']);
-        $lastNames = mb_split(' ', (string)@$this->xml->name['surname']);
-        $events = array();
-        $dateKey = StructuredData::getDateKey($birthDate);
-        $birthDay = intval(substr($dateKey, 6, 2));
-        $birthMonth = intval(substr($dateKey, 4, 2));
-        $birthYear = intval(substr($dateKey, 0, 4));
-        $birthPlace = trim($birthPlace);
-        $events = array();
-        if ($birthYear > 0 || strlen($birthPlace) > 0) {
-            $birthEvent = array(
-                "type" => "birth",
-                "is_exact" => true,
-                "is_place_required" => false
-            );
-            if ($birthYear > 0) {
-                $birthEvent['year'] = $birthYear;
-                $birthEvent['year_range'] = 0;
-                if ($birthDay > 0) {
-                    $birthEvent['day'] = $birthDay;
-                }
-                if ($birthMonth > 0) {
-                    $birthEvent['month'] = $birthMonth;
-                }
+        if ($link == '') {
+            $currTime = time();
+
+            // rate limited?
+            $tryAgainTime = $wgMemc->get('myheritage');
+            if (isset($tryAgainTime) && intval($tryAgainTime) > $currTime) {
+                return "";
             }
-            if (strlen($birthPlace) > 0) {
-                $pos = mb_strpos($birthPlace, '|');
-                $birthEvent['place'] = ($pos !== false) ? mb_substr($birthPlace, 0, $pos) : $birthPlace;
+
+            $firstName = (string)@$this->xml->name['given'];
+            $lastNames = mb_split(' ', (string)@$this->xml->name['surname']);
+            $dateKey = StructuredData::getDateKey($birthDate);
+            $birthDay = intval(substr($dateKey, 6, 2));
+            $birthMonth = intval(substr($dateKey, 4, 2));
+            $birthYear = intval(substr($dateKey, 0, 4));
+            $birthPlace = trim($birthPlace);
+            $dateKey = StructuredData::getDateKey($deathDate);
+            $deathDay = intval(substr($dateKey, 6, 2));
+            $deathMonth = intval(substr($dateKey, 4, 2));
+            $deathYear = intval(substr($dateKey, 0, 4));
+            $deathPlace = trim($deathPlace);
+            $events = array();
+            if ($birthYear > 0 || strlen($birthPlace) > 0) {
+                $birthEvent = array(
+                    "type" => "birth",
+                    "is_exact" => false,
+                    "is_place_required" => false
+                );
+                if ($birthYear > 0) {
+                    $birthEvent['year'] = $birthYear;
+                    $birthEvent['year_range'] = 1;
+                    if ($birthDay > 0) {
+                        $birthEvent['day'] = $birthDay;
+                    }
+                    if ($birthMonth > 0) {
+                        $birthEvent['month'] = $birthMonth;
+                    }
+                }
+                if (strlen($birthPlace) > 0) {
+                    $pos = mb_strpos($birthPlace, '|');
+                    $birthEvent['place'] = ($pos !== false) ? mb_substr($birthPlace, 0, $pos) : $birthPlace;
+                }
+                $events[] = $birthEvent;
             }
-            $events[] = $birthEvent;
-        }
-        $payload = "2.ef9898a359d609687dc084175ffba6de.3401.{$currTime}.1.4225";
-        $sig = hash_hmac('md5', $payload, $wrMyHeritageKey);
-        $url = "http://familygraph.myheritage.com/search/query?bearer_token={$payload}.{$sig}";
-        $query = array(
-            "request" => array(
-                "general_info" => array(
-                    "first_name" => array(
-                        "data" => $firstNames,
-                        "advanced_options" => array(
-                            "is_exact" => true
-                        )
+            if ($deathYear > 0 || strlen($deathPlace) > 0) {
+                $deathEvent = array(
+                    "type" => "death",
+                    "is_exact" => false,
+                    "is_place_required" => false
+                );
+                if ($deathYear > 0) {
+                    $deathEvent['year'] = $deathYear;
+                    $deathEvent['year_range'] = 1;
+                    if ($deathDay > 0) {
+                        $deathEvent['day'] = $deathDay;
+                    }
+                    if ($deathMonth > 0) {
+                        $deathEvent['month'] = $deathMonth;
+                    }
+                }
+                if (strlen($deathPlace) > 0) {
+                    $pos = mb_strpos($deathPlace, '|');
+                    $deathEvent['place'] = ($pos !== false) ? mb_substr($deathPlace, 0, $pos) : $deathPlace;
+                }
+                $events[] = $deathEvent;
+            }
+            $payload = "2.ef9898a359d609687dc084175ffba6de.3401.{$currTime}.1.4225";
+            $sig = hash_hmac('md5', $payload, $wrMyHeritageKey);
+            $url = "http://familygraph.myheritage.com/search/query?bearer_token={$payload}.{$sig}";
+            $query = array(
+                "request" => array(
+                    "general_info" => array(
+                        "first_name" => array(
+                            "data" => array($firstName),
+                            "advanced_options" => array(
+                                "is_exact" => false,
+                                "varying_on_spelling" => true
+                            )
+                        ),
+                        "last_name" => array(
+                            "data" => $lastNames,
+                            "advanced_options" => array(
+                                "is_exact" => true
+                            )
+                        ),
+                        "gender" => $gender
                     ),
-                    "last_name" => array(
-                        "data" => $lastNames,
-                        "advanced_options" => array(
-                            "is_exact" => true
+                    "events" => $events,
+                    "relatives" => array(),
+                    "additional_options" => array(
+                        "fallback_policy" => "ppc",
+                        "use_translations" => true,
+                        "categories" => array(
+                            "birth-marriage-death"
                         )
-                    ),
-                    "gender" => "M"
-                ),
-                "events" => $events,
-                "relatives" => array(),
-                "additional_options" => array(
-                    "fallback_policy" => "ppc",
-                    "use_translations" => true,
-                    "categories" => array(
-                        "birth-marriage-death"
                     )
                 )
-            )
-        );
-        $query = json_encode($query);
+            );
+            $query = json_encode($query);
 
-        // execute query
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $query);
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($query))
-        );
-        $response = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            // execute query
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $query);
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($query))
+            );
+            $response = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        // split out headers
-        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $header_text = substr($response, 0, $header_size);
-        $headers = array();
-        foreach (explode("\r\n", $header_text) as $i => $line) {
-            if ($i === 0) {
-                $headers['http_code'] = $line;
-            }
-            else {
-                $fields = explode(': ', $line);
-                if (count($fields) === 2) {
-                    $headers[$fields[0]] = $fields[1];
+            // split out headers
+            $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+            $header_text = substr($response, 0, $header_size);
+            $headers = array();
+            foreach (explode("\r\n", $header_text) as $i => $line) {
+                if ($i === 0) {
+                    $headers['http_code'] = $line;
+                }
+                else {
+                    $fields = explode(': ', $line);
+                    if (count($fields) === 2) {
+                        $headers[$fields[0]] = $fields[1];
+                    }
                 }
             }
-        }
 
-        // check rate limit
-        if ($code == 429) {
-            $retryAfter = intval($headers['Retry-After']);
-            $tryAgainTime = $currTime + $retryAfter;
-            $wgMemc->set('myheritage', $tryAgainTime, 300);
-        }
-        if ($code != 200) {
-            return "";
-        }
+            // check rate limit
+            if ($code == 429) {
+                $retryAfter = intval($headers['Retry-After']);
+                $tryAgainTime = $currTime + $retryAfter;
+                $wgMemc->set('myheritage', $tryAgainTime, 300);
+            }
+            if ($code != 200) {
+                return "";
+            }
 
-        // check rate limit
-        //if ($headers['X-Rate-Limit-Remaining'] == '0') {
-        //    $tryAgainTime = $currTime + intval($headers['X-Rate-Limit-Window']);
-        //}
+            // check rate limit
+            //if ($headers['X-Rate-Limit-Remaining'] == '0') {
+            //    $tryAgainTime = $currTime + intval($headers['X-Rate-Limit-Window']);
+            //}
 
-        // get response
-        $response = substr($response, $header_size);
-        $response = json_decode($response);
-        if ($response == null || @!$response->response || @!$response->response->summary || @!$response->response->summary->category_counts) {
-            return "";
-        }
-        $count = $response->response->summary->category_counts[0]->count;
-        if (!$count) {
-            return "";
-        }
+            // get response
+            $response = substr($response, $header_size);
+            $response = json_decode($response);
+            if ($response == null || @!$response->response || @!$response->response->summary || @!$response->response->summary->category_counts) {
+                return "";
+            }
+            $count = $response->response->summary->category_counts[0]->count;
 
-        // detect mobile/tablet/desktop
-        $detect = new Mobile_Detect;
-        $device = 'c';
-        if ($detect->isMobile()) {
-            if ($detect->isTablet()) {
+            // detect mobile/tablet/desktop
+            $detect = new Mobile_Detect;
+            $device = 'c';
+            if ($detect->isMobile()) {
+                if ($detect->isTablet()) {
+                    $device = 't';
+                }
+                else {
+                    $device = 'm';
+                }
+            }
+            else if ($detect->isTablet()) {
                 $device = 't';
             }
-            else {
-                $device = 'm';
-            }
-        }
-        else if ($detect->isTablet()) {
-            $device = 't';
+
+            $link = $response->response->summary->category_counts[0]->link . '&utm_source=partner_werelate&utm_medium=partner&utm_campaign=werelate_api_may16&utm_content=api&tr_ad_group=person_page&tr_device='.$device;
+
+            // cache link and count
+            $wgMemc->set('myheritage:'.$this->titleString, $count.'|'.$link, 7200);
         }
 
-        $link = $response->response->summary->category_counts[0]->link . '&utm_source=partner_werelate&utm_medium=partner&utm_campaign=werelate_api_may16&utm_content=api&tr_ad_group=person_page&tr_device='.$device;
+        if (!$count || $count == 0) {
+            return "";
+        }
+
         $isare = $count == 1 ? 'is' : 'are';
         $records = $count == 1 ? 'record' : 'records';
         return <<<END
 <div class="h2like">Vital Records</div>
-<p>There $isare '''$count''' vital $records available on MyHeritage for $fullname, including [$link birth records, marriage records, and death records].
+<p>There $isare '''$count''' vital $records available on MyHeritage for $fullname, including
+<wr_a href="$link" title="Vital records for $fullname">birth records, marriage records, and death records</wr_a>.
 Vital records are historical records that are typically recorded around the actual time of the event, which means they are likely accurate.
 Vital records include information like the event date and place, and the person's occupation and residence.
 Vital records also often include information about the person's relatives.
 For example, birth and marriage records include names of parents and divorce records list the names of children.</p>
-<p>[$link See all vital records for $fullname]</p>
+<p><wr_a href="$link" title="Vital records for $fullname">See all vital records for $fullname</wr_a></p>
 END;
 	}
 
