@@ -30,7 +30,7 @@ function wrClearRecentChanges() {
  * @param unknown_type $specialPage
  */
 function wfSpecialSearch( $par=NULL, $specialPage ) {
-	global $wgOut, $wgRequest, $wgScriptPath, $wrSidebarHtml;
+	global $wgOut, $wgRequest, $wgScriptPath, $wrSidebarHtml, $wgUser;
 	
 	$searchForm = new SearchForm();
 
@@ -49,8 +49,13 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
     $mhAd = '';
+    // ignore people without ads
+    $now = wfTimestampNow();
+    if ($wgUser->getOption('wrnoads') >= $now) {
+       return "";
+    }
     $ns = $wgRequest->getVal('ns') || $par;
-    if ($ns == 'Person') {
+    if ($wgUser->getOption('wrnoads') < $now && $ns == 'Person') {
         $mhAd = <<< END
 <ins class='dcmads' style='display:inline-block;width:728px;height:90px'
     data-dcm-placement='N217801.2353305WERELATE.ORG/B9799048.132605092'
