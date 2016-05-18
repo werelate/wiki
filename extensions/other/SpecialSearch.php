@@ -48,6 +48,20 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
    $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.31.js\"></script>");
 	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
+    $mhAd = '';
+    $ns = $wgRequest->getVal('ns') || $par;
+    if ($ns == 'Person') {
+        $mhAd = <<< END
+<ins class='dcmads' style='display:inline-block;width:728px;height:90px'
+    data-dcm-placement='N217801.2353305WERELATE.ORG/B9799048.132605092'
+    data-dcm-rendering-mode='iframe'
+    data-dcm-https-only
+    data-dcm-resettable-device-id=''>
+  <script src='https://www.googletagservices.com/dcm/dcmads.js'></script>
+</ins>
+END;
+    }
+
    // construct query to send to server
    $errMsg = $searchForm->validateQuery();
    $searchServerQuery = '';
@@ -66,6 +80,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
       }
       $wrSidebarHtml = "<div id=\"wr-search-sidebar\">$sideText</div>";
 		$wgOut->addHTML(<<< END
+$mhAd
 <p>$formHtml</p>
 $results
 END
@@ -76,6 +91,7 @@ END
 		$endText = wfMsgWikiHtml('searchend');
       $wrSidebarHtml = "<div id=\"wr-search-sidebar\">$sideText</div>";
 		$wgOut->addHTML(<<< END
+$mhAd
 <p>$formHtml</p><p> </p>
 $endText
 END
