@@ -51,10 +51,10 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
     $mhAd = '';
     // ignore people without ads
     $now = wfTimestampNow();
-    if ($wgUser->getOption('wrnoads') >= $now) {
-       return "";
+    $ns = $wgRequest->getVal('ns');
+    if (!$ns) {
+        $ns = $par;
     }
-    $ns = $wgRequest->getVal('ns') || $par;
     if ($wgUser->getOption('wrnoads') < $now && $ns == 'Person') {
         $mhAd = <<< END
 <ins class='dcmads' style='display:inline-block;width:728px;height:90px'
