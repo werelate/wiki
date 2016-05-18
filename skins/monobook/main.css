@@ -4507,3 +4507,19 @@ classes should alter those!
 .morelikethis li {
    list-style: none;
 }
+
+/* misc changes */
+
+.columnedtable th {
+    border-style: solid;
+    padding: 0.4em;
+}
+
+.columnedtable td {
+    border-style: none solid;
+    padding: 0.4em;
+}
+
+sup, sub {
+    line-height: 1;
+}
