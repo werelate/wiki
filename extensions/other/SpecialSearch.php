@@ -49,7 +49,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
     $mhAd = '';
-    // ignore people without ads
+    // don't show to people without ads and if not searching Person
     $now = wfTimestampNow();
     $ns = $wgRequest->getVal('ns');
     if (!$ns) {

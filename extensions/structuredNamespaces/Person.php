@@ -741,7 +741,11 @@ END;
             $ix++;
          }
 
+         $firstName = (string)@$this->xml->name['given'];
+         $lastName = (string)@$this->xml->name['surname'];
+
          $result = <<<END
+<mh_ad firstname="$firstName" lastname="$lastName"></mh_ad>
 <div class="wr-infobox wr-infobox-person clearfix">
    <div class="wr-infobox-image">
       $imageText
@@ -773,7 +777,7 @@ END;
 			// add source citations, images, notes
 			$result .= $wgESINHandler->addSourcesImagesNotes($this, $parser, $marriageEvents);
 
-            $result .= $this->getMyHeritageAd($birthDate, $birthPlace, $deathDate, $deathPlace, $gender, $fullname);
+            // $result .= $this->getMyHeritageAd($birthDate, $birthPlace, $deathDate, $deathPlace, $gender, $fullname);
 
 			// add categories
 			$surnames = array();

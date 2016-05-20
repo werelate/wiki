@@ -10,6 +10,7 @@ if( !defined( 'MEDIAWIKI' ) )
 require_once("$IP/extensions/familytree/FamilyTreeUtil.php");
 require_once("$IP/extensions/familytree/AddTreePagesJob.php");
 require_once("$IP/extensions/recaptchalib.php");
+require_once("$IP/extensions/Mobile_Detect.php");
 
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfHooksSetup";
@@ -65,6 +66,7 @@ function wfHooksSetup() {
    $wgParser->setHook('addsubpage', 'wrAddSubpage');
    $wgParser->setHook('listsubpages', 'wrListSubpages');
    $wgParser->setHook('wr_ad', 'wrAd');
+   $wgParser->setHook('mh_ad', 'mhAd');
 }
 
 function wfGetWatchers($args) {
@@ -154,6 +156,46 @@ function wrAd() {
    // disable top ad
    //return $wgTopAdCode;
    return "";
+}
+
+function mhAd($input, $argv, $parser) {
+   global $wgUser;
+
+   // ignore people without ads
+   $now = wfTimestampNow();
+   if ($wgUser->getOption('wrnoads') >= $now) {
+       return "";
+   }
+
+    // detect mobile/tablet/desktop
+    $detect = new Mobile_Detect;
+    $device = 'c';
+    if ($detect->isMobile()) {
+        if ($detect->isTablet()) {
+            $device = 't';
+        }
+        else {
+            $device = 'm';
+        }
+    }
+    else if ($detect->isTablet()) {
+        $device = 't';
+    }
+
+   $firstName = '';
+   $lastName = '';
+   foreach ($argv as $key => $value) {
+     if ($key == 'firstname') {
+        $firstName = urlencode($value);
+     }
+     if ($key == 'lastname') {
+        $lastName = urlencode($value);
+     }
+   }
+   return <<< END
+<div style="margin: -23px 0 16px 0;">
+<iframe src="https://www.myheritage.com/FP/partner-widget.php?firstName=$firstName&lastName=$lastName&clientId=3401&partnerName=werelate&widget=records&tr_device=$device" frameborder="0" scrolling="no" width="728" height="90"></iframe></div>
+END;
 }
 
 /**
