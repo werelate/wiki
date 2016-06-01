@@ -607,7 +607,7 @@ END;
    public static function isValidType($type, $validTypes) {
       $types = explode(',', $type);
       foreach ($types as $type) {
-         if (!in_array(trim($type), $validTypes)) {
+         if (count($validTypes) > 1 && !in_array(trim($type), $validTypes)) {
             return false;
          }
       }
