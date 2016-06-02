@@ -3,6 +3,7 @@
  * @package MediaWiki
  */
 require_once("$IP/extensions/gedcom/GedcomUtil.php");
+require_once("$IP/extensions/Mobile_Detect.php");
 
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfSpecialSearchSetup";
@@ -48,23 +49,10 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
    $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.31.js\"></script>");
 	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
-    $mhAd = '';
-    // don't show to people without ads and if not searching Person
     $now = wfTimestampNow();
     $ns = $wgRequest->getVal('ns');
     if (!$ns) {
         $ns = $par;
-    }
-    if ($wgUser->getOption('wrnoads') < $now && $ns == 'Person') {
-        $mhAd = <<< END
-<ins class='dcmads' style='display:inline-block;width:728px;height:90px'
-    data-dcm-placement='N217801.2353305WERELATE.ORG/B9799048.132605092'
-    data-dcm-rendering-mode='iframe'
-    data-dcm-https-only
-    data-dcm-resettable-device-id=''>
-  <script src='https://www.googletagservices.com/dcm/dcmads.js'></script>
-</ins>
-END;
     }
 
    // construct query to send to server
@@ -81,7 +69,32 @@ END;
          $results = "<p><font color=\"red\">$errMsg</font></p>";
       }
       else {
-		   list ($sideText, $results) = $searchForm->getSearchResultsHtml($searchServerQuery);
+        // don't show to people without ads and if not person
+        $mhAd = '';
+        $firstName = $searchForm->givenname;
+        $lastName = $searchForm->surname;
+        if ($wgUser->getOption('wrnoads') < $now && $lastName) {
+            // detect mobile/tablet/desktop
+            $detect = new Mobile_Detect;
+            $device = 'c';
+            if ($detect->isMobile()) {
+                if ($detect->isTablet()) {
+                    $device = 't';
+                }
+                else {
+                    $device = 'm';
+                }
+            }
+            else if ($detect->isTablet()) {
+                $device = 't';
+            }
+
+            $mhAd = <<< END
+<div style="margin: -23px 0 16px 0;">
+<iframe src="https://www.myheritage.com/FP/partner-widget.php?firstName=$firstName&lastName=$lastName&clientId=3401&partnerName=werelate&widget=records&tr_device=$device" frameborder="0" scrolling="no" width="728" height="90"></iframe></div>
+END;
+         }
+		 list ($sideText, $results) = $searchForm->getSearchResultsHtml($searchServerQuery);
       }
       $wrSidebarHtml = "<div id=\"wr-search-sidebar\">$sideText</div>";
 		$wgOut->addHTML(<<< END
@@ -92,6 +105,25 @@ END
 		);		
 	}
 	else {
+        // don't show to people without ads
+        $mhAd = '';
+        if ($wgUser->getOption('wrnoads') < $now) {
+            if ($ns == 'Person') {
+                $mhAdId = '132605092';
+            }
+            else {
+                $mhAdId = '133316437';
+            }
+            $mhAd = <<< END
+<ins class='dcmads' style='display:inline-block;width:728px;height:90px'
+    data-dcm-placement='N217801.2353305WERELATE.ORG/B9799048.$mhAdId'
+    data-dcm-rendering-mode='iframe'
+    data-dcm-https-only
+    data-dcm-resettable-device-id=''>
+  <script src='https://www.googletagservices.com/dcm/dcmads.js'></script>
+</ins>
+END;
+        }
 		$sideText = $searchForm->getStatsHtml();
 		$endText = wfMsgWikiHtml('searchend');
       $wrSidebarHtml = "<div id=\"wr-search-sidebar\">$sideText</div>";
@@ -117,8 +149,8 @@ class SearchForm {
 	private $titleLetter;
 	public $namespace;
 	private $watch;
-	private $givenname;
-	private $surname;
+	public $givenname;
+	public $surname;
 	private $place;
 	private $birthdate;
 	private $birthrange;
