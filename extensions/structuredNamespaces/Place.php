@@ -1021,6 +1021,8 @@ END;
    private static function placeAbbrevsGetData($xml) {
        $alsoLocatedIn = array();
        $altNames = array();
+       $latitude = 0;
+       $longitude = 0;
        if (isset($xml)) {
           foreach ($xml->also_located_in as $pli) {
              $alsoLocatedIn[] = (string)$pli['place'];
@@ -1028,14 +1030,16 @@ END;
           foreach ($xml->alternate_name as $an) {
             $altNames[] = (string)$an['name'];
           }
+          $latitude = (float) $xml->latitude;
+          $longitude = (float) $xml->longitude;
       }
-      return array($alsoLocatedIn, $altNames);
+      return array($alsoLocatedIn, $altNames, $latitude, $longitude);
    }
 
 
     protected function placeAbbrevsChanged($origXml, $xml) {
-      list ($origAlis, $origAltNames) = Place::placeAbbrevsGetData($origXml);
-      list ($alis, $altNames) = Place::placeAbbrevsGetData($xml);
+      list ($origAlis, $origAltNames, $origLat, $origLon) = Place::placeAbbrevsGetData($origXml);
+      list ($alis, $altNames, $lat, $lon) = Place::placeAbbrevsGetData($xml);
 
       if (count($origAlis) != count($alis) || count($origAltNames) != count($altNames)) {
          return true;
@@ -1049,6 +1053,10 @@ END;
          if (!in_array($origAltName, $altNames)) {
             return true;
          }
+      }
+
+      if ($origLat != $lat || $origLon != $lon) {
+        return true;
       }
 
       return false;
@@ -1082,14 +1090,14 @@ END;
       return $parents;
     }
 
-    protected function placeAbbrevsInsertAbbrev($abbrev, $name, $primaryName, $titleString, $priority) {
+    protected function placeAbbrevsInsertAbbrev($abbrev, $name, $primaryName, $titleString, $priority, $latitude, $longitude) {
       $key = $abbrev . '|' . $titleString;
       if (@$this->placeAbbrevsSeenPlaces[$key]) {
          return;
       }
       $this->placeAbbrevsSeenPlaces[$key] = true;
 
-      //error_log("placeAbbrevsInsertAbbrev abbrev=$abbrev name=$name primaryName=$primaryName titleString=$titleString priority=$priority\n");
+      //error_log("placeAbbrevsInsertAbbrev abbrev=$abbrev name=$name primaryName=$primaryName titleString=$titleString priority=$priority lat=$latitude lon=$longitude\n");
 		$dbw =& wfGetDB( DB_MASTER );
 		$dbw->insert('place_abbrevs',
 		   array(
@@ -1097,7 +1105,9 @@ END;
 		      'name' => $name,
 		      'primary_name' => $primaryName,
 		      'title' => $titleString,
-		      'priority' => $priority
+		      'priority' => $priority,
+		      'latitude' => $latitude,
+		      'longitude' => $longitude
 		));
     }
 
@@ -1132,11 +1142,11 @@ END;
       return $s;
     }
 
-    protected function placeAbbrevsInsertAbbrevs($name, $primaryName, $suffix, $titleString, $priority) {
+    protected function placeAbbrevsInsertAbbrevs($name, $primaryName, $suffix, $titleString, $priority, $latitude, $longitude) {
       // clean names
       if (!$suffix) {
          Place::placeAbbrevsInsertAbbrev(Place::placeAbbrevsCleanAbbrev($name), Place::placeAbbrevsClean($name),
-                                          Place::placeAbbrevsClean($primaryName), $titleString, $priority);
+                                          Place::placeAbbrevsClean($primaryName), $titleString, $priority, $latitude, $longitude);
          return;
       }
 
@@ -1150,11 +1160,11 @@ END;
          // construct abbrevs
          $abbrevSuffix = join(", ", array_slice($levels, $i));
          $abbrev = Place::placeAbbrevsCleanAbbrev($name . ", " . $abbrevSuffix);
-         Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority);
+         Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority, $latitude, $longitude);
          $pos = mb_strpos($name, "(");
          if ($pos > 0) {
             $abbrev = Place::placeAbbrevsCleanAbbrev(mb_substr($name, 0, $pos) . ", " . $abbrevSuffix);
-            Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority);
+            Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority, $latitude, $longitude);
          }
       }
     }
@@ -1164,7 +1174,7 @@ END;
       $title = Title::newFromText($titleString, NS_PLACE);
       $titleString = $title->getDBkey();
 		list($prefName, $locatedIn) = Place::getPrefNameLocatedIn($titleString);
-		list($alis, $altNames) = Place::placeAbbrevsGetData($xml);
+		list($alis, $altNames, $latitude, $longitude) = Place::placeAbbrevsGetData($xml);
 
 		// get wlh
       $dbr =& wfGetDB(DB_SLAVE);
@@ -1186,20 +1196,20 @@ END;
 		$parents = Place::placeAbbrevsGetParents($locatedIn);
 		foreach ($parents as $parentName => $priority) {
          $numSpaces = substr_count($prefName, ' ');
-   		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 10);
+   		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 10, $latitude, $longitude);
 	   	foreach ($altNames as $altName) {
             $numSpaces = substr_count($altName, ' ');
-		      Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 24);
+		      Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 24, $latitude, $longitude);
 		   }
 		}
 		foreach ($alis as $ali) {
    		$parents = Place::placeAbbrevsGetParents($ali);
    		foreach ($parents as $primaryName => $priority) {
             $numSpaces = substr_count($prefName, ' ');
-            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 11);
+            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 11, $latitude, $longitude);
             foreach ($altNames as $altName) {
                $numSpaces = substr_count($altName, ' ');
-               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 25);
+               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 25, $latitude, $longitude);
             }
          }
 		}

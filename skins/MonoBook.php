@@ -455,7 +455,7 @@ END;
                   //echo wfMsg('awards');
                ?></div><?php
                }
-               else if ($wgUser->getOption('wrnoads') < $now) {
+               else if (false && $wgUser->getOption('wrnoads') < $now) { // don't show this ad
                ?><div id="lhsadbox">
 <div style="text-align: right; border-bottom: 1px solid #aaa; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
 <!-- remove or replace -->
@@ -486,24 +486,9 @@ END;
             </td>
             <?php if (!$suppressAds && $wgUser->getOption('wrnoads') < $now) { ?>
                <td id="rhsadbox">
-<!--
-<div style="padding: 12px 2px; text-align: center; border: 2px #ed5800 solid; border-radius: 12px; background-color: #fffbf7; margin-right: 4px; margin-bottom: 24px;">
- <div style="color: #ed5800; font-size: 29px; margin-bottom: 16px">Fundraiser</div>
- <div style="font-weight: bold; margin-bottom: 12px;">Help fund new features!</div>
- <div><a href="/wiki/WeRelate:Donate">Donate Now</a></div>
-</div>
--->
                   <div id="rhsads" style="margin: 0 !important">
 <div style="text-align: right; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
-                  <!-- remove or replace -->
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- rhs160
-<ins class="adsbygoogle"
-     style="display:inline-block;width:160px;height:600px"
-     data-ad-client="ca-pub-5042243421154153"
-     data-ad-slot="5881944012"></ins>
--->
-<!-- rhs -->
 <ins class="adsbygoogle"
      style="display:inline-block;width:300px;height:600px"
      data-ad-client="ca-pub-5042243421154153"
