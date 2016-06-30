@@ -1072,6 +1072,9 @@ END;
 
     protected function placeAbbrevsGetParents($titleString) {
       $parents = array();
+      if (empty($titleString)) {
+         return $parents;
+      }
       $dbr =& wfGetDB(DB_SLAVE);
       $title = Title::newFromText($titleString, NS_PLACE);
       $dbkey = $title->getDBkey();

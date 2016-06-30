@@ -62,6 +62,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	   $searchServerQuery = $searchForm->getSearchServerQuery($par);
    }
 	$formHtml = $searchForm->getFormHtml();
+	$mhAd = '';
 	if ($searchServerQuery || $errMsg) {
       if ($errMsg) {
          $sideText = '';
@@ -70,7 +71,6 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
       }
       else {
         // don't show to people without ads and if not person
-        $mhAd = '';
         $firstName = $searchForm->givenname;
         $lastName = $searchForm->surname;
         if ($wgUser->getOption('wrnoads') < $now && $lastName) {
