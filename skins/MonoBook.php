@@ -488,6 +488,8 @@ END;
                <td id="rhsadbox">
                   <div id="rhsads" style="margin: 0 !important">
 <div style="text-align: right; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
+<a href="https://www.gengophers.com"><img height="600" width="300" src="common/images/ggad2.png"/></a>
+<!--
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <ins class="adsbygoogle"
      style="display:inline-block;width:300px;height:600px"
@@ -496,6 +498,7 @@ END;
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
+-->
                   </div>
                </td>
             <?php } ?>
