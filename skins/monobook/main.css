@@ -3861,30 +3861,46 @@ ol.references p {
 }
 
 /* source input */
+#source_input .s_source {
+    width: 100px;
+}
 #source_input .s_select {
    margin-right: 10px;
 }
 #source_input .s_title {
-   width: 500px;
+   width: 478px;
    margin-right: 6px;
 }
+#source_input .s_findadd {
+   width: 55px;
+}
 #source_input .s_recordname {
-   width: 230px;
+   width: 443px;
 }
 #source_input .s_quality {
    font-size: 10px;
 }
 #source_input .s_page {
-   width: 90px;
+   width: 443px;
 }
 #source_input .s_date {
-   width: 90px;
+   width: 172px;
 }
 #source_input .s_ref {
-   width: 45px;
+   width: 50px;
 }
 #source_input .s_text {
    width: 695px;
+}
+#source_input .s_label {
+   text-align: right;
+   padding-right: 8px;
+   padding-left: 16px;
+}
+#source_input .s_widelabel {
+   text-align: right;
+   padding-right: 8px;
+   padding-left: 42px;
 }
 
 /* inline-block */

@@ -1022,19 +1022,21 @@ END;
 			.'<td align="right" style="padding-top:13px"><b>Citation ID</b></td>'
 			."<td style=\"padding-top:13px\">$id<input type=\"hidden\" name=\"source_id$srcNum\" value=\"$id\"/>&nbsp;&nbsp;&nbsp;<a title=\"Remove this source\" href=\"javascript:void(0);\" onClick=\"removeSource($tempNum); return preventDefaultAction(event);\">remove</a></td>"
 			.'</tr><tr>'
-			.'<td align="right">Source</td><td>'.StructuredData::addSelectToHtml(1, "source_namespace$srcNum", self::$SOURCE_NAMESPACE_OPTIONS, $ns, 'class="s_select" onChange="changeSourceNamespace('.$srcNum.',\''.$id.'\')"', false).'</td>'
-			."<td align=\"right\">Title</td><td colspan=8><input class=\"s_title$autocompleteClass\" id=\"{$id}input\" tabindex=\"1\" type=\"text\" name=\"source_title$srcNum\" value=\"$titleString\"/>"
-			."&nbsp;<span style=\"font-size: 90%\"><a id=\"{$id}choose\" style=\"visibility:$chooseVisibility\" href=\"javascript:void(0);\" onClick=\"choose($ns,'{$id}input'); return preventDefaultAction(event);\">find/add&nbsp;&raquo;</a></span></td>"
-         ."</tr><tr>"
-			."<td align=\"right\">Record&nbsp;name</td><td colspan=10><input class=\"s_recordname\" tabindex=\"1\" type=\"text\" name=\"record_name$srcNum\" value=\"$recordName\"/></td>"
+			.'<td align="right">Source</td><td><span class="s_source">'.StructuredData::addSelectToHtml(1, "source_namespace$srcNum", self::$SOURCE_NAMESPACE_OPTIONS, $ns, 'class="s_select" onChange="changeSourceNamespace('.$srcNum.',\''.$id.'\')"', false).'</span>'
+			."<span class=\"s_label\">Title</span><input class=\"s_title$autocompleteClass\" id=\"{$id}input\" tabindex=\"1\" type=\"text\" name=\"source_title$srcNum\" value=\"$titleString\"/>"
+			."&nbsp;<span class=\"s_findadd\" style=\"font-size: 90%\"><a id=\"{$id}choose\" style=\"visibility:$chooseVisibility\" href=\"javascript:void(0);\" onClick=\"choose($ns,'{$id}input'); return preventDefaultAction(event);\">find/add&nbsp;&raquo;</a></span></td>"
+            ."</tr><tr>"
+			."<td align=\"right\">Record&nbsp;name</td><td><input class=\"s_recordname\" tabindex=\"1\" type=\"text\" name=\"record_name$srcNum\" value=\"$recordName\"/>"
+			."<span class=\"s_label\">Images&nbsp;<a title='Add an image to this citation' href=\"#imagesSection\" onClick=\"addRef('source_input',".($rowNum+2).",7,newImage());\">+</a></span><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_images$srcNum\" value=\"$images\"/>"
+			."<span class=\"s_label\">Notes&nbsp;<a title='Add a note to this citation' href=\"#notesSection\" onClick=\"addRef('source_input',".($rowNum+2).",9,newNote());\">+</a></span><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_notes$srcNum\" value=\"$notes\"/></td>"
 			."</tr><tr>"
-			."<td align=\"right\">Volume / Pages</td><td><input class=\"s_page\" tabindex=\"1\" type=\"text\" name=\"source_page$srcNum\" value=\"$page\"/></td>"
-			."<td align=\"right\">Date</td><td><input class=\"s_date\" tabindex=\"1\" type=\"text\" name=\"source_date$srcNum\" value=\"$date\"/></td>"
-			."<td align=\"right\">Quality</td><td>".StructuredData::addSelectToHtml(1, "source_quality$srcNum", self::$QUALITY_OPTIONS, $quality, 'class="s_quality"').'</td>'
-			."<td colspan=2 align=\"right\">&nbsp;Images&nbsp;<a title='Add an image to this citation' href=\"#imagesSection\" onClick=\"addRef('source_input',".($rowNum+2).",7,newImage());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_images$srcNum\" value=\"$images\"/></td>"
-			."<td align=\"right\">Notes&nbsp;<a title='Add a note to this citation' href=\"#notesSection\" onClick=\"addRef('source_input',".($rowNum+2).",9,newNote());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_notes$srcNum\" value=\"$notes\"/></td>"
+			."<td align=\"right\">Volume / Pages</td><td><input class=\"s_page\" tabindex=\"1\" type=\"text\" name=\"source_page$srcNum\" value=\"$page\"/>"
+			."<span class=\"s_widelabel\">Date</span><input class=\"s_date\" tabindex=\"1\" type=\"text\" name=\"source_date$srcNum\" value=\"$date\"/>"
+//			."<td align=\"right\">Quality</td><td>".StructuredData::addSelectToHtml(1, "source_quality$srcNum", self::$QUALITY_OPTIONS, $quality, 'class="s_quality"').'</td>'
+//			."<td colspan=2 align=\"right\">&nbsp;Images&nbsp;<a title='Add an image to this citation' href=\"#imagesSection\" onClick=\"addRef('source_input',".($rowNum+2).",7,newImage());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_images$srcNum\" value=\"$images\"/></td>"
+//			."<td align=\"right\">Notes&nbsp;<a title='Add a note to this citation' href=\"#notesSection\" onClick=\"addRef('source_input',".($rowNum+2).",9,newNote());\">+</a></td><td><input class=\"s_ref\" tabindex=\"1\" type=\"text\" name=\"source_notes$srcNum\" value=\"$notes\"/></td>"
 			."</tr><tr>"
-			."<td align=\"right\">Text /<br/>Transcription<br/>location</td><td colspan=10><textarea class=\"s_text\" tabindex=\"1\" name=\"source_text$srcNum\" rows=\"3\">$text</textarea></td>"
+			."<td align=\"right\">Text /<br/>Transcription<br/>location</td><td><textarea class=\"s_text\" tabindex=\"1\" name=\"source_text$srcNum\" rows=\"3\">$text</textarea></td>"
 			."</tr>";
 //		return '<tr>'.
 //				"<td align=\"center\">$id<input type=\"hidden\" name=\"source_id$srcNum\" value=\"$id\"/></td>".
