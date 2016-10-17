@@ -100,6 +100,12 @@ function addRef(tbl,row,col,ref) {
 	input.value+=ref;
 }
 
+function addRefToSrc(tbl,row,ix,ref) {
+	var input=document.getElementById(tbl).rows[row].cells[1].getElementsByTagName('input')[ix];
+	if (input.value.length>0) { ref = ', ' + ref; }
+	input.value+=ref;
+}
+
 function moveAutoCompletes(tbl,col,inc) {
 	for (var i=1; i<tbl.rows.length; i+=inc) {
 		$('input', tbl.rows[i].cells[col]).autocompleteMove();
@@ -204,30 +210,26 @@ function newSource() {
 	row=tbl.insertRow(rowNum+1);
 	cell=row.insertCell(0); cell.align='right'; cell.innerHTML='Source';
 	cell=row.insertCell(1);
-	cell.innerHTML='<select id="source_namespace'+srcNum+'" class="s_select" tabindex="1" name="source_namespace'+srcNum+'" onChange="changeSourceNamespace('+srcNum+',\''+srcId+'\')">'
-			+'<option value="" value="0" selected="selected">Citation only</option><option value="104">Source</option><option value="112">MySource</option></select>';
-	cell=row.insertCell(2); cell.align='right'; cell.innerHTML='Title';
-	cell=row.insertCell(3); cell.colSpan=8; cell.innerHTML='<input id="'+srcId+'input" class="s_title" tabindex="1" type="text" name="source_title'+srcNum+'" value=""/>'
-			+ '&nbsp;<span style="font-size: 90%"><a id="'+srcId+'choose" style="visibility:hidden">find/add&nbsp;&raquo;</a></span>';
-   row=tbl.insertRow(rowNum+2);
+	cell.innerHTML='<span class="s_source">'
+        +'<select id="source_namespace'+srcNum+'" class="s_select" tabindex="1" name="source_namespace'+srcNum+'" onChange="changeSourceNamespace('+srcNum+',\''+srcId+'\')">'
+        +'<option value="" value="0" selected="selected">Citation only</option><option value="104">Source</option><option value="112">MySource</option></select>'
+        +'</span>'
+        +'<span class="s_label">Title</span>'
+        +'<input id="'+srcId+'input" class="s_title" tabindex="1" type="text" name="source_title'+srcNum+'" value=""/>'
+        +'&nbsp;<span class="s_findall" style="font-size: 90%"><a id="'+srcId+'choose" style="visibility:hidden" href="javascript:void(0);" onClick="choose(0,\''+srcId+'input\'); return preventDefaultAction(event);">find/add&nbsp;&raquo;</a></span>';
+    row=tbl.insertRow(rowNum+2);
 	cell=row.insertCell(0); cell.align="right"; cell.innerHTML='Record&nbsp;name';
-	cell=row.insertCell(1); cell.colSpan=10; cell.innerHTML='<input class="s_recordname" tabindex="1" type="text" name="record_name'+srcNum+'" value=""/>';
+	cell=row.insertCell(1);
+	cell.innerHTML='<input class="s_recordname" tabindex="1" type="text" name="record_name'+srcNum+'" value=""/>'
+	    +'<span class="s_label">Images&nbsp;<a title="Add an image to this citation" href="#imagesSection" onClick="addRefToSrc(\'source_input\','+(rowNum+2)+',1,newImage());">+</a></span>'
+	    +'<input class="s_ref s_ref-images" tabindex="1" type="text" name="source_images'+srcNum+'" value=""/>'
+	    +'<span class="s_label">Notes&nbsp;<a title="Add a note to this citation" href="#notesSection" onClick="addRefToSrc(\'source_input\','+(rowNum+2)+',2,newNote());">+</a></span>'
+	    +'<input class="s_ref s_ref-notes" tabindex="1" type="text" name="source_notes'+srcNum+'" value=""/>';
 	row=tbl.insertRow(rowNum+3);
 	cell=row.insertCell(0); cell.align="right"; cell.innerHTML='Volume / Pages';
-	cell=row.insertCell(1); cell.innerHTML='<input class="s_page" tabindex="1" type="text" name="source_page'+srcNum+'" value=""/>';
-	cell=row.insertCell(2); cell.align='right'; cell.innerHTML='Date';
-	cell=row.insertCell(3); cell.innerHTML='<input class="s_date" tabindex="1" type="text" name="source_date'+srcNum+'" value=""/>';
-	cell=row.insertCell(4); cell.align='right'; cell.innerHTML='Quality';
-	cell=row.insertCell(5); cell.innerHTML='';
-	cell.innerHTML='<select id="source_quality'+srcNum+'" class="s_quality" tabindex="1" name="source_quality'+srcNum+'">'
-			+'<option value="" selected="selected">Select</option><option value="0">Unreliable</option><option value="1">Questionable</option>'
-			+'<option value="2">Secondary</option><option value="3">Primary</option></select>';
-	cell=row.insertCell(6); cell.colSpan=2; cell.align='right';
-	cell.innerHTML='&nbsp;Images&nbsp;<a title="Add an image to this citation" href="#imagesSection" onClick="addRef(\'source_input\','+(rowNum+2)+',7,newImage());">+</a>';
-	cell=row.insertCell(7); cell.innerHTML='<input class="s_ref" tabindex="1" type="text" name="source_images'+srcNum+'" value=""/>';
-	cell=row.insertCell(8); cell.align='right';
-	cell.innerHTML='Notes&nbsp;<a title="Add a note to this citation" href="#notesSection" onClick="addRef(\'source_input\','+(rowNum+2)+',9,newNote());">+</a>';
-	cell=row.insertCell(9); cell.innerHTML='<input class="s_ref" tabindex="1" type="text" name="source_notes'+srcNum+'" value=""/>';
+	cell=row.insertCell(1); cell.innerHTML='<input class="s_page" tabindex="1" type="text" name="source_page'+srcNum+'" value=""/>'
+	    +'<span class="s_widelabel">Date</span>'
+	    +'<input class="s_date" tabindex="1" type="text" name="source_date'+srcNum+'" value=""/>';
 	row=tbl.insertRow(rowNum+4);
 	cell=row.insertCell(0); cell.align='right'; cell.innerHTML='Text /<br/>Transcription<br/>location';
 	cell=row.insertCell(1); cell.colSpan=10; cell.innerHTML='<textarea class="s_text" tabindex="1" name="source_text'+srcNum+'" rows="3"></textarea>';
@@ -246,21 +248,20 @@ function removeSource(srcNum) {
 		var row=tbl.rows[i+1];
 		var copyRow=tbl.rows[i+6];
 		$(row.cells[1]).find('select').val($(copyRow.cells[1]).find('select').val());
-		$(row.cells[3]).find('input').val($(copyRow.cells[3]).find('input').val());
-      row=tbl.rows[i+2];
-      copyRow=tbl.rows[i+7];
 		$(row.cells[1]).find('input').val($(copyRow.cells[1]).find('input').val());
+        row=tbl.rows[i+2];
+        copyRow=tbl.rows[i+7];
+		$(row.cells[1]).find('input.s_recordname').val($(copyRow.cells[1]).find('input.s_recordname').val());
+		$(row.cells[1]).find('input.s_ref-images').val($(copyRow.cells[1]).find('input.s_ref-images').val());
+		$(row.cells[1]).find('input.s_ref-notes').val($(copyRow.cells[1]).find('input.s_ref-notes').val());
 		row=tbl.rows[i+3];
 		copyRow=tbl.rows[i+8];
-		$(row.cells[1]).find('input').val($(copyRow.cells[1]).find('input').val());
-		$(row.cells[3]).find('input').val($(copyRow.cells[3]).find('input').val());
-		$(row.cells[5]).find('select').val($(copyRow.cells[5]).find('select').val());
-		$(row.cells[7]).find('input').val($(copyRow.cells[7]).find('input').val());
-		$(row.cells[9]).find('input').val($(copyRow.cells[9]).find('input').val());
+		$(row.cells[1]).find('input.s_page').val($(copyRow.cells[1]).find('input.s_page').val());
+		$(row.cells[1]).find('input.s_date').val($(copyRow.cells[1]).find('input.s_date').val());
 		$(tbl.rows[i+4].cells[1]).find('textarea').val($(tbl.rows[i+9].cells[1]).find('textarea').val());
 		changeSourceNamespace(srcNum, srcId);
 	}
-  	$('input', tbl.rows[numRows-4].cells[3]).autocompleteRemove();
+  	$('input', tbl.rows[numRows-4].cells[1]).autocompleteRemove();
 	for (i=1; i <= 5; i++) {
   		tbl.deleteRow(numRows-i);
 	}
@@ -283,7 +284,7 @@ function newImage() {
 	$('input', cell).autocomplete({ defaultNs:'Image', userid:userId});
 	cell.getElementsByTagName('input')[0].focus();
 	cell=row.insertCell(3); cell.innerHTML='<span style="font-size: 90%"><a href="javascript:void(0);" onClick="choose(6,\''+imgId+'input\'); return preventDefaultAction(event);">find&nbsp;&raquo;</a>&nbsp;<br><a href="javascript:void(0);" onClick="uploadImage(\''+imgId+'input\'); return preventDefaultAction(event);">add&nbsp;&raquo;</a>&nbsp;</span>';
-	cell=row.insertCell(4); cell.innerHTML='<input tabindex="1" type="text" size=35 name="image_caption'+imgNum+'"/>';
+	cell=row.insertCell(4); cell.innerHTML='<input tabindex="1" type="text" size=30 name="image_caption'+imgNum+'"/>';
 	cell=row.insertCell(5); cell.innerHTML='<a title="Remove this image" href="javascript:void(0);" onClick="removeImage('+rowNum+'); return preventDefaultAction(event);">remove</a>';
 	return imgId;
 }
