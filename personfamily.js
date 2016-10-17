@@ -1,7 +1,7 @@
-function replaceIdInTable(tbl,col,re,newId,start,inc) {
+function replaceIdInTable(tbl,col,re,newId,start,inc,ix=0) {
 	var numRows=tbl.rows.length;
 	for(var i=start;i<numRows;i+=inc) {
-		var inp=tbl.rows[i].cells[col].getElementsByTagName('input')[0];
+		var inp=tbl.rows[i].cells[col].getElementsByTagName('input')[ix];
 		var value=inp.value.replace(re,newId);
 		if (newId.length==0) {
 			value=value.replace(/\s*,\s*$/,'');
@@ -38,7 +38,7 @@ function replaceId(oldId,newId,nameCol,efCol,srcCol) {
 	}
 	tbl=document.getElementById('source_input');
 	if (srcCol>=0 && tbl) {
-		replaceIdInTable(tbl,srcCol,re,newId,3,5);
+		replaceIdInTable(tbl,1,re,newId,2,5,srcCol);
 	}
 	replaceIdInText(oldId,newId);
 }
@@ -290,13 +290,13 @@ function newImage() {
 }
 
 function removeImage(rowNum) {
-	replaceId('I'+rowNum,'',-1,2,7);
+	replaceId('I'+rowNum,'',-1,2,1);
 	var tbl=document.getElementById('image_input');
 	var numRows=tbl.rows.length;
 	for (var i=rowNum;i<numRows-1;i++) {
 		var row=tbl.rows[i];
 		var copyRow=tbl.rows[i+1];
-		replaceId('I'+(i+1),'I'+i,-1,2,7);
+		replaceId('I'+(i+1),'I'+i,-1,2,1);
 		$(row.cells[1]).find('input')[0].checked = $(copyRow.cells[1]).find('input')[0].checked;
 		for (var j=2; j<=4; j++) {
 			$(row.cells[j]).find('input').val($(copyRow.cells[j]).find('input').val());
@@ -328,13 +328,13 @@ function newNote() {
 }
 
 function removeNote(rowNum) {
-	replaceId('N'+rowNum,'',8,3,9);
+	replaceId('N'+rowNum,'',8,3,2);
 	var tbl=document.getElementById('note_input');
 	var numRows=tbl.rows.length;
 	for (var i=rowNum;i<numRows-1;i++) {
 		var row=tbl.rows[i];
 		var copyRow=tbl.rows[i+1];
-		replaceId('N'+(i+1),'N'+i,8,3,9);
+		replaceId('N'+(i+1),'N'+i,8,3,2);
 		$(row.cells[1]).find('textarea').val($(copyRow.cells[1]).find('textarea').val());
 	}
   	tbl.deleteRow(numRows-1);
