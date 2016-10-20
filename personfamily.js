@@ -1,4 +1,5 @@
-function replaceIdInTable(tbl,col,re,newId,start,inc,ix=0) {
+function replaceIdInTable(tbl,col,re,newId,start,inc,ix) {
+    ix = ix || 0;
 	var numRows=tbl.rows.length;
 	for(var i=start;i<numRows;i+=inc) {
 		var inp=tbl.rows[i].cells[col].getElementsByTagName('input')[ix];
