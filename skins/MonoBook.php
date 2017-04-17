@@ -197,7 +197,7 @@ END;
   }
   $mainPage = ($ns == NS_MAIN && $titleString == 'Main Page');
   if ($mainPage) {
-  		$overrideTitle = '<span class="wr-maintitle">The World\'s Largest Genealogy Wiki</span>';
+  		$overrideTitle = '<span class="wr-maintitle">WeRelate.org</span>';
   }
   $menulinks = array(
         'home' => 'Main_Page',
@@ -488,17 +488,36 @@ END;
                <td id="rhsadbox">
                   <div id="rhsads" style="margin: 0 !important">
 <div style="text-align: right; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
-<a href="https://www.gengophers.com"><img height="600" width="300" src="common/images/ggad2.png"/></a>
+<div style="margin-top: 16px">
+<script src="http://genmeo.com/widget/ad_58d43916b7155.js" type="text/javascript"></script>
+<noscript>
+<iframe id="ad_58d43916b7155" name="ad_58d43916b7155" src="http://genmeo.com/widget/ad_58d43916b7155" frameborder="0" scrolling="no" width="300" height="250"></iframe>
+</noscript>
+</div>
 <!--
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+-->
+<!-- rhs-tall -->
+<!--
 <ins class="adsbygoogle"
      style="display:inline-block;width:300px;height:600px"
      data-ad-client="ca-pub-5042243421154153"
-     data-ad-slot="3583429215"></ins>
+     data-ad-slot="1056055215"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 -->
+<div style="margin-top: 16px">
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- rhs1 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:300px;height:250px"
+     data-ad-client="ca-pub-5042243421154153"
+     data-ad-slot="7381790410"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</div>
                   </div>
                </td>
             <?php } ?>
@@ -573,6 +592,17 @@ var stylepath='<?php $this->text('stylepath')?>';</script>
   ga('send', 'pageview');
 
 </script>
+<?php
+        if (!$this->loggedin) {
+?>
+<script id="_webengage_script_tag" type="text/javascript">
+var webengage; !function(w,e,b,n,g){function o(e,t){e[t[t.length-1]]=function(){r.__queue.push([t.join("."),arguments])}}var i,s,r=w[b],z=" ",l="init options track screen onReady".split(z),a="feedback survey notification".split(z),c="options render clear abort".split(z),p="Open Close Submit Complete View Click".split(z),u="identify login logout setAttribute".split(z);if(!r||!r.__v){for(w[b]=r={__queue:[],__v:"6.0",user:{}},i=0;i<l.length;i++)o(r,[l[i]]);for(i=0;i<a.length;i++){for(r[a[i]]={},s=0;s<c.length;s++)o(r[a[i]],[a[i],c[s]]);for(s=0;s<p.length;s++)o(r[a[i]],[a[i],"on"+p[s]])}for(i=0;i<u.length;i++)o(r.user,["user",u[i]]);setTimeout(function(){var f=e.createElement("script"),d=e.getElementById("_webengage_script_tag");f.type="text/javascript",f.async=!0,f.src=("https:"==e.location.protocol?"https://ssl.widgets.webengage.com":"http://cdn.widgets.webengage.com")+"/js/webengage-min-v-6.0.js",d.parentNode.insertBefore(f,d)})}}(window,document,"webengage");
+
+webengage.init("aa1323db");
+</script>
+<?php
+        }
+?>
 </body></html>
 <?php
 	wfRestoreWarnings();
