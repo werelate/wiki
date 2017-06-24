@@ -269,17 +269,15 @@ span.subpages
 }
 */
 
-#rhsads
-{
-	width: 300px;
-   overflow: hidden;
-	margin: 120px 0 0 0;
-}
 #rhsadbox {
-   width: 300px;
+   width: 316px;
    vertical-align: top;
    margin: 0;
-   padding: 0 0 0 8px;
+   padding: 0;
+}
+#rhsads {
+   width: 300px;
+   margin: 54px 8px 0 8px;
 }
 #lhsadbox {
    width: 160px;
