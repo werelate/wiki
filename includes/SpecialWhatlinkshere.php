@@ -32,7 +32,7 @@ class WhatLinksHerePage {
 
 		$this->limit = min( $this->request->getInt( 'limit', 50 ), 5000 );
 		if ( $this->limit <= 0 ) {
-			$this->limit = 50;
+			$this->limit = 500;
 		}
 		$this->from = $this->request->getText( 'from' );
 		$this->dir = $this->request->getText( 'dir', 'next' );
