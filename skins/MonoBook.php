@@ -452,7 +452,7 @@ END;
                <?php
                if ($mainPage) {
                ?><div id="awards"><?php
-                  //echo wfMsg('awards');
+                  echo wfMsg('awards');
                ?></div><?php
                }
                else if (false && $wgUser->getOption('wrnoads') < $now) { // don't show this ad

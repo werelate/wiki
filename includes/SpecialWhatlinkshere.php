@@ -30,7 +30,7 @@ class WhatLinksHerePage {
 	function execute() {
 		global $wgOut;
 
-		$this->limit = min( $this->request->getInt( 'limit', 50 ), 5000 );
+		$this->limit = min( $this->request->getInt( 'limit', 500 ), 5000 );
 		if ( $this->limit <= 0 ) {
 			$this->limit = 500;
 		}
