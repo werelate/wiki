@@ -281,7 +281,7 @@ END;
 //   jstorage.min.1.js separator.js
 ?>
    <script type="text/javascript">var addthis_config = {pubid: 'ra-4dac29732a79195f', services_exclude: 'print'};</script>
-   <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#acync=1"></script>
+   <script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js#acync=1"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="<?php $this->text('stylepath' ) ?>/common/wikibits.yui.30.js"></script>
 <!-- Head Scripts -->
 <?php $this->html('headscripts') ?>
