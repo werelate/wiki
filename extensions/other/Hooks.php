@@ -580,7 +580,7 @@ function wrAddCaptcha(&$template) {
    global $wrRecaptchaPublicKey;
 
    if ($wrRecaptchaPublicKey) {
-      $template->set('captcha', '<tr><td></td><td>'.recaptcha_get_html($wrRecaptchaPublicKey).'</td></tr>');
+      $template->set('captcha', '<tr><td></td><td>'.recaptcha_get_html($wrRecaptchaPublicKey, null, true).'</td></tr>');
    }
 }
 
