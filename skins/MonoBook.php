@@ -143,13 +143,13 @@ class MonoBookTemplate extends QuickTemplate {
             }
             $msg = str_replace(' ','&nbsp;',htmlspecialchars(wfMsg($innerText)));
             $value .= "<li id=\"menu-{$innerText}\"><a href=\"".
-               (substr($innerTarget, 0, 1) === "/" ? $innerTarget : $this->getLocalUrl($innerTarget)).
+               (substr($innerTarget, 0, 1) === "/" || substr($innerTarget, 0, 4) === "http" ? $innerTarget : $this->getLocalUrl($innerTarget)).
                "\">$msg</a></li>";
          }
          $value .= "</ul>";
       }
       else {
-         $value .= "<a href=\"".(substr($target, 0, 1) === "/" ? $target : $this->getLocalUrl($target))."\">$msg</a>";
+         $value .= "<a href=\"".(substr($target, 0, 1) === "/" || substr($target, 0, 4) === "http" ? $target : $this->getLocalUrl($target))."\">$msg</a>";
       }
       $value .= "</li>";
       return $value;
@@ -235,7 +235,7 @@ END;
             'talkpage' => ($wgUser->isLoggedIn() ? 'User_talk:' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
             'trees' => 'Special:Trees',
             'showduplicates' => ($wgUser->isLoggedIn() ? 'Special:ShowDuplicates/' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
-            '-launchfte' => '/fte'
+            '-launchfte' => 'https://www.werelate.org/fte'
         ),
         'admin' => array(
             'recentchanges' => 'Special:Recentchanges',
