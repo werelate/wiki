@@ -81,7 +81,7 @@ $wrIconCircleFilePath = $wgStyleDirectory.'/common/images/maps/balloon-48-circle
 $wrIconMaskFilePath = $wgStyleDirectory.'/common/images/maps/balloon-48-mask.png';
 
 $wgServerName = $wrHostName;
-$wgServer = 'http://'.$wgServerName;
+$wgServer = 'https://'.$wgServerName;
 $wgDisableTextSearch=true;
 $wgDefaultUserOptions['enotifwatchlistpages'] = 1;
 $wgDefaultUserOptions['watchcreations'] = 1;
