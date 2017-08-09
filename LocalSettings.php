@@ -125,7 +125,7 @@ if ($wgUseMemCached) {
 	$wgMainCacheType = CACHE_MEMCACHED;
 	$wgMessageCacheType = CACHE_MEMCACHED;
 	$wgParserCacheType = CACHE_MEMCACHED;
-	$wgMemCachedPersistent = true;
+	$wgMemCachedPersistent = false; # persistent connections seem to be dropping and causing performance problems
 }
 $wgCacheEpoch = '20030516000000';
 $wgMemCachedDebug   = false;
