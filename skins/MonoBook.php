@@ -183,7 +183,7 @@ END;
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xml:lang="<?php $this->text('lang') ?>" lang="<?php $this->text('lang') ?>" dir="<?php $this->text('dir') ?>">
   <?php
-  global $wgTitle, $wgUser, $wgUseGoogleAnalytics, $wgOut, $wgScriptPath, $wgArticle, $wgRequest;
+  global $wgTitle, $wgUser, $wgUseGoogleAnalytics, $wgOut, $wgScriptPath, $wgArticle, $wgRequest, $wrProtocol;
 
   $now = wfTimestampNow(); // WERELATE
   $sk = $wgUser->getSkin();
@@ -235,7 +235,7 @@ END;
             'talkpage' => ($wgUser->isLoggedIn() ? 'User_talk:' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
             'trees' => 'Special:Trees',
             'showduplicates' => ($wgUser->isLoggedIn() ? 'Special:ShowDuplicates/' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
-            '-launchfte' => 'https://www.werelate.org/fte'
+            '-launchfte' => $wrProtocol.'://www.werelate.org/fte'
         ),
         'admin' => array(
             'recentchanges' => 'Special:Recentchanges',

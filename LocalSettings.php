@@ -80,8 +80,9 @@ $wgEnableUserEmail = true;
 $wrIconCircleFilePath = $wgStyleDirectory.'/common/images/maps/balloon-48-circle.png';
 $wrIconMaskFilePath = $wgStyleDirectory.'/common/images/maps/balloon-48-mask.png';
 
+$wrProtocol = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') ? 'http' : 'https';
 $wgServerName = $wrHostName;
-$wgServer = 'https://'.$wgServerName;
+$wgServer = $wrProtocol.'://'.$wgServerName;
 $wgDisableTextSearch=true;
 $wgDefaultUserOptions['enotifwatchlistpages'] = 1;
 $wgDefaultUserOptions['watchcreations'] = 1;

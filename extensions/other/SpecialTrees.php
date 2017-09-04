@@ -150,9 +150,9 @@ class SpecialTrees {
    }
 
    private function emailTree() {
-   	global $wrHostName, $wgLang, $wgUser, $IP;
+   	global $wrHostName, $wrProtocol, $wgLang, $wgUser, $IP;
 
-   	$link = 'https://'.$wrHostName.'/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($this->name);
+   	$link = $wrProtocol.'://'.$wrHostName.'/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($this->name);
    	$primaryPage = $this->getPrimaryPage();
    	if ($primaryPage) {
    		$link .= '&page='.urlencode($primaryPage->getPrefixedText());
