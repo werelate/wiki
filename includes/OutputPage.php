@@ -55,6 +55,12 @@ class OutputPage {
 	}
 
 	function redirect( $url, $responsecode = '302' ) {
+	    # WR DWQ
+	    global $wrProtocol;
+	    if ( substr( $url, 0, 7 ) === "http://" && $wrProtocol = "https" ) {
+	        $url = $wrProtocol . "://" . substr( $url, 7);
+	    }
+
 		# Strip newlines as a paranoia check for header injection in PHP<5.1.2
 		$this->mRedirect = str_replace( "\n", '', $url );
 		$this->mRedirectCode = $responsecode;
