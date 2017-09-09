@@ -290,9 +290,9 @@ function wrYouTube( $input, $argv, $parser) {
 	   $width = htmlspecialchars($fields[0]);
 	   $height = htmlspecialchars($fields[1]);
 	   $id = htmlspecialchars($fields[2]);
-		return "<object width=\"$width\" height=\"$height\"><param name=\"movie\" value=\"http://www.youtube.com/v/$id&hl=en&fs=1&rel=0\"></param>".
+		return "<object width=\"$width\" height=\"$height\"><param name=\"movie\" value=\"https://www.youtube.com/v/$id&hl=en&fs=1&rel=0\"></param>".
 					"<param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param>".
-					"<embed src=\"http://www.youtube.com/v/$id&hl=en&fs=1&rel=0\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"$width\" height=\"$height\"></embed</object>";
+					"<embed src=\"https://www.youtube.com/v/$id&hl=en&fs=1&rel=0\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"$width\" height=\"$height\"></embed</object>";
 	}
 	else {
 		return '';

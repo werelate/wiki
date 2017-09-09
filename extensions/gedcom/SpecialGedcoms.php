@@ -90,7 +90,7 @@ class GedcomsPage extends QueryPage {
 		$ulink = $skin->userLink( $userid, $result->ft_user ) . $skin->userToolLinks( $userid, $result->ft_user );
 		if (($result->fg_status >= FG_STATUS_READY && $result->fg_status <= FG_STATUS_ADMIN_REVIEW) ||
           $result->fg_status == FG_STATUS_HOLD) {
-			$filename = '<a href="/gedcom/index.php?gedcomId='.$result->fg_id.'" rel="nofollow">'.htmlspecialchars($result->fg_gedcom_filename).'</a>';
+			$filename = '<a href="http://www.werelate.org/gedcom/index.php?gedcomId='.$result->fg_id.'" rel="nofollow">'.htmlspecialchars($result->fg_gedcom_filename).'</a>';
 		}
 		else {
 			$filename = htmlspecialchars($result->fg_gedcom_filename);
