@@ -22,7 +22,7 @@ $mc->set_servers($wgMemCachedServers);
 
 // connect to database
 $conn = @mysql_connect($wgDBhost,$wgDBadminuser,$wgDBadminpassword) OR die(AutoCompleter::formatError(mysql_error()));
-@mysql_select_db('wikidb', $conn) OR die(AutoCompleter::formatError(mysql_error()));
+@mysql_select_db($wgDBname, $conn) OR die(AutoCompleter::formatError(mysql_error()));
 
 // print the results
 print AutoCompleter::getResults($mc, $conn, $title, $userid, $nsDefault);

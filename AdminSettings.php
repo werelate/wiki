@@ -23,6 +23,7 @@
 $wgDBuser           = getenv('DB_USER');
 $wgDBpassword       = getenv('DB_PASSWORD');
 $wgDBhost           = getenv('DB_HOST');
+$wgDBname           = getenv('DB_NAME');
 $wrPlaceSearchHost  = getenv('SEARCH_HOST');
 $wrPlaceSearchPort  = getenv('SEARCH_PORT');
 $wgMemCachedServers = array( getenv('MEMCACHED_SERVER') );
