@@ -31,6 +31,7 @@
 
 body { font-size: xx-small; }
 
+/* WERELATE
 #p-cactions {
 	width: 76% !important;
 	z-index: 3 !important;
@@ -57,6 +58,8 @@ body { font-size: xx-small; }
 #p-cactions li a:hover {
 	padding-bottom: 0.17em;
 }
+*/
+
 #p-navigation a {
 	display: inline-block;
 	width: 100%;

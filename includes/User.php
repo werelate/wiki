@@ -187,9 +187,9 @@ class User {
 	 *
 	 * This function exists for username validation, in order to reject
 	 * usernames which are similar in form to IP addresses. Strings such
-	 * as 300.300.300.300 will return true because it looks like an IP 
+	 * as 300.300.300.300 will return true because it looks like an IP
 	 * address, despite not being strictly valid.
-	 * 
+	 *
 	 * We match \d{1,3}\.\d{1,3}\.\d{1,3}\.xxx as an anonymous IP
 	 * address because the usemod software would "cloak" anonymous IP
 	 * addresses like this, if we allowed accounts like this to be created
@@ -240,7 +240,7 @@ class User {
 			|| $parsed->getNamespace()
 			|| strcmp( $name, $parsed->getPrefixedText() ) )
 			return false;
-		
+
 		// Check an additional blacklist of troublemaker characters.
 		// Should these be merged into the title char list?
 		$unicodeBlacklist = '/[' .
@@ -254,7 +254,7 @@ class User {
 		if( preg_match( $unicodeBlacklist, $name ) ) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -524,13 +524,13 @@ class User {
 		if( !isset( $wgRateLimits[$action] ) ) {
 			return false;
 		}
-		
+
 		# Some groups shouldn't trigger the ping limiter, ever
 		foreach( $this->getGroups() as $group ) {
 			if( array_search( $group, $wgRateLimitsExcludedGroups ) !== false )
 				return false;
 		}
-		
+
 		global $wgMemc, $wgDBname, $wgRateLimitLog;
 		$fname = 'User::pingLimiter';
 		wfProfileIn( $fname );
@@ -539,6 +539,12 @@ class User {
 		$keys = array();
 		$id = $this->getId();
 		$ip = wfGetIP();
+// WERELATE: added night check
+      global $wrNightBegin, $wrNightEnd;
+		$time = substr(wfTimestamp(TS_MW), 8);
+      if( isset( $limits['night']) && $time > $wrNightBegin && $time < $wrNightEnd) {
+			$keys["$wgDBname:limiter:$action:night"] = $limits['night'];
+      }
 
 		if( isset( $limits['anon'] ) && $id == 0 ) {
 			$keys["$wgDBname:limiter:$action:anon"] = $limits['anon'];
@@ -564,7 +570,8 @@ class User {
 		foreach( $keys as $key => $limit ) {
 			list( $max, $period ) = $limit;
 			$summary = "(limit $max in {$period}s)";
-			$count = $wgMemc->get( $key );
+// WERELATE: change get to incr, and remove incr from below else clause
+			$count = $wgMemc->incr( $key );
 			if( $count ) {
 				if( $count > $max ) {
 					wfDebug( "$fname: tripped! $key at $count $summary\n" );
@@ -579,7 +586,6 @@ class User {
 				wfDebug( "$fname: adding record for $key $summary\n" );
 				$wgMemc->add( $key, 1, intval( $period ) );
 			}
-			$wgMemc->incr( $key );
 		}
 
 		wfProfileOut( $fname );
@@ -773,7 +779,7 @@ class User {
 			if( $accountAge >= $wgAutoConfirmAge ) {
 				$implicitGroups[] = 'autoconfirmed';
 			}
-			
+
 			# Implicit group for users whose email addresses are confirmed
 			global $wgEmailAuthentication;
 			if( $this->isValidEmailAddr( $this->mEmail ) ) {
@@ -864,7 +870,7 @@ class User {
 		return array(array("wiki" => $wgDBname, "link" => $utp->getLocalURL()));
 	}
 
-		
+
 	/**
 	 * Perform a user_newtalk check on current slaves; if the memcached data
 	 * is funky we don't want newtalk state to get stuck on save, as that's
@@ -1075,7 +1081,7 @@ class User {
 	function getBoolOption( $oname ) {
 		return (bool)$this->getOption( $oname );
 	}
-	
+
 	/**
 	 * Get an option as an integer value from the source string.
 	 * @param string $oname The option to check
@@ -1239,13 +1245,44 @@ class User {
 	 * @param string $action Action to be checked (see $wgAvailableRights in Defines.php for possible actions).
 	 * @return boolean True: action is allowed, False: action should not be allowed
 	 */
-	function isAllowed($action='') {
+	function isAllowed($action='', $title=null) {
 		if ( $action === '' )
 			// In the spirit of DWIM
 			return true;
 
 		$this->loadFromDatabase();
-		return in_array( $action , $this->mRights );
+		$res = in_array( $action , $this->mRights );
+// WERELATE: added
+		if (!$res && ($action == 'delete' || $action == 'undelete') && $this->isLoggedIn() && $title != null) {
+		   if (in_array($title->getNamespace(), array(NS_MYSOURCE, NS_MYSOURCE_TALK, NS_USER, NS_USER_TALK))) {
+            $res = preg_match('/^'.preg_quote($this->getName(), '/').'(\/|$)/', $title->getText());
+		   }
+		   else if (in_array($title->getNamespace(), array(NS_PERSON, NS_PERSON_TALK, NS_FAMILY, NS_FAMILY_TALK, NS_IMAGE, NS_IMAGE_TALK))) {
+        		$dbr =& wfGetDB(DB_SLAVE);
+		      if ($action == 'delete') {
+   		      $sql = 'SELECT count(*) FROM watchlist WHERE wl_namespace=' . $dbr->addQuotes($title->getNamespace()) .
+   		             ' AND wl_title=' . $dbr->addQuotes($title->getDBkey()) . ' AND wl_user<>' . $dbr->addQuotes($this->getID());
+               $rows = $dbr->query($sql);
+               if ($rows !== false) {
+         		   $row = $dbr->fetchRow($rows);
+         		   $res = ($row !== false) && $row[0] == 0;
+         		   $dbr->freeResult($rows);
+               }
+		      }
+		      else { // undelete
+   		      $sql = 'SELECT count(*) FROM logging WHERE log_namespace=' . $dbr->addQuotes($title->getNamespace()) .
+   		             ' AND log_title=' . $dbr->addQuotes($title->getDBkey()) . ' AND log_user=' . $dbr->addQuotes($this->getID()) .
+   		             ' AND log_type="delete"';
+               $rows = $dbr->query($sql);
+               if ($rows !== false) {
+         		   $row = $dbr->fetchRow($rows);
+         		   $res = ($row !== false) && $row[0] > 0;
+         		   $dbr->freeResult($rows);
+               }
+		      }
+		   }
+		}
+		return $res;
 	}
 
 	/**
@@ -1285,8 +1322,12 @@ class User {
 	 * Watch an article
 	 */
 	function addWatch( $title ) {
-		$wl = WatchedItem::fromUserTitle( $this, $title );
-		$wl->addWatch();
+// WERELATE - add wrWatchlistSummary
+      global $wrWatchlistSummary;
+
+		$wl = WatchedItem::fromUserTitle( $this, $title);
+		$wl->addWatch(@$wrWatchlistSummary);
+      $wrWatchlistSummary = null;
 		$this->invalidateCache();
 	}
 
@@ -1373,9 +1414,10 @@ class User {
 		if( $currentUser != 0 )  {
 
 			$dbw =& wfGetDB( DB_MASTER );
+			// WERELATE: set wl_notificationtimestamp to NULL instead of 0
 			$success = $dbw->update( 'watchlist',
 				array( /* SET */
-					'wl_notificationtimestamp' => 0
+					'wl_notificationtimestamp' => NULL
 				), array( /* WHERE */
 					'wl_user' => $currentUser
 				), 'UserMailer::clearAll'
@@ -1963,7 +2005,7 @@ class User {
 			array_keys( $wgGroupPermissions ),
 			array( '*', 'user', 'autoconfirmed', 'emailconfirmed' ) );
 	}
-	
+
 	/**
 	 * Get the title of a page describing a particular group
 	 *
@@ -1979,8 +2021,8 @@ class User {
 		}
 		return false;
 	}
-	
-	
+
+
 }
 
 ?>

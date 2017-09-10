@@ -53,19 +53,62 @@ function &wfGetCache( $inputType ) {
 			require_once( 'memcached-client.php' );
 
 			if (!class_exists("MemcachedClientforWiki")) {
-				class MemCachedClientforWiki extends memcached {
+				class MemCachedClientforWiki extends MWmemcached {
+// WERELATE - added functions to call prepareKey before entering memcached
+					function prepareKey($key) {
+						return str_replace(' ','_',$key);
+					}
+
+				   function add ($key, $val, $exp = 0)
+				   {
+				      return parent::add($this->prepareKey($key), $val, $exp);
+				   }
+				   function decr ($key, $amt=1)
+				   {
+				      return parent::decr($this->prepareKey($key), $amt);
+				   }
+				   function delete ($key, $time = 0)
+				   {
+				   	return parent::delete($this->prepareKey($key), $time);
+				   }
+				   function get ($key)
+				   {
+				   	return parent::get($this->prepareKey($key));
+				   }
+				   function get_multi ($keys)
+				   {
+				   	$pKeys = array();
+				      foreach ($keys as $key)
+				      {
+				      	$pKeys[] = $this->prepareKey($key);
+				      }
+				      return parent::get_multi($pKeys);
+				   }
+				   function incr ($key, $amt=1)
+				   {
+				   	return parent::incr($this->prepareKey($key), $amt);
+				   }
+				   function replace ($key, $value, $exp=0)
+				   {
+				   	return parent::replace($this->prepareKey($key), $value, $exp);
+				   }
+				   function set ($key, $value, $exp=0)
+				   {
+				   	return parent::set($this->prepareKey($key), $value, $exp);
+				   }
 					function _debugprint( $text ) {
 						wfDebug( "memcached: $text\n" );
 					}
 				}
 			}
 
-			$wgCaches[CACHE_DB] = new MemCachedClientforWiki(
+// WERELATE - changed CACHE_DB to CACHE_MEMCACHED and moved assignment outside IF
+			$wgCaches[CACHE_MEMCACHED] = new MemCachedClientforWiki(
 				array('persistant' => $wgMemCachedPersistent, 'compress_threshold' => 1500 ) );
-			$cache =& $wgCaches[CACHE_DB];
-			$cache->set_servers( $wgMemCachedServers );
-			$cache->set_debug( $wgMemCachedDebug );
+			$wgCaches[CACHE_MEMCACHED]->set_servers( $wgMemCachedServers );
+			$wgCaches[CACHE_MEMCACHED]->set_debug( $wgMemCachedDebug );
 		}
+		$cache =& $wgCaches[CACHE_MEMCACHED];
 	} elseif ( $type == CACHE_ACCEL ) {
 		if ( !array_key_exists( CACHE_ACCEL, $wgCaches ) ) {
 			if ( function_exists( 'eaccelerator_get' ) ) {

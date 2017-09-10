@@ -68,7 +68,8 @@ class Xml {
 	 * @return String: Html string containing the namespace selector
 	 */
 	function &namespaceSelector($selected = '', $allnamespaces = null, $includehidden=false) {
-		global $wgContLang;
+// WERELATE - added $wgSortedNamespaces (set in LocalSettings); hijack includeHidden (which is not used) to include NS_SPECIAL namespace for logs
+		global $wgContLang, $wgSortedNamespaces;
 		if( $selected !== '' ) {
 			if( is_null( $selected ) ) {
 				// No namespace selected; let exact match work without hitting Main
@@ -80,14 +81,28 @@ class Xml {
 		}
 		$s = "<select id='namespace' name='namespace' class='namespaceselector'>\n\t";
 		$arr = $wgContLang->getFormattedNamespaces();
+$sortedNamespaces = $wgSortedNamespaces;		
+if ($includehidden) array_push($sortedNamespaces, NS_SPECIAL);
 		if( !is_null($allnamespaces) ) {
-			$arr = array($allnamespaces => wfMsg('namespacesall')) + $arr;
+//			$arr = array($allnamespaces => wfMsg('namespacesall')) + $arr;
+array_unshift($sortedNamespaces, $allnamespaces);
 		}
-		foreach ($arr as $index => $name) {
-			if ($index < NS_MAIN) continue;
-
-			$name = $index !== 0 ? $name : wfMsg('blanknamespace');
-
+//		foreach ($arr as $index => $name) {
+foreach ($sortedNamespaces as $index) {
+//			if ($index < NS_MAIN) continue;
+//			$name = $index !== 0 ? $name : wfMsg('blanknamespace');
+if (!is_null($allnamespaces) && $index === $allnamespaces) {
+	$name = wfMsg('namespacesall');
+}
+else if ($index === 0) {
+	$name = wfMsg('blanknamespace');
+}
+else if ($index === NS_SPECIAL) {
+	$name = 'Logs';
+}
+else {
+	$name = $arr[$index];
+}
 			if ($index === $selected) {
 				$s .= self::element("option",
 						array("value" => $index, "selected" => "selected"),

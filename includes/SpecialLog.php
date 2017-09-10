@@ -61,7 +61,7 @@ class LogReader {
 	function setupQuery( $request ) {
 		$page = $this->db->tableName( 'page' );
 		$user = $this->db->tableName( 'user' );
-		$this->joinClauses = array( 
+		$this->joinClauses = array(
 			"LEFT OUTER JOIN $page ON log_namespace=page_namespace AND log_title=page_title",
 			"INNER JOIN $user ON user_id=log_user" );
 		$this->whereClauses = array();
@@ -101,11 +101,11 @@ class LogReader {
 		if ( is_null( $usertitle ) )
 			return false;
 		$this->user = $usertitle->getText();
-		
+
 		/* Fetch userid at first, if known, provides awesome query plan afterwards */
 		$userid = $this->db->selectField('user','user_id',array('user_name'=>$this->user));
 		if (!$userid)
-			/* It should be nicer to abort query at all, 
+			/* It should be nicer to abort query at all,
 			   but for now it won't pass anywhere behind the optimizer */
 			$this->whereClauses[] = "NULL";
 		else
@@ -329,6 +329,19 @@ class LogViewer {
 					'&wpNewTitle=' . urlencode( $title->getPrefixedDBkey() ) .
 					'&wpReason=' . urlencode( wfMsgForContent( 'revertmove' ) ) .
 					'&wpMovetalk=0' ) . ')';
+			}
+		}
+		// WERELATE: newuser log
+      global $wgUser;
+		if ($s->log_type == 'newuser') {
+			if (!$wgUser->isAllowed('block')) {
+				// block normal users from seeing IP addresses
+		   	$comment = '';
+			}
+			else if (isset($paramArray[0])) {
+				// add a block link
+				$specialTitle = Title::makeTitle( NS_SPECIAL, 'Blockip' );
+				$revert = '('.$this->skin->makeKnownLinkObj($specialTitle, wfMsgHtml('blocklink').' IP', 'ip='.urlencode($paramArray[0])).')';
 			}
 		}
 

@@ -96,6 +96,17 @@ class IPBlockForm {
 
 		$token = htmlspecialchars( $wgUser->editToken() );
 
+// WERELATE - add blockNotice here and in addHTML below
+      $blockNotice = '';
+      if ($this->BlockAddress) {
+     	   $dbr =& wfGetDB( DB_SLAVE );
+     	   $expiryDate = $dbr->selectField('ipblocks', 'ipb_expiry', array('ipb_address' => $this->BlockAddress));
+     	   if ($expiryDate) {
+     	      global $wgLang;
+     	      $blockNotice = wfMsg('userblocked', $wgLang->timeanddate(wfTimestamp( TS_MW, $expiryDate )));
+     	   }
+      }
+
 		$wgOut->addHTML( "
 <form id=\"blockip\" method=\"post\" action=\"{$action}\">
 	<table border='0'>
@@ -103,6 +114,7 @@ class IPBlockForm {
 			<td align=\"right\">{$mIpaddress}:</td>
 			<td align=\"left\">
 				<input tabindex='1' type='text' size='20' name=\"wpBlockAddress\" value=\"{$scBlockAddress}\" />
+				$blockNotice
 			</td>
 		</tr>
 		<tr>");
@@ -215,7 +227,8 @@ class IPBlockForm {
 			wfRunHooks('BlockIpComplete', array($ban, $wgUser));
 
 			# Make log entry
-			$log = new LogPage( 'block' );
+// WERELATE: don't add to RC
+			$log = new LogPage( 'block', false );
 			$log->addEntry( 'block', Title::makeTitle( NS_USER, $this->BlockAddress ),
 			  $this->BlockReason, $expirestr );
 

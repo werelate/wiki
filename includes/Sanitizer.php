@@ -921,7 +921,7 @@ class Sanitizer {
 	 * @return string
 	 * @public
 	 */
-	function decodeCharReferences( $text ) {
+	static function decodeCharReferences( $text ) {
 		return preg_replace_callback(
 			MW_CHAR_REFS_REGEX,
 			array( 'Sanitizer', 'decodeCharReferencesCallback' ),
@@ -932,7 +932,7 @@ class Sanitizer {
 	 * @param string $matches
 	 * @return string
 	 */
-	function decodeCharReferencesCallback( $matches ) {
+	static function decodeCharReferencesCallback( $matches ) {
 		if( $matches[1] != '' ) {
 			return Sanitizer::decodeEntity( $matches[1] );
 		} elseif( $matches[2] != '' ) {
@@ -953,7 +953,7 @@ class Sanitizer {
 	 * @return string
 	 * @private
 	 */
-	function decodeChar( $codepoint ) {
+	static function decodeChar( $codepoint ) {
 		if( Sanitizer::validateCodepoint( $codepoint ) ) {
 			return codepointToUtf8( $codepoint );
 		} else {
@@ -969,7 +969,7 @@ class Sanitizer {
 	 * @param string $name
 	 * @return string
 	 */
-	function decodeEntity( $name ) {
+	static function decodeEntity( $name ) {
 		global $wgHtmlEntities;
 		if( isset( $wgHtmlEntities[$name] ) ) {
 			return codepointToUtf8( $wgHtmlEntities[$name] );

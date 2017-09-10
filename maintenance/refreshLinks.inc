@@ -20,7 +20,8 @@ function refreshLinks( $start, $newOnly = false, $maxLag = false, $end = 0 ) {
 	$wgUser->setOption('math', MW_MATH_SOURCE);
 
 	# Don't generate extension images (e.g. Timeline)
-	$wgParser->mTagHooks = array();
+// WERELATE - commented out so that our extensions run; be careful if you run this with SpamBlacklist on (memory leak?)
+//	$wgParser->mTagHooks = array();
 
 	# Don't generate thumbnail images
 	$wgUseImageResize = false;
@@ -67,13 +68,13 @@ function refreshLinks( $start, $newOnly = false, $maxLag = false, $end = 0 ) {
 
 function fixLinksFromArticle( $id ) {
 	global $wgTitle, $wgParser;
-	
+
 	$wgTitle = Title::newFromID( $id );
 	$dbw =& wfGetDB( DB_MASTER );
 
 	$linkCache =& LinkCache::singleton();
 	$linkCache->clear();
-	
+
 	if ( is_null( $wgTitle ) ) {
 		return;
 	}

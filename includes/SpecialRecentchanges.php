@@ -538,8 +538,8 @@ function rcOptionsPanel( $defaults, $nondefaults ) {
 		
 	$links[] = wfMsgHtml( 'rcshowhideminor', $minorLink );
 	$links[] = wfMsgHtml( 'rcshowhidebots', $botLink );
-	$links[] = wfMsgHtml( 'rcshowhideanons', $anonsLink );
-	$links[] = wfMsgHtml( 'rcshowhideliu', $liuLink );
+//	$links[] = wfMsgHtml( 'rcshowhideanons', $anonsLink ); // WERELATE - removed
+//	$links[] = wfMsgHtml( 'rcshowhideliu', $liuLink );     // WERELATE - removed
 	if( $wgUseRCPatrol )
 		$links[] = wfMsgHtml( 'rcshowhidepatr', $patrLink );
 	$links[] = wfMsgHtml( 'rcshowhidemine', $myselfLink );
@@ -573,7 +573,7 @@ function rcNamespaceForm( $namespace, $invert, $nondefaults, $categories_any ) {
 	global $wgScript, $wgAllowCategorizedRecentChanges, $wgRequest;
 	$t = Title::makeTitle( NS_SPECIAL, 'Recentchanges' );
 
-	$namespaceselect = HTMLnamespaceselector($namespace, '');
+	$namespaceselect = HTMLnamespaceselector($namespace, '', true); // WERELATE - add true as third parameter
 	$submitbutton = '<input type="submit" value="' . wfMsgHtml( 'allpagessubmit' ) . "\" />\n";
 	$invertbox = "<input type='checkbox' name='invert' value='1' id='nsinvert'" . ( $invert ? ' checked="checked"' : '' ) . ' />';
 	

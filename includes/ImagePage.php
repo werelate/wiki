@@ -44,10 +44,15 @@ class ImagePage extends Article {
 				$showmeta = false;
 			}
 
-			if ($this->img->exists())
-				$wgOut->addHTML($this->showTOC($showmeta));
+// WERELATE - removed
+//			if ($this->img->exists())
+//				$wgOut->addHTML($this->showTOC($showmeta));
 
-			$this->openShowImage();
+// WERELATE - if there image_data, that will show the image
+//			$imageData = preg_match('#<image_data>(.*?)</image_data>#s', $this->getContent());
+//			if (!$imageData) {
+				$this->openShowImage();
+//			}
 
 			# No need to display noarticletext, we use our own message, output in openShowImage()
 			if( $this->getID() ) {
@@ -69,7 +74,10 @@ class ImagePage extends Article {
 				$wgOut->addHTML( '<div id="shared-image-desc">' . $this->mExtraDescription . '</div>' );
 			}
 
-			$this->closeShowImage();
+// WERELATE - if there is image data, that will show the image			
+//			if (!$imageData) {
+				$this->closeShowImage();
+//			}
 			$this->imageHistory();
 			$this->imageLinks();
 			if( $exif ) {
@@ -81,6 +89,14 @@ class ImagePage extends Article {
 				$wgOut->addHTML(
 					"<script type=\"text/javascript\" src=\"$wgStylePath/common/metadata.js\"></script>\n" .
 					"<script type=\"text/javascript\">attachMetadataToggle('mw_metadata', '$expand', '$collapse');</script>\n" );
+			}
+// WERELATE - show license
+			$text = $this->getContent();
+			$matches = array();
+			if (preg_match('#<license>(.*?)</license>#', $text, $matches)) {
+				$wgOut->addHTML('<div id="imglicense">');
+				$wgOut->addWikiText("'''".wfMsg('license').":''' {{".$matches[1].'}}');
+				$wgOut->addHTML('</div>');
 			}
 		} else {
 			Article::view();
@@ -153,7 +169,7 @@ class ImagePage extends Article {
 
 	/**
 	 * Overloading Article's getContent method.
-	 * 
+	 *
 	 * Omit noarticletext if sharedupload; text will be fetched from the
 	 * shared upload server if possible.
 	 */
@@ -164,6 +180,8 @@ class ImagePage extends Article {
 		return Article::getContent();
 	}
 
+// WERELATE - if the url, height, or width calculations change, change them in Fotonotes.php
+// WERELATE - changes to this function must be reflected in SDImage.getContentHTML
 	function openShowImage() {
 		global $wgOut, $wgUser, $wgImageLimits, $wgRequest;
 		global $wgUseImageResize, $wgGenerateThumbnailOnParse;
@@ -186,6 +204,8 @@ class ImagePage extends Article {
 		$sk = $wgUser->getSkin();
 
 		if ( $this->img->exists() ) {
+// WERELATE - add wrapper div
+         $wgOut->addHTML('<div class="imageWrapper">');
 			# image
 			$width = $this->img->getWidth();
 			$height = $this->img->getHeight();
@@ -239,6 +259,9 @@ class ImagePage extends Article {
 				$wgOut->addHTML( '<div class="fullImageLink" id="file">' . $anchoropen .
 				     "<img border=\"0\" src=\"{$url}\" width=\"{$width}\" height=\"{$height}\" alt=\"" .
 				     htmlspecialchars( $wgRequest->getVal( 'image' ) ).'" />' . $anchorclose . '</div>' );
+// WERELATE - added
+			   global $wgScriptPath;
+				$wgOut->addHTML("<script type=\"text/javascript\" src=\"$wgScriptPath/fnclientwiki.yui.1.js\"></script>");
 			} else {
 				#if direct link is allowed but it's not a renderable image, show an icon.
 				if ($this->img->isSafeFile()) {
@@ -285,6 +308,8 @@ END
 			if($this->img->fromSharedDirectory) {
 				$this->printSharedImageText();
 			}
+// WERELATE - end wrapper div
+         $wgOut->addHTML('</div>');
 		} else {
 			# Image does not exist
 
@@ -338,19 +363,22 @@ END
 			return;
 
 		$sk = $wgUser->getSkin();
-		
+
 		$wgOut->addHtml( '<br /><ul>' );
-		
+
 		# "Upload a new version of this file" link
 		if( $wgUser->isAllowed( 'reupload' ) ) {
 			$ulink = $sk->makeExternalLink( $this->getUploadUrl(), wfMsg( 'uploadnewversion-linktext' ) );
 			$wgOut->addHtml( "<li><div>{$ulink}</div></li>" );
 		}
-		
-		# External editing link
-		$elink = $sk->makeKnownLinkObj( $this->mTitle, wfMsg( 'edit-externally' ), 'action=edit&externaledit=true&mode=file' );
-		$wgOut->addHtml( '<li>' . $elink . '<div>' . wfMsgWikiHtml( 'edit-externally-help' ) . '</div></li>' );
-		
+
+// WERELATE - add editing link, removed external editing link
+		$elink = $sk->makeKnownLinkObj( $this->mTitle, 'Edit/annotate image', 'action=edit' );
+		$wgOut->addHtml("<li>$elink</li>");
+//		# External editing link
+//		$elink = $sk->makeKnownLinkObj( $this->mTitle, wfMsg( 'edit-externally' ), 'action=edit&externaledit=true&mode=file' );
+//		$wgOut->addHtml( '<li>' . $elink . '<div>' . wfMsgWikiHtml( 'edit-externally-help' ) . '</div></li>' );
+
 		$wgOut->addHtml( '</ul>' );
 	}
 
@@ -440,8 +468,9 @@ END
 
 		# Only sysops can delete images. Previously ordinary users could delete
 		# old revisions, but this is no longer the case.
-		if ( !$wgUser->isAllowed('delete') ) {
-			$wgOut->sysopRequired();
+// WERELATE: pass in title, change sysop required to permission required
+		if ( !$wgUser->isAllowed('delete', $this->mTitle) ) {
+			$wgOut->permissionRequired( 'delete' );
 			return;
 		}
 		if ( $wgUser->isBlocked() ) {
@@ -513,12 +542,18 @@ END
 				$wgOut->showFileDeleteError( $this->img->getName() );
 				return;
 			}
-			
+
 			# Image itself is now gone, and database is cleaned.
 			# Now we remove the image description page.
-	
+
 			$article = new Article( $this->mTitle );
-			$article->doDeleteArticle( $reason ); # ignore errors
+// WERELATE: added calls to ArticleDelete and ArticleDeleteComplete hooks
+			global $wgUser;			
+			if (wfRunHooks('ArticleDelete', array(&$article, &$wgUser, &$reason))) {
+				if ($article->doDeleteArticle( $reason )) {
+					wfRunHooks('ArticleDeleteComplete', array(&$article, &$wgUser, $reason));
+				}
+			}
 
 			$deleted = $this->img->getName();
 		}
@@ -629,7 +664,7 @@ END
 		$edit = new EditPage( $this );
 		return $edit->blockedIPpage();
 	}
-	
+
 	/**
 	 * Override handling of action=purge
 	 */
@@ -706,7 +741,7 @@ class ImageHistoryList {
 				$dlink = $del;
 			}
 		}
-		
+
 		$userlink = $this->skin->userLink( $user, $usertext ) . $this->skin->userToolLinks( $user, $usertext );
 		$nbytes = wfMsgExt( 'nbytes', array( 'parsemag', 'escape' ),
 			$wgLang->formatNum( $size ) );

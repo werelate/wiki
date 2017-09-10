@@ -722,10 +722,12 @@ class Language {
 		}
 	}
 
-	function getMessage( $key ) {
-		global $wgAllMessagesEn;
-		return @$wgAllMessagesEn[$key];
-	}
+
+
+   function getMessage( $key ) {
+      global $wgAllMessagesEn;
+      return @$wgAllMessagesEn[$key];
+   }
 
 	function getAllMessages() {
 		global $wgAllMessagesEn;

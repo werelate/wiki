@@ -3,9 +3,10 @@
 /* workaround for various ie float bugs */
 
 /* This bit is needed to make links clickable... WTF */
+/* WERELATE - change margin-left: 12.2em to 200px; margin-top: 3em to 150px
 #column-content #content {
-	margin-left: 12.2em;
-	margin-top: 3em;
+	margin-left: 200px;
+	margin-top: 150px;
 	height: 1%;
 }
 
@@ -21,6 +22,7 @@
 
 /* the tabs */
 
+/* WERELATE
 #p-cactions {
 	z-index: 3;
 }
@@ -48,6 +50,8 @@
 #p-cactions li a:hover {
 	padding-bottom: 0.17em;
 }
+*/
+
 #p-navigation a {
 	display: inline-block;
 	width: 100%;

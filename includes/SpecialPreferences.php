@@ -52,11 +52,13 @@ class PreferencesForm {
 		$this->mNick = $request->getVal( 'wpNick' );
 		$this->mUserLanguage = $request->getVal( 'wpUserLanguage' );
 		$this->mUserVariant = $request->getVal( 'wpUserVariant' );
-		$this->mSearch = $request->getVal( 'wpSearch' );
+// WERELATE removed
+//		$this->mSearch = $request->getVal( 'wpSearch' );
 		$this->mRecent = $request->getVal( 'wpRecent' );
 		$this->mHourDiff = $request->getVal( 'wpHourDiff' );
-		$this->mSearchLines = $request->getVal( 'wpSearchLines' );
-		$this->mSearchChars = $request->getVal( 'wpSearchChars' );
+// WERELATE removed
+//		$this->mSearchLines = $request->getVal( 'wpSearchLines' );
+//		$this->mSearchChars = $request->getVal( 'wpSearchChars' );
 		$this->mImageSize = $request->getVal( 'wpImageSize' );
 		$this->mThumbSize = $request->getInt( 'wpThumbSize' );
 		$this->mUnderline = $request->getInt( 'wpOpunderline' );
@@ -84,15 +86,16 @@ class PreferencesForm {
 
 		# Search namespace options
 		# Note: namespaces don't necessarily have consecutive keys
-		$this->mSearchNs = array();
-		if ( $this->mPosted ) {
-			$namespaces = $wgContLang->getNamespaces();
-			foreach ( $namespaces as $i => $namespace ) {
-				if ( $i >= 0 ) {
-					$this->mSearchNs[$i] = $request->getCheck( "wpNs$i" ) ? 1 : 0;
-				}
-			}
-		}
+// WERELATE removed
+//		$this->mSearchNs = array();
+//		if ( $this->mPosted ) {
+//			$namespaces = $wgContLang->getNamespaces();
+//			foreach ( $namespaces as $i => $namespace ) {
+//				if ( $i >= 0 ) {
+//					$this->mSearchNs[$i] = $request->getCheck( "wpNs$i" ) ? 1 : 0;
+//				}
+//			}
+//		}
 
 		# Validate language
 		if ( !preg_match( '/^[a-z\-]*$/', $this->mUserLanguage ) ) {
@@ -258,9 +261,10 @@ class PreferencesForm {
 			$wgUser->setOption( 'math', $this->mMath );
 		}
 		$wgUser->setOption( 'date', $this->validateDate( $this->mDate, 0, 20 ) );
-		$wgUser->setOption( 'searchlimit', $this->validateIntOrNull( $this->mSearch ) );
-		$wgUser->setOption( 'contextlines', $this->validateIntOrNull( $this->mSearchLines ) );
-		$wgUser->setOption( 'contextchars', $this->validateIntOrNull( $this->mSearchChars ) );
+// WERELATE removed
+//		$wgUser->setOption( 'searchlimit', $this->validateIntOrNull( $this->mSearch ) );
+//		$wgUser->setOption( 'contextlines', $this->validateIntOrNull( $this->mSearchLines ) );
+//		$wgUser->setOption( 'contextchars', $this->validateIntOrNull( $this->mSearchChars ) );
 		$wgUser->setOption( 'rclimit', $this->validateIntOrNull( $this->mRecent ) );
 		$wgUser->setOption( 'wllimit', $this->validateIntOrNull( $this->mWatchlistEdits, 0, 1000 ) );
 		$wgUser->setOption( 'rows', $this->validateInt( $this->mRows, 4, 1000 ) );
@@ -273,9 +277,10 @@ class PreferencesForm {
 		$wgUser->setOption( 'watchlistdays', $this->validateFloat( $this->mWatchlistDays, 0, 7 ) );
 
 		# Set search namespace options
-		foreach( $this->mSearchNs as $i => $value ) {
-			$wgUser->setOption( "searchNs{$i}", $value );
-		}
+// WERELATE removed
+//		foreach( $this->mSearchNs as $i => $value ) {
+//			$wgUser->setOption( "searchNs{$i}", $value );
+//		}
 
 		if( $wgEnableEmail && $wgEnableUserEmail ) {
 			$wgUser->setOption( 'disablemail', $this->mEmailFlag );
@@ -361,9 +366,10 @@ class PreferencesForm {
 		$this->mCols = $wgUser->getOption( 'cols' );
 		$this->mStubs = $wgUser->getOption( 'stubthreshold' );
 		$this->mHourDiff = $wgUser->getOption( 'timecorrection' );
-		$this->mSearch = $wgUser->getOption( 'searchlimit' );
-		$this->mSearchLines = $wgUser->getOption( 'contextlines' );
-		$this->mSearchChars = $wgUser->getOption( 'contextchars' );
+// WERELATE removed
+//		$this->mSearch = $wgUser->getOption( 'searchlimit' );
+//		$this->mSearchLines = $wgUser->getOption( 'contextlines' );
+//		$this->mSearchChars = $wgUser->getOption( 'contextchars' );
 		$this->mImageSize = $wgUser->getOption( 'imagesize' );
 		$this->mThumbSize = $wgUser->getOption( 'thumbsize' );
 		$this->mRecent = $wgUser->getOption( 'rclimit' );
@@ -377,12 +383,13 @@ class PreferencesForm {
 			$this->mToggles[$tname] = $wgUser->getOption( $tname );
 		}
 
-		$namespaces = $wgContLang->getNamespaces();
-		foreach ( $namespaces as $i => $namespace ) {
-			if ( $i >= NS_MAIN ) {
-				$this->mSearchNs[$i] = $wgUser->getOption( 'searchNs'.$i );
-			}
-		}
+// WERELATE removed
+//		$namespaces = $wgContLang->getNamespaces();
+//		foreach ( $namespaces as $i => $namespace ) {
+//			if ( $i >= NS_MAIN ) {
+//				$this->mSearchNs[$i] = $wgUser->getOption( 'searchNs'.$i );
+//			}
+//		}
 	}
 
 	/**
@@ -515,7 +522,8 @@ class PreferencesForm {
 			$emailauthenticated = wfMsg( 'noemailprefs' );
 		}
 
-		$ps = $this->namespacesCheckboxes();
+// WERELATE removed
+//		$ps = $this->namespacesCheckboxes();
 
 		$enotifwatchlistpages = ($wgEnotifWatchlist) ? $this->getToggle( 'enotifwatchlistpages', false, $disableEmailPrefs ) : '';
 		$enotifusertalkpages = ($wgEnotifUserTalk) ? $this->getToggle( 'enotifusertalkpages', false, $disableEmailPrefs ) : '';
@@ -649,6 +657,20 @@ class PreferencesForm {
 				);
 			}
 		}
+		// WERELATE ADDED
+      if ($wgUser->getOption('wrnoads') > '') {
+         $donateLink = '';
+         if ($wgUser->getOption('wrnoads') < wfTimestampNow()) {
+            $donateLink = ' - <a href="/wiki/WeRelate:Donate">Donate</a>';
+         }
+         $wgOut->addHTML(
+            $this->addRow(
+               '<label for="wrNoAds">' . 'Ads disabled until:' . '</label>',
+               '<span id="wrNoAds">' . $wgLang->date($wgUser->getOption('wrnoads')) . $donateLink . '</span>'
+            )
+         );
+      }
+
 		$wgOut->addHTML('</table>');
 
 		# Password
@@ -872,20 +894,21 @@ class PreferencesForm {
 		$wgOut->addHTML( '</fieldset>' );
 
 		# Search
-		$wgOut->addHTML( '<fieldset><legend>' . wfMsg( 'searchresultshead' ) . '</legend><table>' .
-			$this->addRow(
-				wfLabel( wfMsg( 'resultsperpage' ), 'wpSearch' ),
-				wfInput( 'wpSearch', 4, $this->mSearch, array( 'id' => 'wpSearch' ) )
-			) .
-			$this->addRow(
-				wfLabel( wfMsg( 'contextlines' ), 'wpSearchLines' ),
-				wfInput( 'wpSearchLines', 4, $this->mSearchLines, array( 'id' => 'wpSearchLines' ) )
-			) .
-			$this->addRow(
-				wfLabel( wfMsg( 'contextchars' ), 'wpSearchChars' ),
-				wfInput( 'wpSearchChars', 4, $this->mSearchChars, array( 'id' => 'wpSearchChars' ) )
-			) .
-		"</table><fieldset><legend>" . wfMsg( 'defaultns' ) . "</legend>$ps</fieldset></fieldset>" );
+// WERELATE removed
+//		$wgOut->addHTML( '<fieldset><legend>' . wfMsg( 'searchresultshead' ) . '</legend><table>' .
+//			$this->addRow(
+//				wfLabel( wfMsg( 'resultsperpage' ), 'wpSearch' ),
+//				wfInput( 'wpSearch', 4, $this->mSearch, array( 'id' => 'wpSearch' ) )
+//			) .
+//			$this->addRow(
+//				wfLabel( wfMsg( 'contextlines' ), 'wpSearchLines' ),
+//				wfInput( 'wpSearchLines', 4, $this->mSearchLines, array( 'id' => 'wpSearchLines' ) )
+//			) .
+//			$this->addRow(
+//				wfLabel( wfMsg( 'contextchars' ), 'wpSearchChars' ),
+//				wfInput( 'wpSearchChars', 4, $this->mSearchChars, array( 'id' => 'wpSearchChars' ) )
+//			) .
+//		"</table><fieldset><legend>" . wfMsg( 'defaultns' ) . "</legend>$ps</fieldset></fieldset>" );
 
 		# Misc
 		#

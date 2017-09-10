@@ -1683,8 +1683,18 @@ class TableDiffFormatter extends DiffFormatter
 	function _lines( $lines, $prefix=' ', $color='white' ) {
 	}
 
+// WERELATE: new addHeaderLink function
+	function addHeaderLink(&$line) {
+		$matches = array();
+		if (preg_match('/^ *([=]{1,6})(.*?)(\\1) *$/', $line, $matches)) {
+			$line = $matches[1].'<a href="#' . Sanitizer::escapeId(trim(preg_replace('/<.*?>/', '', $matches[2]))) . '">' . $matches[2] . '</a>'.$matches[1];
+		}
+	}
+	
 	# HTML-escape parameter before calling this
 	function addedLine( $line ) {
+// WERELATE: add link to header
+		$this->addHeaderLink($line);
 		return "<td>+</td><td class='diff-addedline'>{$line}</td>";
 	}
 
@@ -1694,7 +1704,9 @@ class TableDiffFormatter extends DiffFormatter
 	}
 
 	# HTML-escape parameter before calling this
-	function contextLine( $line ) {
+	function contextLine( $line, $isRight ) {
+// WERELATE: add link to header
+		$this->addHeaderLink($line);
 		return "<td> </td><td class='diff-context'>{$line}</td>";
 	}
 
@@ -1718,9 +1730,10 @@ class TableDiffFormatter extends DiffFormatter
 
 	function _context( $lines ) {
 		foreach ($lines as $line) {
+// WERELATE: distinguish left from right context			
 			echo '<tr>' .
-				$this->contextLine( htmlspecialchars ( $line ) ) .
-				$this->contextLine( htmlspecialchars ( $line ) ) . "</tr>\n";
+				$this->contextLine( htmlspecialchars ( $line ), false ) .
+				$this->contextLine( htmlspecialchars ( $line ), true ) . "</tr>\n";
 		}
 	}
 

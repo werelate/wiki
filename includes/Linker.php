@@ -355,7 +355,9 @@ class Linker {
 		} else {
 			$q = 'action=edit&'.$query;
 		}
-		$u = $nt->escapeLocalURL( $q );
+// WERELATE - changed because I don't think people generally want to be taken to edit pages for broken links		
+//		$u = $nt->escapeLocalURL( $q );
+		$u = $nt->escapeLocalURL( $query );
 
 		if ( '' == $text ) {
 			$text = htmlspecialchars( $nt->getPrefixedText() );
@@ -458,7 +460,8 @@ class Linker {
 	function makeImageLinkObj( $nt, $label, $alt, $align = '', $width = false, $height = false, $framed = false,
 	  $thumb = false, $manual_thumb = '' )
 	{
-		global $wgContLang, $wgUser, $wgThumbLimits, $wgGenerateThumbnailOnParse;
+      // WERELATE - added wgMaxDefaultImageWidth
+		global $wgContLang, $wgUser, $wgThumbLimits, $wgGenerateThumbnailOnParse, $wgMaxDefaultImageWidth;
 
 		$img   = new Image( $nt );
 		if ( !$img->allowInlineDisplay() && $img->exists() ) {
@@ -535,6 +538,11 @@ class Linker {
 		} else {
 			$width = $img->width;
 			$height = $img->height;
+         // WERELATE - set max image width; let the browser rescale (for now)
+         if ($width > $wgMaxDefaultImageWidth) {
+            $height = round($height * $wgMaxDefaultImageWidth / $width);
+            $width = $wgMaxDefaultImageWidth;
+         }
 		}
 
 		wfDebug( "makeImageLinkObj2: '$width'x'$height'\n" );
@@ -958,7 +966,7 @@ class Linker {
 	 *
 	 * @return string
 	 */
-	function commentBlock( $comment, $title = NULL ) {
+	function commentBlock( $comment, $title = NULL) {
 		// '*' used to be the comment inserted by the software way back
 		// in antiquity in case none was provided, here for backwards
 		// compatability, acc. to brion -ævar
@@ -978,7 +986,7 @@ class Linker {
 	 */
 	function revComment( $rev ) {
 		if( $rev->userCan( Revision::DELETED_COMMENT ) ) {
-			$block = $this->commentBlock( $rev->getRawComment(), $rev->getTitle() );
+			$block = $this->commentBlock( $rev->getRawComment(), $rev->getTitle());
 		} else {
 			$block = " <span class=\"comment\">" .
 				wfMsgHtml( 'rev-deleted-comment' ) . "</span>";
@@ -1016,8 +1024,9 @@ class Linker {
 
 	/** @todo document */
 	function tocList($toc) {
-		global $wgJsMimeType;
-		$title =  wfMsgForContent('toc') ;
+// WERELATE: use topics instead of toc for talk pages		
+		global $wgJsMimeType, $wgTitle;
+		$title =  wfMsgForContent($wgTitle && get_class($wgTitle) != 'FakeTitle' && $wgTitle->isTalkPage() ? 'topics' : 'toc');
 		return
 		   '<table id="toc" class="toc" summary="' . $title .'"><tr><td>'
 		 . '<div id="toctitle"><h2>' . $title . "</h2></div>\n"
@@ -1062,8 +1071,15 @@ class Linker {
 		global $wgContLang;
 
 		$editurl = '&section='.$section;
-		$hint = ( $hint=='' ) ? '' : ' title="' . wfMsgHtml( 'editsectionhint', htmlspecialchars( $hint ) ) . '"';
-		$url = $this->makeKnownLinkObj( $nt, wfMsg('editsection'), 'action=edit'.$editurl, '', '', '',  $hint );
+// WERELATE: distinguish section from topic, add hr, comment link
+		$hint = ( $hint=='' ) ? '' : ' title="' . wfMsgHtml( $nt->isTalkPage() ? 'edittopichint' : 'editsectionhint', htmlspecialchars( $hint ) ) . '"';
+		$url = $this->makeKnownLinkObj( $nt, wfMsg($nt->isTalkPage() ? 'edittopic' : 'editsection'), 'action=edit'.$editurl, '', '', '',  $hint );
+		$hr = '';
+		$cmtLink = '';
+		if ($nt->isTalkPage()) {
+			$hr = '<hr class="topic"/>';
+			$cmtLink = '['. $this->makeKnownLinkObj( $nt, wfMsg('addcomment'), 'action=edit'.$editurl.'&cmt=new', '', '', '', ' title="' . wfMsgHtml('addcommenthint') . '"' ).'] ';
+		}
 
 		if( $wgContLang->isRTL() ) {
 			$farside = 'left';
@@ -1072,7 +1088,7 @@ class Linker {
 			$farside = 'right';
 			$nearside = 'left';
 		}
-		return "<div class=\"editsection\" style=\"float:$farside;margin-$nearside:5px;\">[".$url."]</div>";
+		return "$hr<div class=\"editsection\" style=\"float:$farside;margin-$nearside:5px;\">{$cmtLink}[".$url."]</div>";
 	}
 
 	/**

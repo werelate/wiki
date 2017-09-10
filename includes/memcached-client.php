@@ -75,6 +75,7 @@ define("MEMCACHE_SERIALIZED", 1<<0);
 /**
  * Flag: indicates data is compressed
  */
+// WERELATE - may already be defined
 define("MEMCACHE_COMPRESSED", 1<<1);
 
 // }}}
@@ -93,7 +94,8 @@ define("COMPRESSION_SAVINGS", 0.20);
  * @author  Ryan T. Dean <rtdean@cytherianage.net>
  * @package memcached-client
  */
-class memcached
+// WERELATE conflicts with php 5.3 I think - rename
+class MWmemcached
 {
    // {{{ properties
    // {{{ public
@@ -235,7 +237,8 @@ class memcached
     * @return  mixed
     * @access  public
     */
-   function memcached ($args)
+   // WERELATE - changed this too
+   function MWmemcached ($args)
    {
       $this->set_servers(@$args['servers']);
       $this->_debug = @$args['debug'];

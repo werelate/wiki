@@ -1,4 +1,9 @@
 <?php
+require_once("$IP/extensions/familytree/DeleteFamilyTreeJob.php");
+require_once("$IP/extensions/familytree/WatchTreePagesJob.php");
+require_once("$IP/extensions/familytree/AddTreePagesJob.php");
+require_once("$IP/extensions/gedcom/GedcomExportJob.php");
+require_once("$IP/extensions/structuredNamespaces/Place.php");
 
 if ( !defined( 'MEDIAWIKI' ) ) {
 	die( "This file is part of MediaWiki, it is not a valid entry point\n" );
@@ -16,7 +21,7 @@ abstract class Job {
 	 * Static functions
 	 *------------------------------------------------------------------------*/
 
-	/** 
+	/**
 	 * @deprecated use LinksUpdate::queueRecursiveJobs()
 	 */
 	/**
@@ -72,7 +77,7 @@ abstract class Job {
 			$dbw->delete( 'job', array( 'job_id' => $row->job_id ), __METHOD__ );
 			$affected = $dbw->affectedRows();
 			$dbw->immediateCommit();
-			
+
 			if ( !$affected ) {
 				// Random job gone before we exclusively deleted it
 				// Give up
@@ -80,26 +85,37 @@ abstract class Job {
 				return false;
 			}
 		}
-		
+
 		// If execution got to here, there's a row in $row that has been deleted from the database
 		// by this thread. Hence the concurrent pop was successful.
 		$namespace = $row->job_namespace;
 		$dbkey = $row->job_title;
 		$title = Title::makeTitleSafe( $namespace, $dbkey );
 		$job = Job::factory( $row->job_cmd, $title, Job::extractBlob( $row->job_params ), $row->job_id );
-		
+
 		// Remove any duplicates it may have later in the queue
 		$dbw->delete( 'job', $job->insertFields(), __METHOD__ );
-		
+
 		wfProfileOut( __METHOD__ );
 		return $job;
 	}
 
-	/** 
+	/**
 	 * Create an object of a subclass
 	 */
 	static function factory( $command, $title, $params = false, $id = 0 ) {
-		switch ( $command ) {
+// WERELATE: added deleteFamilyTree, watchTreePages, gedcomExport, ...
+	   switch ( $command ) {
+		   case 'deleteFamilyTree':
+		      return new DeleteFamilyTreeJob($params, $id);
+		   case 'watchTreePages':
+		      return new WatchTreePagesJob($params, $id);
+		   case 'addTreePages':
+		      return new AddTreePagesJob($params, $id);
+		   case 'gedcomExport':
+		      return new GedcomExportJob($params, $id);
+		   case 'placeRedirect':
+		   	return new PlaceRedirectJob($params, $id);
 			case 'refreshLinks':
 				return new RefreshLinksJob( $title, $params, $id );
 			case 'htmlCacheUpdate':
@@ -148,7 +164,7 @@ abstract class Job {
 		$fields = $this->insertFields();
 
 		$dbw =& wfGetDB( DB_MASTER );
-		
+
 		if ( $this->removeDuplicates ) {
 			$res = $dbw->select( 'job', array( '1' ), $fields, __METHOD__ );
 			if ( $dbw->numRows( $res ) ) {
@@ -158,7 +174,7 @@ abstract class Job {
 		$fields['job_id'] = $dbw->nextSequenceValue( 'job_job_id_seq' );
 		$dbw->insert( 'job', $fields, __METHOD__ );
 	}
-	
+
 	protected function insertFields() {
 		return array(
 			'job_cmd' => $this->command,
@@ -167,7 +183,7 @@ abstract class Job {
 			'job_params' => Job::makeBlob( $this->params )
 		);
 	}
-	
+
 	/**
 	 * Batch-insert a group of jobs into the queue.
 	 * This will be wrapped in a transaction with a forced commit.
@@ -194,7 +210,7 @@ abstract class Job {
 	 * @return boolean success
 	 */
 	abstract function run();
-	
+
 	function toString() {
 		$paramString = '';
 		if ( $this->params ) {
@@ -237,7 +253,7 @@ class RefreshLinksJob extends Job {
 
 		$linkCache =& LinkCache::singleton();
 		$linkCache->clear();
-		
+
 		if ( is_null( $this->title ) ) {
 			$this->error = "refreshLinks: Invalid title";
 			wfProfileOut( __METHOD__ );

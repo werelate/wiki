@@ -31,16 +31,281 @@ class UploadForm {
 	var $mUploadSaveName, $mUploadTempName, $mUploadSize, $mUploadOldVersion;
 	var $mUploadCopyStatus, $mUploadSource, $mReUpload, $mAction, $mUpload;
 	var $mOname, $mSessionKey, $mStashed, $mDestFile, $mRemoveTempFile;
+// WERELATE - added vars
+   var $mDate, $mPlace, $mCopyright, $mReUploading, $mPeople, $mFamilies;
+   var $mTarget, $mId;
+   var $mWhatLinksHere = null;
 	/**#@-*/
 
-	/**
+// WERELATE - copied escapeXml, titleStringHasId, getXml, getWhatLinksHere from StructuredData
+//          - added getAttrs, getMetadata, fromRequest, toRequest functions
+	private function escapeXml($text) {
+		return str_replace(array('&', '<', '>', '"', "'"), array('&amp;', '&lt;', '&gt;', '&quot;', '&apos;'), $text);
+	}
+	
+	private function titleStringHasId($titleString) {
+		return preg_match('/\(\d+\)$/', $titleString);
+	}
+	
+
+	private function standardizeNameCase($name) {
+      $result = '';
+      $pieces = explode(' ', $name);
+      for ($i = 0; $i < count($pieces); $i++) {
+         if ($pieces[$i]) {
+            if ($result) {
+               $result .= ' ';
+            }
+
+            if ($i < count($pieces) - 1 && strcasecmp($pieces[$i], 'and') == 0) {
+               $result .= 'and';
+            }
+            else if ($pieces[$i] == mb_strtoupper($pieces[$i]) || $pieces[$i] == mb_strtolower($pieces[$i])) {  // all uppercase or all lowercase
+               $result .= mb_convert_case($pieces[$i], MB_CASE_TITLE);
+            }
+            else {
+               $result .= $pieces[$i];
+            }
+         }
+      }
+		return $result;
+	}
+	
+	private function getXml($tagName, &$text) {
+		$start = strpos($text, "<$tagName>");
+		if ($start !== false) {
+			$end = strpos($text, "</$tagName>", $start);
+			if ($end !== false) {
+				// We expect only one tag instance; ignore any extras
+				return simplexml_load_string(substr($text, $start, $end + 3 + strlen($tagName) - $start));
+			}
+		}
+		return null;
+	}
+	
+	private function getWhatLinksHere() { 
+		if (is_null($this->mWhatLinksHere) && $this->mDestFile) {
+			$title = Title::newFromText($this->mDestFile, NS_IMAGE);
+			if ($title) {
+				$this->mWhatLinksHere = array();
+				$db =& wfGetDB(DB_MASTER); // make sure this is the most current set of pages that link here
+				// get pages linking to images
+				$rows = $db->select('imagelinks', 'il_from', array('il_to' => $title->getDBkey()), 'SpecialUpload::getWhatLinksHere');
+				while ($row = $db->fetchObject($rows)) {
+					$this->mWhatLinksHere[] = $row->il_from;
+				}
+				$db->freeResult($rows);
+			}
+		}
+		return $this->mWhatLinksHere;
+	}
+	
+	private function getEventAttrs($eventName, $event) {
+		$result = '';
+		if ((string)$event['date']) {
+			$result .= " {$eventName}date=\"".$this->escapeXml((string)$event['date']).'"';
+		}
+		if ((string)$event['place']) {
+			$result .= " {$eventName}place=\"".$this->escapeXml((string)$event['place']).'"';
+		}
+		return $result;
+	}
+	
+	private function getAttrs($titleString, $ns) {
+		$result = '';
+		$t = Title::newFromText($titleString, $ns);
+		$revision = null;
+		$nt = $t;
+		while ($nt) { // follow redirects
+			$t = $nt;
+			$nt = null;
+			$revision = Revision::newFromTitle($t);
+			if ($revision) {
+				$text =& $revision->getText();
+				$nt = Title::newFromRedirect($text);
+			}
+		}
+		if ($t) {
+			$result .= ' title="'.$this->escapeXml($t->getText()).'"';
+		}
+		if ($revision) {
+			// get attributes from text
+			if ($ns == NS_PERSON) {
+				$xml = $this->getXml('person', $text);
+				if (isset($xml)) {
+					$name = $xml->name;
+					if (isset($name)) {
+						if ((string)$name['given']) {
+							$result .= ' given="'.$this->escapeXml((string)$name['given']).'"';
+						}
+						if ((string)$name['surname']) {
+							$result .= ' surname="'.$this->escapeXml((string)$name['surname']).'"';
+						}
+						if ((string)$name['title_prefix']) {
+							$result .= ' title_prefix="'.$this->escapeXml((string)$name['title_prefix']).'"';
+						}
+						if ((string)$name['title_suffix']) {
+							$result .= ' title_suffix="'.$this->escapeXml((string)$name['title_suffix']).'"';
+						}
+					}
+					if (isset($xml->event_fact)) {
+			   		foreach ($xml->event_fact as $ef) {
+			   			if ($ef['type'] == 'Birth') {
+			   				$result .= $this->getEventAttrs('birth', $ef);
+			   			}
+			   			else if ($ef['type'] == 'Death') {
+			   				$result .= $this->getEventAttrs('death', $ef);
+			   			}
+			   			else if ($ef['type'] == 'Christening' || $ef['type'] == 'Baptism') {
+			   				$result .= $this->getEventAttrs('chr', $ef);
+			   			}
+			   			else if ($ef['type'] == 'Burial') {
+			   				$result .= $this->getEventAttrs('burial', $ef);
+			   			}
+			   		}
+					}
+				}
+			}
+		}
+		return $result;
+	}
+
+   private function getMetadata() {
+      $result = "<image_data>\n".
+         ($this->mLicense ? '<license>'.$this->escapeXml($this->mLicense)."</license>\n" : '') .
+      	($this->mCopyright ? '<copyright_holder>'.$this->escapeXml($this->mCopyright)."</copyright_holder>\n" : '');
+      $result .= 
+         ($this->mDate ? '<date>'.$this->escapeXml($this->mDate)."</date>\n" : '') .
+         ($this->mPlace ? '<place>'.$this->escapeXml($this->mPlace)."</place>\n" : '');
+		foreach ($this->mPeople as $person) {
+			$attrs = $this->getAttrs($person, NS_PERSON);
+			$result .= "<person$attrs/>\n";
+		}
+		foreach ($this->mFamilies as $family) {
+			$attrs = $this->getAttrs($family, NS_FAMILY);
+			$result .= "<family$attrs/>\n";
+		}
+      $result .= "</image_data>\n";
+      return $result;
+   }
+
+	private function fromRequest($request, $name, $ns) {
+		$targetTitle = '';
+		if ($this->mTarget) {
+			$t = Title::newFromText($this->mTarget);
+			if ($t && $t->getNamespace() == $ns) {
+				$targetTitle = $t->getText();
+			}
+		}
+	   $result = array();
+	   // get titles from request, except target
+		for ($i = 0; $request->getVal("{$name}_id$i"); $i++) {
+		   $titleString = $request->getVal("$name$i");
+		   if ($titleString) {
+		      if (!$this->titleStringHasId($titleString)) {
+		         $titleString = $this->standardizeNameCase($titleString);
+		      }
+		   	$t = Title::newFromText($titleString, $ns);
+				// don't save target title; we'll update that when the target page is saved
+		   	if ($t && $t->getNamespace() == $ns && $t->getText() != $targetTitle && !in_array($t->getText(), $result)) { 
+			      $result[] = $t->getText();
+		   	}
+		   }
+		}
+		// add any titles from WLH (even target if it already links here)
+		// uses mDestFile instead of mUploadSaveName because the latter hasn't been set yet
+		// only do this if the request is a "get" with a passed-in wpDestFile
+		if( !$request->wasPosted() && $this->mDestFile) {
+			$t = Title::newFromText($this->mDestFile, NS_IMAGE);
+			$filename = ($t ? $t->getText() : '');
+			$pageids = $this->getWhatLinksHere();
+			$db =& wfGetDB(DB_MASTER); // make sure this is the most current set of pages that link here
+			foreach ($pageids as $pageid) {
+				$revision = Revision::loadFromPageId($db, $pageid);
+				if ($revision && $revision->getTitle()->getNamespace() == $ns) {
+					$text = $revision->getText();
+					$xml = $this->getXml($name, $text);
+					if (isset($xml)) {
+						foreach ($xml->image as $img) {
+							if ((string)$img['filename'] == $filename && !in_array($revision->getTitle()->getText(), $result)) {
+								$result[] = $revision->getTitle()->getText();
+							}
+						}
+					}
+				}
+			}
+		}
+	   return $result;
+	}
+
+	private function toForm($titles, $name, $ns, $visible) {
+		$targetPos = -1;
+		if ($this->mTarget) {
+			$t = Title::newFromText($this->mTarget);
+			if ($t && $t->getNamespace() == $ns &&	!in_array($t->getText(), $titles)) {
+				$targetPos = count($titles);
+				$titles[] = $t->getText();
+			}
+		}
+		if ($visible) {
+			if (count($titles) == 0) { // ensure go through loop at least once
+				$titles[] = '';
+			}
+			$result = "<table id='image_{$name}_table' cellspacing=0 cellpadding=0>";
+		}
+		else {
+			$result = '';
+		}
+		$i = 0;
+		foreach($titles as $title) {
+			$readOnly = ($visible && $targetPos == $i ? " readOnly='true'" : '');
+			$result .= ($visible ? "<tr><td>" : '') .
+				"<input type=\"hidden\" name=\"{$name}_id$i\" value=\"".($i+1)."\"/>".
+				"<input ".($visible ? "class=\"{$name}_input\" type=\"text\" size=40$readOnly" : "type=\"hidden\"")." name=\"$name$i\" value=\"" . htmlspecialchars( $title ) . "\"/>".
+				($visible ? "</td></tr>" : '') . "\n";
+			$i++;
+		}
+		if ($visible) {
+			$result .= '</table>';
+		}
+		return $result;
+	}
+
+
+	// WERELATE added
+	private function cleanFilename($filename) {
+      $unwanted_array = array(
+       'Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
+       'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U',
+       'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'ss', 'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c',
+       'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o',
+       'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y',
+       'Ğ'=>'G', 'İ'=>'I', 'Ş'=>'S', 'ğ'=>'g', 'ı'=>'i', 'ş'=>'s', 'ü'=>'u',
+       'ă'=>'a', 'Ă'=>'A', 'ș'=>'s', 'Ș'=>'S', 'ț'=>'t', 'Ț'=>'T');
+      return iconv('UTF-8', 'US-ASCII//TRANSLIT//IGNORE', strtr($filename, $unwanted_array ));
+	}
+
+   /**
 	 * Constructor : initialise object
 	 * Get data POSTed through the form and assign them to the object
 	 * @param $request Data posted.
 	 */
 	function UploadForm( &$request ) {
-		$this->mDestFile          = $request->getText( 'wpDestFile' );
+// WERELATE - clean filename so we don't error when creating thumbnails
+		$this->mDestFile          = $this->cleanFilename($request->getText( 'wpDestFile' ));
+// WERELATE - add target and id and people and families
+		$this->mTarget				  = $request->getText( 'target');
+		$this->mId					  = $request->getText( 'id');
+		$this->mPeople            = $this->fromRequest($request, 'person', NS_PERSON);
+		$this->mFamilies          = $this->fromRequest($request, 'family', NS_FAMILY);
 
+// WERELATE - added mReUploading
+		$this->mReUploading       = false;
+      if (strlen($this->mDestFile) > 0) {
+         $imageTitle = Title::newFromText($this->mDestFile, NS_IMAGE);
+         $this->mReUploading = $imageTitle && $imageTitle->exists();
+      }
+		
 		if( !$request->wasPosted() ) {
 			# GET requests just give the main form; no data except wpDestfile.
 			return;
@@ -52,10 +317,13 @@ class UploadForm {
 
 		$this->mUploadDescription = $request->getText( 'wpUploadDescription' );
 		$this->mLicense           = $request->getText( 'wpLicense' );
+// WERELATE - added fields
+		$this->mDate              = $request->getText( 'wrDate' );
+		$this->mPlace             = $request->getText( 'wrPlace' );
+		$this->mCopyright         = $request->getText( 'wrCopyright' );
 		$this->mUploadCopyStatus  = $request->getText( 'wpUploadCopyStatus' );
 		$this->mUploadSource      = $request->getText( 'wpUploadSource' );
 		$this->mWatchthis         = $request->getBool( 'wpWatchthis' );
-		wfDebug( "UploadForm: watchthis is: '$this->mWatchthis'\n" );
 
 		$this->mAction            = $request->getVal( 'action' );
 
@@ -181,7 +449,7 @@ class UploadForm {
 		 * only the final one for the whitelist.
 		 */
 		list( $partname, $ext ) = $this->splitExtensions( $basename );
-		
+
 		if( count( $ext ) ) {
 			$finalExt = $ext[count( $ext ) - 1];
 		} else {
@@ -201,7 +469,13 @@ class UploadForm {
 			return;
 		}
 
-		/**
+// WERELATE - added validation tests
+      if (!$this->mLicense && !$this->mReUploading) {
+         $this->uploadError("You must select a license (press the \"back button\" on your browser to correct this)");
+         return;
+      }
+
+      /**
 		 * Filter out illegal characters, and try to make a legible name
 		 * out of it. We'll strip some silently that Title would die on.
 		 */
@@ -298,16 +572,21 @@ class UploadForm {
 				$sk = $wgUser->getSkin();
 				$dlink = $sk->makeKnownLinkObj( $nt );
 				$warning .= '<li>'.wfMsgHtml( 'fileexists', $dlink ).'</li>';
+// WERELATE: added fileexistsnoreupload warning; assume that if user entered license, then this isn't a case of purposeful re-uploading 
+				if ($this->mLicense) {
+					$warning .= '<li>'.wfMsgHtml('fileexistsnoreupload').'</li>';
+				}
 			} else {
 				# If the file existed before and was deleted, warn the user of this
 				# Don't bother doing so if the image exists now, however
-				$image = new Image( $nt );
-				if( $image->wasDeleted() ) {
-					$skin = $wgUser->getSkin();
-					$ltitle = Title::makeTitle( NS_SPECIAL, 'Log' );
-					$llink = $skin->makeKnownLinkObj( $ltitle, wfMsgHtml( 'deletionlog' ), 'type=delete&page=' . $nt->getPrefixedUrl() );
-					$warning .= wfOpenElement( 'li' ) . wfMsgWikiHtml( 'filewasdeleted', $llink ) . wfCloseElement( 'li' );
-				}
+// WERELATE: remove
+//				$image = new Image( $nt );
+//				if( $image->wasDeleted() ) {
+//					$skin = $wgUser->getSkin();
+//					$ltitle = Title::makeTitle( NS_SPECIAL, 'Log' );
+//					$llink = $skin->makeKnownLinkObj( $ltitle, wfMsgHtml( 'deletionlog' ), 'type=delete&page=' . $nt->getPrefixedUrl() );
+//					$warning .= wfOpenElement( 'li' ) . wfMsgWikiHtml( 'filewasdeleted', $llink ) . wfCloseElement( 'li' );
+//				}
 			}
 
 			if( $warning != '' ) {
@@ -332,15 +611,24 @@ class UploadForm {
 			 * if it's a new file.
 			 */
 			$img = Image::newFromName( $this->mUploadSaveName );
+// WERELATE - changed - added getMetadata, null out license (because we capture it in metadata), redirect only if target is empty
 			$success = $img->recordUpload( $this->mUploadOldVersion,
 			                                $this->mUploadDescription,
-			                                $this->mLicense,
+			                                '',
 			                                $this->mUploadCopyStatus,
 			                                $this->mUploadSource,
-			                                $this->mWatchthis );
-
+			                                $this->mWatchthis,
+			                                $this->getMetadata(),
+			                                !$this->mTarget );
 			if ( $success ) {
-				$this->showSuccess();
+// WERELATE - if we're uploading for a P/F target, showSuccess, else just redirect
+				if ($this->mTarget) {
+					$this->showSuccess();
+				}
+				else {
+					$article = new Article( $img->getTitle() );
+					$article->doRedirect();
+				}
 				wfRunHooks( 'UploadComplete', array( &$img ) );
 			} else {
 				// Image::recordUpload() fails if the image went missing, which is
@@ -371,7 +659,7 @@ class UploadForm {
 		$archive = wfImageArchiveDir( $saveName );
 		if ( !is_dir( $dest ) ) wfMkdirParents( $dest );
 		if ( !is_dir( $archive ) ) wfMkdirParents( $archive );
-		
+
 		$this->mSavedFile = "{$dest}/{$saveName}";
 
 		if( is_file( $this->mSavedFile ) ) {
@@ -489,16 +777,29 @@ class UploadForm {
 	 */
 	function showSuccess() {
 		global $wgUser, $wgOut, $wgContLang;
-
+// WERELATE: add script if uploading for P/F target; change fileuploaded message to wiki text with title, target parms; don't return to main
+		$title = Title::makeTitleSafe( NS_IMAGE, $this->mUploadSaveName );
+		$value = htmlspecialchars($title->getText());
+		$id = htmlspecialchars($this->mId);
+		$wgOut->addScript(<<< END
+<script type='text/javascript'>/*<![CDATA[*/
+$(document).ready(function() {
+   window.opener.document.getElementById("$id").value="$value";
+});
+/*]]>*/</script>
+END
+);
 		$sk = $wgUser->getSkin();
-		$ilink = $sk->makeMediaLink( $this->mUploadSaveName, Image::imageUrl( $this->mUploadSaveName ) );
+//		$ilink = $sk->makeMediaLink( $this->mUploadSaveName, Image::imageUrl( $this->mUploadSaveName ) );
+		$ilink = $sk->makeImageLinkObj( $title, $this->mUploadSaveName, $this->mUploadSaveName);
 		$dname = $wgContLang->getNsText( NS_IMAGE ) . ':'.$this->mUploadSaveName;
 		$dlink = $sk->makeKnownLink( $dname, $dname );
 
 		$wgOut->addHTML( '<h2>' . wfMsgHtml( 'successfulupload' ) . "</h2>\n" );
-		$text = wfMsgWikiHtml( 'fileuploaded', $ilink, $dlink );
+//		$text = wfMsgWikiHtml( 'fileuploaded', $ilink, $dlink, htmlspecialchars($this->mTarget) );
+		$text = wfMsg( 'fileuploaded', $ilink, $dlink, htmlspecialchars($this->mTarget) );
 		$wgOut->addHTML( $text );
-		$wgOut->returnToMain( false );
+//		$wgOut->returnToMain( false );
 	}
 
 	/**
@@ -537,7 +838,12 @@ class UploadForm {
 		$iw = wfMsgWikiHtml( 'ignorewarning' );
 		$reup = wfMsgWikiHtml( 'reuploaddesc' );
 		$titleObj = Title::makeTitle( NS_SPECIAL, 'Upload' );
-		$action = $titleObj->escapeLocalURL( 'action=submit' );
+// WERELATE: added target and id 
+		$query = 'action=submit';
+		if ($this->mTarget) {
+			$query .= '&target=' . urlencode($this->mTarget) . '&id=' . urlencode($this->mId);
+		}
+		$action = $titleObj->escapeLocalURL( $query );
 
 		if ( $wgUseCopyrightUpload )
 		{
@@ -549,11 +855,29 @@ class UploadForm {
 			$copyright = "";
 		}
 
-		$wgOut->addHTML( "
+// WERELATE - added back-button instructions; added four fields; added id='wpUpload' to wpUpload button; removed reupload; added $people and $families; added checkboxes
+//            metadata fields and tree checkboxes are ignored in a re-upload situation
+		$people = $this->toForm($this->mPeople, 'person', NS_PERSON, false);
+		$families = $this->toForm($this->mFamilies, 'family', NS_FAMILY, false);
+//!!! remove this code dependency before sharing
+		require_once("extensions/familytree/FamilyTreeUtil.php");
+		global $wgUser, $wgRequest;
+		$allTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName());
+		$checkedTreeIds = FamilyTreeUtil::readTreeCheckboxes($allTrees, $wgRequest);
+		$treecheckboxeshtml = FamilyTreeUtil::generateHiddenTreeCheckboxes($allTrees, $checkedTreeIds);
+      $wgOut->addHTML("<p><b>Press the \"back button\" on your browser to choose a different file, or</b></p>");
+
+      $wgOut->addHTML( "
 	<form id='uploadwarning' method='post' enctype='multipart/form-data' action='$action'>
 		<input type='hidden' name='wpIgnoreWarning' value='1' />
 		<input type='hidden' name='wpSessionKey' value=\"" . htmlspecialchars( $this->mSessionKey ) . "\" />
 		<input type='hidden' name='wpUploadDescription' value=\"" . htmlspecialchars( $this->mUploadDescription ) . "\" />
+		<input type='hidden' name='wrDate' value=\"" . htmlspecialchars( $this->mDate ) . "\" />
+		<input type='hidden' name='wrPlace' value=\"" . htmlspecialchars( $this->mPlace ) . "\" />
+		$people
+		$families
+		$treecheckboxeshtml
+		<input type='hidden' name='wrCopyright' value=\"" . htmlspecialchars( $this->mCopyright ) . "\" />
 		<input type='hidden' name='wpLicense' value=\"" . htmlspecialchars( $this->mLicense ) . "\" />
 		<input type='hidden' name='wpDestFile' value=\"" . htmlspecialchars( $this->mDestFile ) . "\" />
 		<input type='hidden' name='wpWatchthis' value=\"" . htmlspecialchars( intval( $this->mWatchthis ) ) . "\" />
@@ -562,15 +886,9 @@ class UploadForm {
 		<tr>
 			<tr>
 				<td align='right'>
-					<input tabindex='2' type='submit' name='wpUpload' value=\"$save\" />
+					<input tabindex='2' type='submit' id='wpUpload' name='wpUpload' value=\"$save\" />
 				</td>
 				<td align='left'>$iw</td>
-			</tr>
-			<tr>
-				<td align='right'>
-					<input tabindex='2' type='submit' name='wpReUpload' value=\"{$reupload}\" />
-				</td>
-				<td align='left'>$reup</td>
 			</tr>
 		</tr>
 	</table></form>\n" );
@@ -611,49 +929,68 @@ class UploadForm {
 		$license = wfMsgHtml( 'license' );
 		$nolicense = wfMsgHtml( 'nolicense' );
 		$licenseshtml = $licenses->getHtml();
+// WERELATE - added licenseHelp
+		$licenseHelpUrl = $sk->makeInternalOrExternalUrl( wfMsgForContent( 'licensehelppage' ));
+		$licenseHelp = '<a target="helpwindow" href="'.$licenseHelpUrl.'">'.htmlspecialchars( wfMsg( 'licensehelp' ) ).'</a>';
+
+// WERELATE - added code to select proper license
+      if ($this->mLicense) {
+         $protectedLicense = str_replace(array(  '\\',  '$',  '^',  '.',  '[',  ']',  '|',  '(',  ')',  '?',  '*',  '+',  '{',  '}',  '-'),
+		                                   array('\\\\','\\$','\\^','\\.','\\[','\\]','\\|','\\(','\\)','\\?','\\*','\\+','\\{','\\}','\\-'), $this->mLicense);
+   	   $licenseshtml = preg_replace('$value="('.$protectedLicense.')"$','value="$1" selected="selected"', $licenseshtml);
+      }
 
 		$ulb = wfMsgHtml( 'uploadbtn' );
 
 
 		$titleObj = Title::makeTitle( NS_SPECIAL, 'Upload' );
-		$action = $titleObj->escapeLocalURL();
+// WERELATE: added target and id 
+		$query = '';
+		if ($this->mTarget) {
+			$query = 'target=' . urlencode($this->mTarget) . '&id=' . urlencode($this->mId);
+		}
+		$action = $titleObj->escapeLocalURL($query);
 
 		$encDestFile = htmlspecialchars( $this->mDestFile );
-
-		$watchChecked = $wgUser->getOption( 'watchdefault' )
+//WERELATE - added watchcreations
+		$watchChecked = $wgUser->getOption( 'watchdefault' ) || $wgUser->getOption( 'watchcreations' )
 			? 'checked="checked"'
 			: '';
-
+// WERELATE - add scripts
+      global $wgScriptPath;
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/image.1.js\"></script>");
+// WERELATE: removed tabindexes; added id to table
 		$wgOut->addHTML( "
 	<form id='upload' method='post' enctype='multipart/form-data' action=\"$action\">
-		<table border='0'>
+		<table id='image_form_table' border='0'>
 		<tr>
 			<td align='right'><label for='wpUploadFile'>{$sourcefilename}:</label></td>
 			<td align='left'>
-				<input tabindex='1' type='file' name='wpUploadFile' id='wpUploadFile' " . ($this->mDestFile?"":"onchange='fillDestFilename()' ") . "size='40' />
+				<input type='file' name='wpUploadFile' id='wpUploadFile' " . ($this->mDestFile?"":"onchange='fillDestFilename()' ") . "size='40' />
 			</td>
 		</tr>
 		<tr>
 			<td align='right'><label for='wpDestFile'>{$destfilename}:</label></td>
 			<td align='left'>
-				<input tabindex='2' type='text' name='wpDestFile' id='wpDestFile' size='40' value=\"$encDestFile\" />
+				<input type='text' name='wpDestFile' id='wpDestFile' size='40' value=\"$encDestFile\" />
 			</td>
-		</tr>
-		<tr>
-			<td align='right'><label for='wpUploadDescription'>{$summary}</label></td>
-			<td align='left'>
-				<textarea tabindex='3' name='wpUploadDescription' id='wpUploadDescription' rows='6' cols='{$cols}'{$ew}>" . htmlspecialchars( $this->mUploadDescription ) . "</textarea>
-			</td>
-		</tr>
-		<tr>" );
+		</tr>");
+// WERELATE - added check to omit fields in case of a re-upload, since they're ignored
+		$treecheckboxeshtml = '';
+		if( !$this->mReUploading ) {
+         $wgOut->addHTML( "
+		<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+		<tr><td>&nbsp;</td><td align='left'><b>License and copyright</b></td></tr>
+		<tr>");
 
-		if ( $licenseshtml != '' ) {
+         if ( $licenseshtml != '' ) {
 			global $wgStylePath;
 			$wgOut->addHTML( "
-			<td align='right'><label for='wpLicense'>$license:</label></td>
+			<td align='right'><label for='wpLicense'>$license (&nbsp;$licenseHelp&nbsp;):</label></td>
 			<td align='left'>
-				<script type='text/javascript' src=\"$wgStylePath/common/upload.js\"></script>
-				<select name='wpLicense' id='wpLicense' tabindex='4'
+				<script type='text/javascript' src=\"$wgStylePath/common/upload.2.js\"></script>
+				<select name='wpLicense' id='wpLicense' 
 					onchange='licenseSelectorCheck()'>
 					<option value=''>$nolicense</option>
 					$licenseshtml
@@ -663,33 +1000,92 @@ class UploadForm {
 			<tr>
 		");
 		}
-
+		
 		if ( $wgUseCopyrightUpload ) {
 			$filestatus = wfMsgHtml ( 'filestatus' );
 			$copystatus =  htmlspecialchars( $this->mUploadCopyStatus );
 			$filesource = wfMsgHtml ( 'filesource' );
 			$uploadsource = htmlspecialchars( $this->mUploadSource );
-			
+
 			$wgOut->addHTML( "
 			        <td align='right' nowrap='nowrap'><label for='wpUploadCopyStatus'>$filestatus:</label></td>
-			        <td><input tabindex='5' type='text' name='wpUploadCopyStatus' id='wpUploadCopyStatus' value=\"$copystatus\" size='40' /></td>
+			        <td><input type='text' name='wpUploadCopyStatus' id='wpUploadCopyStatus' value=\"$copystatus\" size='40' /></td>
 		        </tr>
 			<tr>
 		        	<td align='right'><label for='wpUploadCopyStatus'>$filesource:</label></td>
-			        <td><input tabindex='6' type='text' name='wpUploadSource' id='wpUploadCopyStatus' value=\"$uploadsource\" size='40' /></td>
+			        <td><input type='text' name='wpUploadSource' id='wpUploadCopyStatus' value=\"$uploadsource\" size='40' /></td>
 			</tr>
 			<tr>
 		");
 		}
 
-
+// WERELATE: added fields
+		$personTbl = $this->toForm($this->mPeople, 'person', NS_PERSON, true);
+		$familyTbl = $this->toForm($this->mFamilies, 'family', NS_FAMILY, true);
+		$wgOut->addHTML("
+			<td align='right'><label for='wrCopyright'>Copyright holder:</label></td>
+			<td align='left'>
+				<input type='text' name='wrCopyright' id='wrCopyright' size='30' value=\"" . htmlspecialchars($this->mCopyright) ."\" />
+			</td>
+		</tr>
+		<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+		<tr><td>&nbsp;</td><td align='left'><b>Time place and people</b></td></tr>
+		<tr>
+			<td align='right'><label for='wrDate'>Image date:</label></td>
+			<td align='left'>
+				<input type='text' name='wrDate' id='wrDate' size='15' value=\"" . htmlspecialchars($this->mDate) ."\" />
+			</td>
+		</tr>
+		<tr>
+			<td align='right'><label for='wrPlace'>Place:</label></td>
+			<td align='left'>
+				<input class='place_input' type='text' name='wrPlace' id='wrDate' size='30' value=\"" . htmlspecialchars($this->mPlace) ."\" />
+			</td>
+		</tr>
+		<tr>
+			<td align='right' valign='top'>Person page:</td>
+			<td align='left'>$personTbl</td>
+		</tr>
+		<tr>
+			<td>&nbsp;</td>
+			<td align='left'><a id='person_link' href='javascript:void(0)' onClick='addImagePage(\"person\"); return preventDefaultAction(event);'>Add another person</a></td>
+		</tr>
+		<tr>
+			<td align='right' valign='top'>Family page:</td>
+			<td align='left'>$familyTbl</td>
+		</tr>
+		<tr>
+			<td>&nbsp;</td>
+			<td align='left'><a id='family_link' href='javascript:void(0)' onClick='addImagePage(\"family\"); return preventDefaultAction(event);'>Add another family</a></td>
+		</tr>
+		");
+		
+// WERELATE - move description from above; end reUploading if statement; moved summary label
+//            add id for wpUpload; added tree checkboxes
+//!!! remove this code dependency before sharing
+		require_once("extensions/familytree/FamilyTreeUtil.php");
+		$t = null;
+		if ($this->mDestFile) {
+			$t = Title::newFromText($this->mDestFile, NS_IMAGE);
+		}
+		$treecheckboxeshtml = FamilyTreeUtil::generateTreeCheckboxes($wgUser, $t, true);
 		$wgOut->addHtml( "
+			<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+			<tr><td></td><td align='left'><b>{$summary}</b></td></tr>
+			<tr><td></td><td align='left'>
+				<textarea name='wpUploadDescription' id='wpUploadDescription' rows='6' cols='{$cols}'{$ew}>" . htmlspecialchars( $this->mUploadDescription ) . "</textarea>
+			</td>
+		</tr> ");
+		}
+		$wgOut->addHTML( "
+		<tr>
 		<td></td>
 		<td>
-			<input tabindex='7' type='checkbox' name='wpWatchthis' id='wpWatchthis' $watchChecked value='true' />
+			<input type='checkbox' name='wpWatchthis' id='wpWatchthis' $watchChecked value='true' />
 			<label for='wpWatchthis'>" . wfMsgHtml( 'watchthis' ) . "</label>
-			<input tabindex='8' type='checkbox' name='wpIgnoreWarning' id='wpIgnoreWarning' value='true' />
-			<label for='wpIgnoreWarning'>" . wfMsgHtml( 'ignorewarnings' ) . "</label>
+			<input type='checkbox' name='wpIgnoreWarning' id='wpIgnoreWarning' value='true' />
+			<label for='wpIgnoreWarning'>" . wfMsgHtml('ignorewarnings' ) . "</label>" .
+$treecheckboxeshtml . "
 		</td>
 	</tr>
 	<tr>
@@ -697,7 +1093,7 @@ class UploadForm {
 	</tr>
 	<tr>
 		<td></td>
-		<td align='left'><input tabindex='9' type='submit' name='wpUpload' value=\"{$ulb}\" /></td>
+		<td align='left'><input type='submit' id='wpUpload' name='wpUpload' value=\"{$ulb}\" /></td>
 	</tr>
 
 	<tr>

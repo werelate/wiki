@@ -43,7 +43,7 @@ if( is_array( $wgExtraNamespaces ) ) {
  *
  * @package MediaWiki
  */
-class Namespace {
+class Namespac {
 
 	/**
 	 * Check if the given namespace might be moved
@@ -58,14 +58,14 @@ class Namespace {
 	 * @return bool
 	 */
 	function isMain( $index ) {
-		return ! Namespace::isTalk( $index );
+		return ! Namespac::isTalk( $index );
 	}
 
 	/**
 	 * Check if the give namespace is a talk page
 	 * @return bool
 	 */
-	function isTalk( $index ) {
+	static function isTalk( $index ) {
 		return ($index > NS_MAIN)  // Special namespaces are negative
 			&& ($index % 2); // Talk namespaces are odd-numbered
 	}
@@ -73,8 +73,8 @@ class Namespace {
 	/**
 	 * Get the talk namespace corresponding to the given index
 	 */
-	function getTalk( $index ) {
-		if ( Namespace::isTalk( $index ) ) {
+	static function getTalk( $index ) {
+		if ( Namespac::isTalk( $index ) ) {
 			return $index;
 		} else {
 			# FIXME
@@ -83,7 +83,7 @@ class Namespace {
 	}
 
 	function getSubject( $index ) {
-		if ( Namespace::isTalk( $index ) ) {
+		if ( Namespac::isTalk( $index ) ) {
 			return $index - 1;
 		} else {
 			return $index;

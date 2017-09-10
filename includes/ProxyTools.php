@@ -43,6 +43,10 @@ function wfGetIP() {
 	# Get list of trusted proxies
 	# Flipped for quicker access
 	$trustedProxies = array_flip( array_merge( $wgSquidServers, $wgSquidServersNoPurge ) );
+	# WERELATE
+    if ( substr($ip, 0, 3) === '10.' ) { # we're behind a load balancer, which can change its IP from time to time, but always starts with 10.
+        $trustedProxies[$ip] = true;
+    }
 	if ( count( $trustedProxies ) ) {
 		# Append XFF on to $ipchain
 		$forwardedFor = wfGetForwardedFor();

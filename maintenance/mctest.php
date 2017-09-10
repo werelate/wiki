@@ -1,5 +1,5 @@
 <?php
-/* $Id$ */
+/* $Id: mctest.php 12896 2006-01-28 08:22:24Z timstarling $ */
 
 $optionsWithArgs = array( 'i' );
 

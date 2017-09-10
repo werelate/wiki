@@ -69,7 +69,8 @@ class MovePageForm {
 		if( $this->newTitle == '' ) {
 			# Show the current title as a default
 			# when the form is first opened.
-			$encNewTitle = $encOldTitle;
+// WERELATE - remove (d+) from end of person/family title
+			$encNewTitle = ($ot->getNamespace() == NS_PERSON || $ot->getNamespace() == NS_FAMILY) ? preg_replace('/\s+\(\d+\)$/', '', $encOldTitle) : $encOldTitle;
 		} else {
 			if( $err == '' ) {
 				$nt = Title::newFromURL( $this->newTitle );
@@ -87,7 +88,9 @@ class MovePageForm {
 		}
 		$encReason = htmlspecialchars( $this->reason );
 
-		if ( $err == 'articleexists' && $wgUser->isAllowed( 'delete' ) ) {
+// WERELATE: added title parm
+      $tempTitle = $this->newTitle ? Title::newFromURL($this->newTitle) : null;
+		if ( $err == 'articleexists' && $wgUser->isAllowed( 'delete', $tempTitle ) ) {
 			$wgOut->addWikiText( wfMsg( 'delete_and_move_text', $encNewTitle ) );
 			$movepagebtn = wfMsgHtml( 'delete_and_move' );
 			$confirmText = wfMsgHtml( 'delete_and_move_confirm' );
@@ -99,12 +102,14 @@ class MovePageForm {
 					</td>
 					<td align='left'><label for='wpConfirm'>{$confirmText}</label></td>
 				</tr>";
+         $cancel = "&nbsp; <a href=\"{$ot->getLocalURL()}\">Cancel</a>";
 			$err = '';
 		} else {
 			$wgOut->addWikiText( wfMsg( 'movepagetext' ) );
 			$movepagebtn = wfMsgHtml( 'movepagebtn' );
 			$submitVar = 'wpMove';
 			$confirm = false;
+         $cancel = '';
 		}
 
 		$oldTalk = $ot->getTalkPage();
@@ -160,12 +165,14 @@ class MovePageForm {
 			<td><label for=\"wpMovetalk\">{$movetalk}</label></td>
 		</tr>" );
 		}
+		// WERELATE - added id='wpMove' and cancel
 		$wgOut->addHTML( "
 		{$confirm}
 		<tr>
 			<td>&nbsp;</td>
 			<td align='left'>
-				<input type='submit' name=\"{$submitVar}\" value=\"{$movepagebtn}\" />
+				<input type='submit' id='wpMove' name=\"{$submitVar}\" value=\"{$movepagebtn}\" />
+   			$cancel
 			</td>
 		</tr>
 	</table>
@@ -187,11 +194,18 @@ class MovePageForm {
 
 		# Variables beginning with 'o' for old article 'n' for new article
 
+// WERELATE - default ns on new title to ns on old title
 		$ot = Title::newFromText( $this->oldTitle );
-		$nt = Title::newFromText( $this->newTitle );
+		$nt = Title::newFromText( $this->newTitle, $ot->getNamespace() );
+
+// WERELATE - added: PERSON and FAMILY pages must have a unique id
+		if ($nt && ($nt->getNamespace() == NS_PERSON || $nt->getNamespace() == NS_FAMILY) && !StructuredData::titleStringHasId($nt->getText())) {
+			$nt = StructuredData::appendUniqueId($nt);
+		}
 
 		# Delete to make way if requested
-		if ( $wgUser->isAllowed( 'delete' ) && $this->deleteAndMove ) {
+// WERELATE: added title parm and $nt condition
+		if ($nt && $wgUser->isAllowed( 'delete', $nt ) && $this->deleteAndMove ) {
 			$article = new Article( $nt );
 			// This may output an error message and exit
 			$article->doDelete( wfMsgForContent( 'delete_and_move_reason' ) );
@@ -216,7 +230,7 @@ class MovePageForm {
 		if( $ott->exists() ) {
 			if( $wgRequest->getVal( 'wpMovetalk' ) == 1 && !$ot->isTalkPage() && !$nt->isTalkPage() ) {
 				$ntt = $nt->getTalkPage();
-	
+
 				# Attempt the move
 				$error = $ott->moveTo( $ntt, true, $this->reason );
 				if ( $error === true ) {
@@ -245,7 +259,7 @@ class MovePageForm {
 
 	function showSuccess() {
 		global $wgOut, $wgRequest, $wgRawHtml;
-		
+
 		$wgOut->setPagetitle( wfMsg( 'movepage' ) );
 		$wgOut->setSubtitle( wfMsg( 'pagemovedsub' ) );
 
@@ -254,7 +268,7 @@ class MovePageForm {
 		$talkmoved = $wgRequest->getVal('talkmoved');
 
 		$text = wfMsg( 'pagemovedtext', $oldText, $newText );
-		
+
 		$allowHTML = $wgRawHtml;
 		$wgRawHtml = false;
 		$wgOut->addWikiText( $text );
@@ -271,13 +285,13 @@ class MovePageForm {
 			}
 		}
 	}
-	
+
 	function showLogFragment( $title, &$out ) {
 		$out->addHtml( wfElement( 'h2', NULL, LogPage::logName( 'move' ) ) );
 		$request = new FauxRequest( array( 'page' => $title->getPrefixedText(), 'type' => 'move' ) );
 		$viewer = new LogViewer( new LogReader( $request ) );
 		$viewer->showList( $out );
 	}
-	
+
 }
 ?>

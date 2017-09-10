@@ -141,8 +141,7 @@ class ChangesList {
 		$logname = LogPage::logName( $logtype );
 		$s .= '(' . $this->skin->makeKnownLinkObj($title, $logname ) . ')';
 	}
-
-
+	
 	function insertDiffHist(&$s, &$rc, $unpatrolled) {
 		# Diff link
 		if( $rc->mAttribs['rc_type'] == RC_NEW || $rc->mAttribs['rc_type'] == RC_LOG ) {
@@ -245,6 +244,11 @@ class OldChangesList extends ChangesList {
 		// moved pages
 		if( $rc_type == RC_MOVE || $rc_type == RC_MOVE_OVER_REDIRECT ) {
 			$this->insertMove( $s, $rc );
+		// WERELATE - add ReviewMerge entries
+		} elseif( $rc_namespace == NS_SPECIAL && strpos($rc_title, 'ReviewMerge/') === 0) {
+			$s .= '(' . $this->skin->makeKnownLinkObj($rc->getTitle(), 'review', $unpatrolled ? wfArrayToCGI(array('rcid' => $rc_id)) : array()) . ')';
+			$s .= ' . . ' . $this->recentChangesFlags(false, $rc_minor, $unpatrolled, '', $rc_bot );
+			$this->insertArticleLink($s, $rc, $unpatrolled, $watched);
 		// log entries
 		} elseif( $rc_namespace == NS_SPECIAL && preg_match( '!^Log/(.*)$!', $rc_title, $matches ) ) {
 			$this->insertLog($s, $rc->getTitle(), $matches[1]);

@@ -47,7 +47,7 @@ function js_unescape($source, $iconv_to = 'UTF-8') {
    if ($iconv_to != "UTF-8") {
        $decodedStr = iconv("UTF-8", $iconv_to, $decodedStr);
    }
-  
+
    return $decodedStr;
 }
 
@@ -70,18 +70,29 @@ function code2utf($num){
    return '';
 }
 
+// WERELATE - added setting and writing contentType
+
 class AjaxCachePolicy {
 	var $policy;
+	var $contentType;
 
 	function AjaxCachePolicy( $policy = null ) {
 		$this->policy = $policy;
+		$this->contentType = 'text/xml';
 	}
 
 	function setPolicy( $policy ) {
 		$this->policy = $policy;
 	}
 
+	// WERELATE
+	function setContentType($contentType) {
+	   $this->contentType = $contentType;
+	}
+
 	function writeHeader() {
+		// WERELATE
+		header( "Content-Type: {$this->contentType}; charset=utf-8", true );
 		header ("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
 		if ( is_null( $this->policy ) ) {
 			// Bust cache in the head
@@ -95,15 +106,15 @@ class AjaxCachePolicy {
 		}
 	}
 }
-			
+
 
 function wfSajaxSearch( $term ) {
 	global $wgContLang, $wgAjaxCachePolicy, $wgOut;
 	$limit = 16;
-	
+
 	$l = new Linker;
 
-	$term = str_replace( ' ', '_', $wgContLang->ucfirst( 
+	$term = str_replace( ' ', '_', $wgContLang->ucfirst(
 			$wgContLang->checkTitleEncoding( $wgContLang->recodeInput( js_unescape( $term ) ) )
 		) );
 
@@ -140,7 +151,7 @@ function wfSajaxSearch( $term ) {
 	$subtitle = $wgOut->parse( wfMsg( $subtitlemsg, wfEscapeWikiText($term) ) );
 
 	$term = htmlspecialchars( $term );
-	return '<div style="float:right; border:solid 1px black;background:gainsboro;padding:2px;"><a onclick="Searching_Hide_Results();">' 
+	return '<div style="float:right; border:solid 1px black;background:gainsboro;padding:2px;"><a onclick="Searching_Hide_Results();">'
 		. wfMsg( 'hideresults' ) . '</a></div>'
 		. '<h1 class="firstHeading">'.wfMsg('search')
 		. '</h1><div id="contentSub">'. $subtitle . '</div><ul><li>'

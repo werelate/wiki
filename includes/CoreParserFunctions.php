@@ -13,7 +13,7 @@ class CoreParserFunctions {
 			$found = true;
 		} else {
 			$param = str_replace( ' ', '_', strtolower( $part1 ) );
-			$index = Namespace::getCanonicalIndex( strtolower( $param ) );
+			$index = Namespac::getCanonicalIndex( strtolower( $param ) );
 			if ( !is_null( $index ) ) {
 				$text = $wgContLang->getNsText( $index );
 				$found = true;

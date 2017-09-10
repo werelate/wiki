@@ -200,7 +200,7 @@ class RecentChange
 		$oldId, $lastTimestamp, $bot = "default", $ip = '', $oldSize = 0, $newSize = 0,
 		$newId = 0)
 	{
-		if ( $bot == 'default' ) {
+		if ($bot === 'default') {
 			$bot = $user->isBot();
 		}
 
@@ -341,7 +341,7 @@ class RecentChange
 	# A log entry is different to an edit in that previous revisions are
 	# not kept
 	/*static*/ function notifyLog( $timestamp, &$title, &$user, $comment, $ip='',
-	   $type, $action, $target, $logComment, $params )
+	   $type, $action, $target, $logComment, $params, $minor = 0, $patrolled = 1) // WERELATE - added minor, patrolled
 	{
 		if ( !$ip ) {
 			$ip = wfGetIP();
@@ -357,7 +357,7 @@ class RecentChange
 			'rc_namespace'	=> $title->getNamespace(),
 			'rc_title'	=> $title->getDBkey(),
 			'rc_type'	=> RC_LOG,
-			'rc_minor'	=> 0,
+			'rc_minor'	=> $minor ? 1 : 0,
 			'rc_cur_id'	=> $title->getArticleID(),
 			'rc_user'	=> $user->getID(),
 			'rc_user_text'	=> $user->getName(),
@@ -368,7 +368,7 @@ class RecentChange
 			'rc_moved_to_ns'	=> 0,
 			'rc_moved_to_title'	=> '',
 			'rc_ip'	=> $ip,
-			'rc_patrolled' => 1,
+			'rc_patrolled' => $patrolled ? 1 : 0,
 			'rc_new'	=> 0 # obsolete
 		);
 		$rc->mExtra =  array(
@@ -452,7 +452,7 @@ class RecentChange
 
 		$titleObj =& $this->getTitle();
 		if ( $rc_type == RC_LOG ) {
-			$title = Namespace::getCanonicalName( $titleObj->getNamespace() ) . $titleObj->getText();
+			$title = Namespac::getCanonicalName( $titleObj->getNamespace() ) . $titleObj->getText();
 		} else {
 			$title = $titleObj->getPrefixedText();
 		}

@@ -911,14 +911,14 @@ END;
 			$now = $this->dbw->timestamp();
 			$add[] = array(
 				'wl_user'      =>                        $row->wl_user,
-				'wl_namespace' => Namespace::getSubject( $row->wl_namespace ),
+				'wl_namespace' => Namespac::getSubject( $row->wl_namespace ),
 				'wl_title'     =>           $this->conv( $row->wl_title ),
 				'wl_notificationtimestamp' =>            '0' );
 			$this->addChunk( $add );
 
 			$add[] = array(
 				'wl_user'      =>                        $row->wl_user,
-				'wl_namespace' =>    Namespace::getTalk( $row->wl_namespace ),
+				'wl_namespace' =>    Namespac::getTalk( $row->wl_namespace ),
 				'wl_title'     =>           $this->conv( $row->wl_title ),
 				'wl_notificationtimestamp' =>            '0' );
 			$this->addChunk( $add );

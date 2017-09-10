@@ -80,6 +80,18 @@ class MailAddress {
 function userMailer( $to, $from, $subject, $body, $replyto=false ) {
 	global $wgUser, $wgSMTP, $wgOutputEncoding, $wgErrorString;
 
+	// WERELATE - if mail from WeRelate system, set to WeRelate donotreply@werelate.org; otherwise set to {name} werelate-user@werelate.org
+	// this is done because Amazon SES requires validating all sender emails, and we don't want to do that for each user
+	// TODO: this needs to be parameterized so other websites can enter their own from addresses
+   if (substr($from->address, -13) === '@werelate.org' && ($from->name === 'WeRelateAdmin' || !$from->name)) {
+      $replyto = '';
+      $from = new MailAddress('donotreply@werelate.org', 'WeRelate');
+   }
+   else {
+      $replyto = $from->toString();
+      $from = new MailAddress('werelate-user@werelate.org', $from->name);
+   }
+
 	if (is_array( $wgSMTP )) {
 		require_once( 'Mail.php' );
 
@@ -90,6 +102,9 @@ function userMailer( $to, $from, $subject, $body, $replyto=false ) {
 		$headers['To'] = $to->toString();
 		if ( $replyto ) {
 			$headers['Reply-To'] = $replyto;
+		}
+		else {
+			$headers['Reply-To'] = $from->toString();
 		}
 		$headers['Subject'] = wfQuotedPrintable( $subject );
 		$headers['Date'] = date( 'r' );
@@ -122,9 +137,12 @@ function userMailer( $to, $from, $subject, $body, $replyto=false ) {
 			"Content-type: text/plain; charset={$wgOutputEncoding}\n" .
 			"Content-Transfer-Encoding: 8bit\n" .
 			"X-Mailer: MediaWiki mailer\n".
-			'From: ' . $from->toString() . "\n";
+			"From: {$from->toString()}\n";
 		if ($replyto) {
 			$headers .= "Reply-To: $replyto\n";
+		}
+		else {
+			$headers .= 'Reply-To: ' . $from->toString() . "\n";
 		}
 
 		$dest = $to->toString();
@@ -208,6 +226,8 @@ class EmailNotification {
 		$isUserTalkPage = ($title->getNamespace() == NS_USER_TALK);
 		$enotifusertalkpage = ($isUserTalkPage && $wgEnotifUserTalk);
 		$enotifwatchlistpage = $wgEnotifWatchlist;
+// WERELATE: yesterday
+		$yesterday = wfTimestamp(TS_MW, time() - 24 * 60 * 60);
 
 		if ( (!$minorEdit || $wgEnotifMinorEdits) ) {
 			if( $wgEnotifWatchlist ) {
@@ -233,12 +253,13 @@ class EmailNotification {
 				$dbr =& wfGetDB( DB_MASTER );
 				extract( $dbr->tableNames( 'watchlist' ) );
 
+// WERELATE: add wl_notificationtimestamp < yesterday so we re-notify people
 				$res = $dbr->select( 'watchlist', array( 'wl_user' ),
 					array(
 						'wl_title' => $title->getDBkey(),
 						'wl_namespace' => $title->getNamespace(),
 						$userCondition,
-						'wl_notificationtimestamp IS NULL',
+						'(wl_notificationtimestamp IS NULL OR wl_notificationtimestamp < '.$dbr->addQuotes($dbr->timestamp($yesterday)).')',
 					), $fname );
 
 				# if anyone is watching ... set up the email message text which is
@@ -258,8 +279,10 @@ class EmailNotification {
 
 						$wuser = $dbr->fetchObject( $res );
 						$watchingUser->setID($wuser->wl_user);
-						if ( ( $enotifwatchlistpage && $watchingUser->getOption('enotifwatchlistpages') ) ||
-							( $enotifusertalkpage && $watchingUser->getOption('enotifusertalkpages') )
+// WERELATE: fixed bug: (1st or 2nd line), 3rd, and 4th lines must be true
+// WERELATE: fixed bug: notify user talk page only if this is watchers talk page
+						if ( ( ( $enotifwatchlistpage && $watchingUser->getOption('enotifwatchlistpages') ) ||
+								 ( $enotifusertalkpage && $watchingUser->getOption('enotifusertalkpages') && $title->getText() == $watchingUser->getName() ) )
 						&& (!$minorEdit || ($wgEnotifMinorEdits && $watchingUser->getOption('enotifminoredits') ) )
 						&& ($watchingUser->isEmailConfirmed() ) ) {
 							# ... adjust remaining text and page edit time placeholders
@@ -276,12 +299,16 @@ class EmailNotification {
 			# mark the changed watch-listed page with a timestamp, so that the page is
 			# listed with an "updated since your last visit" icon in the watch list, ...
 			$dbw =& wfGetDB( DB_MASTER );
+// WERELATE: added wl_user <> wgUser -- never put a page I edit on my own watchlist
+// WERELATE: add wl_notificationtimestamp IS NULL or < yesterday so we can tell how long it's been since you were notified
 			$success = $dbw->update( 'watchlist',
 				array( /* SET */
 					'wl_notificationtimestamp' => $dbw->timestamp($timestamp)
 				), array( /* WHERE */
 					'wl_title' => $title->getDBkey(),
 					'wl_namespace' => $title->getNamespace(),
+				   'wl_user <> ' . intval( $wgUser->getId() ),
+					'(wl_notificationtimestamp IS NULL OR wl_notificationtimestamp < '.$dbw->addQuotes($dbw->timestamp($yesterday)).')',
 				), 'UserMailer::NotifyOnChange'
 			);
 			# FIXME what do we do on failure ?
@@ -328,6 +355,8 @@ class EmailNotification {
 		$pagetitle = $this->title->getPrefixedText();
 		$keys['$PAGETITLE']          = $pagetitle;
 		$keys['$PAGETITLE_URL']      = $this->title->getFullUrl();
+		// WERELATE: add unwatch key
+		$keys['$UNWATCH_URL']        = $this->title->getFullUrl('action=unwatch');
 
 		$keys['$PAGEMINOREDIT']      = $medit;
 		$keys['$PAGESUMMARY']        = $summary;
@@ -338,7 +367,8 @@ class EmailNotification {
 		# the user has not opted-out and the option is enabled at the
 		# global configuration level.
 		$name    = $wgUser->getName();
-		$adminAddress = new MailAddress( $wgEmergencyContact, 'WikiAdmin' );
+		// WERELATE: changed WikiAdmin to WeRelateAdmin
+		$adminAddress = new MailAddress( $wgEmergencyContact, 'WeRelateAdmin' );
 		$editorAddress = new MailAddress( $wgUser );
 		if( $wgEnotifRevealEditorAddress
 		    && ( $wgUser->getEmail() != '' )
@@ -365,7 +395,8 @@ class EmailNotification {
 			$emailPage = Title::makeTitle( NS_SPECIAL, 'Emailuser/' . $name );
 			$keys['$PAGEEDITOR_EMAIL'] = $emailPage->getFullUrl();
 		}
-		$userPage = $wgUser->getUserPage();
+		// WERELATE - change user to talk page
+		$userPage = $wgUser->getTalkPage();
 		$keys['$PAGEEDITOR_WIKI'] = $userPage->getFullUrl();
 		$body = strtr( $body, $keys );
 		$body = wordwrap( $body, 72 );

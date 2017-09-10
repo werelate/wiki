@@ -1,0 +1,60 @@
+/*	CSS for customized radio buttons and check boxes */
+
+/*	wrapper divs */
+.confirm, .delete { position: relative; display: inline-block }
+
+/* input, label positioning */
+.confirm input,
+.delete input {
+	position: absolute;
+	left: 2px;
+	top: 3px;
+	margin: 0;
+	z-index: 0;
+}
+
+.confirm label,
+.delete label {
+	display: block;
+	position: relative;
+	z-index: 1;
+	font-size: 1em;
+	line-height: 1em;
+	padding: 4px 0 4px 20px;
+	margin: 0;
+	cursor: pointer;
+}
+
+
+/* states */
+.confirm label { background: url(images/checkbox.png) no-repeat; }
+
+.delete label { background: url(images/uncheckbox.png) no-repeat; }
+
+.confirm label, .delete label {
+	background-position: -10px -17px;
+}
+
+.confirm label.hover,
+.confirm label.focus,
+.delete label.hover,
+.delete label.focus {
+	background-position: -10px -117px;
+}
+
+.confirm label.checked,
+.delete label.checked {
+	background-position: -10px -217px;
+}
+
+.confirm label.checkedHover,
+.confirm label.checkedFocus,
+.delete label.checkedHover,
+.delete label.checkedFocus {
+	background-position: -10px -317px;
+}
+
+.confirm label.focus,
+.delete label.focus {
+	outline: 1px dotted #ddd;
+}

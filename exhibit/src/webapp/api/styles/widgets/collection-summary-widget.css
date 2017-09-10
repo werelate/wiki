@@ -1,0 +1,12 @@
+/*==================================================
+ * Collection Summary Widget styles
+ *==================================================
+ */
+div.exhibit-collectionSummaryWidget {
+}
+span.exhibit-collectionSummaryWidget-count {
+    font-weight:      bold;
+}
+span.exhibit-collectionSummaryWidget-results {
+	padding-left: 1em;
+}

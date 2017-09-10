@@ -90,7 +90,7 @@ class Image
 		$this->dataLoaded = false;
 	}
 
-	
+
 	/**
 	 * Normalize a file extension to the common form, and ensure it's clean.
 	 * Extensions with non-alphanumeric characters will be discarded.
@@ -113,7 +113,7 @@ class Image
 			return '';
 		}
 	}
-	
+
 	/**
 	 * Get the memcached keys
 	 * Returns an array, first element is the local cache key, second is the shared cache key, if there is one
@@ -470,7 +470,7 @@ class Image
 		}
 		wfProfileOut( __METHOD__ );
 	}
-	
+
 	/**
 	 * Split an internet media type into its two components; if not
 	 * a two-part name, set the minor type to 'unknown'.
@@ -784,7 +784,8 @@ class Image
 	 * @todo document
 	 * @private
 	 */
-	function thumbUrl( $width, $subdir='thumb') {
+	function thumbUrl( $width, $subdir='thumb', $makeMapIcon=false) {
+	// WERELATE: makeMapIcon
 		global $wgUploadPath, $wgUploadBaseUrl, $wgSharedUploadPath;
 		global $wgSharedThumbnailScriptPath, $wgThumbnailScriptPath;
 
@@ -807,7 +808,8 @@ class Image
 				$url.= '&r=1';
 			}
 		} else {
-			$name = $this->thumbName( $width );
+			// WERELATE: makeMapIcon
+			$name = $this->thumbName( $width, $makeMapIcon );
 			if($this->fromSharedDirectory) {
 				$base = '';
 				$path = $wgSharedUploadPath;
@@ -834,11 +836,13 @@ class Image
 	 * @param boolean $shared	Does the thumbnail come from the shared repository?
 	 * @private
 	 */
-	function thumbName( $width ) {
+	function thumbName( $width, $makeMapIcon=false ) {
+		// WERELATE: makeMapIcon
 		$thumb = $width."px-".$this->name;
 
-		if( $this->mustRender() ) {
-			if( $this->canRender() ) {
+		// WERELATE: makeMapIcon
+		if( $this->mustRender() && !$makeMapIcon) {
+			if( $this->canRender()) {
 				# Rasterize to PNG (for SVG vector images, etc)
 				$thumb .= '.png';
 			}
@@ -847,6 +851,10 @@ class Image
 				#or should we fail with an internal error?
 				return NULL; //can't make bitmap
 			}
+		}
+		// WERELATE: makeMapIcon
+		if ($makeMapIcon) {
+			$thumb .= '-mapicon.gif';
 		}
 		return $thumb;
 	}
@@ -867,8 +875,9 @@ class Image
 	 * @param integer $height	maximum height of the image (optional)
 	 * @public
 	 */
-	function createThumb( $width, $height=-1 ) {
-		$thumb = $this->getThumbnail( $width, $height );
+	function createThumb( $width, $height=-1, $makeMapIcon=false ) {
+		// WERELATE: makeMapIcon
+		$thumb = $this->getThumbnail( $width, $height, true, $makeMapIcon );
 		if( is_null( $thumb ) ) return '';
 		return $thumb->getUrl();
 	}
@@ -888,7 +897,8 @@ class Image
 	 * @return ThumbnailImage or null on failure
 	 * @public
 	 */
-	function getThumbnail( $width, $height=-1, $render = true ) {
+	function getThumbnail( $width, $height=-1, $render = true, $makeMapIcon = false ) {
+		// WERELATE: makeMapIcon
 		wfProfileIn( __METHOD__ );
 		if ($this->canRender()) {
 			if ( $height > 0 ) {
@@ -898,14 +908,16 @@ class Image
 				}
 			}
 			if ( $render ) {
-				$thumb = $this->renderThumb( $width );
+				// WERELATE: makeMapIcon
+				$thumb = $this->renderThumb( $width, true, $makeMapIcon );
 			} else {
 				// Don't render, just return the URL
 				if ( $this->validateThumbParams( $width, $height ) ) {
 					if ( !$this->mustRender() && $width == $this->width && $height == $this->height ) {
 						$url = $this->getURL();
 					} else {
-						list( $isScriptUrl, $url ) = $this->thumbUrl( $width );
+						// WERELATE: makeMapIcon
+						list( $isScriptUrl, $url ) = $this->thumbUrl( $width, 'thumb', $makeMapIcon );
 					}
 					$thumb = new ThumbnailImage( $url, $width, $height );
 				} else {
@@ -942,11 +954,11 @@ class Image
 	 *
 	 * @param integer &$width Specified width (input/output)
 	 * @param integer &$height Height (output only)
-	 * @return false to indicate that an error should be returned to the user. 
+	 * @return false to indicate that an error should be returned to the user.
 	 */
 	function validateThumbParams( &$width, &$height ) {
 		global $wgSVGMaxSize, $wgMaxImageArea;
-		
+
 		$this->load();
 
 		if ( ! $this->exists() )
@@ -954,9 +966,9 @@ class Image
 			# If there is no image, there will be no thumbnail
 			return false;
 		}
-		
+
 		$width = intval( $width );
-		
+
 		# Sanity check $width
 		if( $width <= 0 || $this->width <= 0) {
 			# BZZZT
@@ -985,7 +997,7 @@ class Image
 		$height = round( $this->height * $width / $this->width );
 		return true;
 	}
-	
+
 	/**
 	 * Create a thumbnail of the image having the specified width.
 	 * The thumbnail will not be created if the width is larger than the
@@ -998,7 +1010,8 @@ class Image
 	 * @return ThumbnailImage or null on failure
 	 * @private
 	 */
-	function renderThumb( $width, $useScript = true ) {
+	function renderThumb( $width, $useScript = true, $makeMapIcon = false ) {
+		// WERELATE: makeMapIcon
 		global $wgUseSquid, $wgThumbnailEpoch;
 
 		wfProfileIn( __METHOD__ );
@@ -1011,14 +1024,16 @@ class Image
 			return null;
 		}
 
-		if ( !$this->mustRender() && $width == $this->width && $height == $this->height ) {
+		// WERELATE: makeMapIcon
+		if ( !$this->mustRender() && $width == $this->width && $height == $this->height && !$makeMapIcon) {
 			# validateThumbParams (or the user) wants us to return the unscaled image
 			$thumb = new ThumbnailImage( $this->getURL(), $width, $height );
 			wfProfileOut( __METHOD__ );
 			return $thumb;
 		}
-		
-		list( $isScriptUrl, $url ) = $this->thumbUrl( $width );
+
+		// WERELATE: makeMapIcon
+		list( $isScriptUrl, $url ) = $this->thumbUrl( $width, 'thumb', $makeMapIcon );
 		if ( $isScriptUrl && $useScript ) {
 			// Use thumb.php to render the image
 			$thumb = new ThumbnailImage( $url, $width, $height );
@@ -1026,7 +1041,8 @@ class Image
 			return $thumb;
 		}
 
-		$thumbName = $this->thumbName( $width, $this->fromSharedDirectory );
+		// WERELATE: makeMapIcon
+		$thumbName = $this->thumbName( $width, $makeMapIcon );
 		$thumbDir = wfImageThumbDir( $this->name, $this->fromSharedDirectory );
 		$thumbPath = $thumbDir.'/'.$thumbName;
 
@@ -1048,7 +1064,7 @@ class Image
 
 		$done = true;
 		if ( !file_exists( $thumbPath ) ||
-			filemtime( $thumbPath ) < wfTimestamp( TS_UNIX, $wgThumbnailEpoch ) ) 
+			filemtime( $thumbPath ) < wfTimestamp( TS_UNIX, $wgThumbnailEpoch ) )
 		{
 			// Create the directory if it doesn't exist
 			if ( is_file( $thumbDir ) ) {
@@ -1056,7 +1072,7 @@ class Image
 				@unlink( $thumbDir );
 			}
 			wfMkdirParents( $thumbDir );
-			
+
 			$oldThumbPath = wfDeprecatedThumbDir( $thumbName, 'thumb', $this->fromSharedDirectory ).
 				'/'.$thumbName;
 			$done = false;
@@ -1081,7 +1097,8 @@ class Image
 				}
 			}
 			if ( !$done ) {
-				$this->lastError = $this->reallyRenderThumb( $thumbPath, $width, $height );
+				// WERELATE: makeMapIcon
+				$this->lastError = $this->reallyRenderThumb( $thumbPath, $width, $height, $makeMapIcon );
 				if ( $this->lastError === true ) {
 					$done = true;
 				} elseif( $GLOBALS['wgIgnoreImageErrors'] ) {
@@ -1119,7 +1136,8 @@ class Image
 	 * @return bool True on error, false or error string on failure.
 	 * @private
 	 */
-	function reallyRenderThumb( $thumbPath, $width, $height ) {
+	function reallyRenderThumb( $thumbPath, $width, $height, $makeMapIcon=false ) {
+		// WERELATE: makeMapIcon
 		global $wgSVGConverters, $wgSVGConverter;
 		global $wgUseImageMagick, $wgImageMagickConvertCommand;
 		global $wgCustomConvertCommand;
@@ -1129,8 +1147,9 @@ class Image
 		$err = false;
 		$cmd = "";
 		$retval = 0;
-		
-		if( $this->mime === "image/svg" ) {
+
+		// WERELATE: makeMapIcon
+		if( $this->mime === "image/svg" && !$makeMapIcon) {
 			#Right now we have only SVG
 
 			global $wgSVGConverters, $wgSVGConverter;
@@ -1151,33 +1170,43 @@ class Image
 			}
 		} elseif ( $wgUseImageMagick ) {
 			# use ImageMagick
-			
-			if ( $this->mime == 'image/jpeg' ) {
-				$quality = "-quality 80"; // 80%
-			} elseif ( $this->mime == 'image/png' ) {
-				$quality = "-quality 95"; // zlib 9, adaptive filtering
-			} else {
-				$quality = ''; // default
+			// WERELATE: makeMapIcon
+			if ($makeMapIcon) {
+				global $wrIconCircleFilePath, $wrIconMaskFilePath;
+				$cmd = wfEscapeShellArg($wgImageMagickConvertCommand) . ' ' .
+					wfEscapeShellArg($wrIconCircleFilePath) .
+					' \( ' . wfEscapeShellArg($wrIconMaskFilePath) . 
+						' \( ' . wfEscapeShellArg($this->imagePath) . " -resize $width \) -compose src-atop -composite \) -compose dst-over -composite " .
+					wfEscapeShellArg($thumbPath) . ' 2>&1';
 			}
-
-			# Specify white background color, will be used for transparent images
-			# in Internet Explorer/Windows instead of default black.
-
-			# Note, we specify "-size {$width}" and NOT "-size {$width}x{$height}".
-			# It seems that ImageMagick has a bug wherein it produces thumbnails of
-			# the wrong size in the second case.
-			
-			$cmd  =  wfEscapeShellArg($wgImageMagickConvertCommand) .
-				" {$quality} -background white -size {$width} ".
-				wfEscapeShellArg($this->imagePath) .
-				// Coalesce is needed to scale animated GIFs properly (bug 1017).
-				' -coalesce ' .
-				// For the -resize option a "!" is needed to force exact size,
-				// or ImageMagick may decide your ratio is wrong and slice off
-				// a pixel.
-				" -resize " . wfEscapeShellArg( "{$width}x{$height}!" ) .
-				" -depth 8 " .
-				wfEscapeShellArg($thumbPath) . " 2>&1";
+			else {
+				if ( $this->mime == 'image/jpeg' ) {
+					$quality = "-quality 80"; // 80%
+				} elseif ( $this->mime == 'image/png' ) {
+					$quality = "-quality 95"; // zlib 9, adaptive filtering
+				} else {
+					$quality = ''; // default
+				}
+	
+				# Specify white background color, will be used for transparent images
+				# in Internet Explorer/Windows instead of default black.
+	
+				# Note, we specify "-size {$width}" and NOT "-size {$width}x{$height}".
+				# It seems that ImageMagick has a bug wherein it produces thumbnails of
+				# the wrong size in the second case.
+	
+				$cmd  =  wfEscapeShellArg($wgImageMagickConvertCommand) .
+					" {$quality} -background white -size {$width} ".
+					wfEscapeShellArg($this->imagePath) .
+					// Coalesce is needed to scale animated GIFs properly (bug 1017).
+					' -coalesce ' .
+					// For the -resize option a "!" is needed to force exact size,
+					// or ImageMagick may decide your ratio is wrong and slice off
+					// a pixel.
+					" -resize " . wfEscapeShellArg( "{$width}x{$height}!" ) .
+					" -depth 8 " .
+					wfEscapeShellArg($thumbPath) . " 2>&1";
+			}
 			wfDebug("reallyRenderThumb: running ImageMagick: $cmd\n");
 			wfProfileIn( 'convert' );
 			$err = wfShellExec( $cmd, $retval );
@@ -1324,7 +1353,8 @@ class Image
 		$urls = array();
 		foreach ( $files as $file ) {
 			if ( preg_match( '/^(\d+)px/', $file, $m ) ) {
-				$urls[] = $this->thumbUrl( $m[1], $this->fromSharedDirectory );
+				$isMapIcon = preg_match('/-mapicon.gif$/', $file);
+				$urls[] = $this->thumbUrl( $m[1], $this->fromSharedDirectory, $isMapIcon );
 				@unlink( "$dir/$file" );
 			}
 		}
@@ -1338,7 +1368,7 @@ class Image
 			wfPurgeSquidServers( $urls );
 		}
 	}
-	
+
 	/**
 	 * Purge the image description page, but don't go after
 	 * pages using the image. Use when modifying file history
@@ -1349,7 +1379,7 @@ class Image
 		$page->invalidateCache();
 		$page->purgeSquid();
 	}
-	
+
 	/**
 	 * Purge metadata and all affected pages when the image is created,
 	 * deleted, or majorly updated. A set of additional URLs may be
@@ -1360,7 +1390,7 @@ class Image
 		// Delete thumbnails and refresh image metadata cache
 		$this->purgeCache();
 		$this->purgeDescription();
-		
+
 		// Purge cache of all pages using this image
 		$update = new HTMLCacheUpdate( $this->getTitle(), 'imagelinks' );
 		$update->doUpdate();
@@ -1377,9 +1407,9 @@ class Image
 		}
 
 		# new fields must exist
-		# 
-		# Not really, there's hundreds of checks like this that we could do and they're all pointless, because 
-		# if the fields are missing, the database will loudly report a query error, the first time you try to do 
+		#
+		# Not really, there's hundreds of checks like this that we could do and they're all pointless, because
+		# if the fields are missing, the database will loudly report a query error, the first time you try to do
 		# something. The only reason I put the above schema check in was because the absence of that particular
 		# index would lead to an annoying subtle bug. No error message, just some very odd behaviour on duplicate
 		# uploads. -- TS
@@ -1497,8 +1527,9 @@ class Image
 	/**
 	 * Record an image upload in the upload log and the image table
 	 */
-	function recordUpload( $oldver, $desc, $license = '', $copyStatus = '', $source = '', $watch = false ) {
-		global $wgUser, $wgUseCopyrightUpload;
+	function recordUpload( $oldver, $desc, $license = '', $copyStatus = '', $source = '', $watch = false , $metadata = '', $redir = true) {
+// WERELATE - added $metadata paramter, redir parameter
+	   global $wgUser, $wgUseCopyrightUpload;
 
 		$dbw =& wfGetDB( DB_MASTER );
 
@@ -1517,17 +1548,20 @@ class Image
 			if ( $license != '' ) {
 				$licensetxt = '== ' . wfMsgForContent( 'license' ) . " ==\n" . '{{' . $license . '}}' . "\n";
 			}
-			$textdesc = '== ' . wfMsg ( 'filedesc' ) . " ==\n" . $desc . "\n" .
+// WERELATE - added $metadata paramter
+			$textdesc = $metadata . '== ' . wfMsg ( 'filedesc' ) . " ==\n" . $desc . "\n" .
 			  '== ' . wfMsgForContent ( 'filestatus' ) . " ==\n" . $copyStatus . "\n" .
 			  "$licensetxt" .
 			  '== ' . wfMsgForContent ( 'filesource' ) . " ==\n" . $source ;
 		} else {
 			if ( $license != '' ) {
 				$filedesc = $desc == '' ? '' : '== ' . wfMsg ( 'filedesc' ) . " ==\n" . $desc . "\n";
-				 $textdesc = $filedesc .
+// WERELATE - added $metadata paramter
+				 $textdesc = $metadata . $filedesc .
 					 '== ' . wfMsgForContent ( 'license' ) . " ==\n" . '{{' . $license . '}}' . "\n";
 			} else {
-				$textdesc = $desc;
+// WERELATE - added $metadata paramter
+				$textdesc = $metadata . $desc;
 			}
 		}
 
@@ -1626,7 +1660,8 @@ class Image
 			$descTitle->purgeSquid();
 		} else {
 			// New image; create the description page.
-			$article->insertNewArticle( $textdesc, $desc, $minor, $watch, $suppressRC );
+// WERELATE: pass in redir parameter
+			$article->insertNewArticle( $textdesc, $desc, $minor, $watch, $suppressRC, false, $redir );
 		}
 
 		# Add the log entry
@@ -1680,7 +1715,7 @@ class Image
 		wfProfileOut( __METHOD__ );
 		return $retVal;
 	}
-	
+
 	/**
 	 * Retrive Exif data from the file and prune unrecognized tags
 	 * and/or tags with invalid contents
@@ -1690,7 +1725,7 @@ class Image
 	 */
 	private function retrieveExifData( $filename ) {
 		global $wgShowEXIF;
-		
+
 		/*
 		if ( $this->getMimeType() !== "image/jpeg" )
 			return array();
@@ -1700,7 +1735,7 @@ class Image
 			$exif = new Exif( $filename );
 			return $exif->getFilteredData();
 		}
-		
+
 		return array();
 	}
 
@@ -1760,7 +1795,7 @@ class Image
 	function isLocal() {
 		return !$this->fromSharedDirectory;
 	}
-	
+
 	/**
 	 * Was this image ever deleted from the wiki?
 	 *
@@ -1770,7 +1805,7 @@ class Image
 		$title = Title::makeTitle( NS_IMAGE, $this->name );
 		return ( $title->isDeleted() > 0 );
 	}
-	
+
 	/**
 	 * Delete all versions of the image.
 	 *
@@ -1785,34 +1820,34 @@ class Image
 	function delete( $reason ) {
 		$transaction = new FSTransaction();
 		$urlArr = array( $this->getURL() );
-		
+
 		if( !FileStore::lock() ) {
 			wfDebug( __METHOD__.": failed to acquire file store lock, aborting\n" );
 			return false;
 		}
-		
+
 		try {
 			$dbw = wfGetDB( DB_MASTER );
 			$dbw->begin();
-			
+
 			// Delete old versions
 			$result = $dbw->select( 'oldimage',
 				array( 'oi_archive_name' ),
 				array( 'oi_name' => $this->name ) );
-			
+
 			while( $row = $dbw->fetchObject( $result ) ) {
 				$oldName = $row->oi_archive_name;
-				
+
 				$transaction->add( $this->prepareDeleteOld( $oldName, $reason ) );
-				
+
 				// We'll need to purge this URL from caches...
 				$urlArr[] = wfImageArchiveUrl( $oldName );
 			}
 			$dbw->freeResult( $result );
-			
+
 			// And the current version...
 			$transaction->add( $this->prepareDeleteCurrent( $reason ) );
-			
+
 			$dbw->immediateCommit();
 		} catch( MWException $e ) {
 			wfDebug( __METHOD__.": db error, rolling back file transactions\n" );
@@ -1820,22 +1855,22 @@ class Image
 			FileStore::unlock();
 			throw $e;
 		}
-		
+
 		wfDebug( __METHOD__.": deleted db items, applying file transactions\n" );
 		$transaction->commit();
 		FileStore::unlock();
 
-		
+
 		// Update site_stats
 		$site_stats = $dbw->tableName( 'site_stats' );
 		$dbw->query( "UPDATE $site_stats SET ss_images=ss_images-1", __METHOD__ );
-		
+
 		$this->purgeEverything( $urlArr );
-		
+
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * Delete an old version of the image.
 	 *
@@ -1851,12 +1886,12 @@ class Image
 	function deleteOld( $archiveName, $reason ) {
 		$transaction = new FSTransaction();
 		$urlArr = array();
-		
+
 		if( !FileStore::lock() ) {
 			wfDebug( __METHOD__.": failed to acquire file store lock, aborting\n" );
 			return false;
 		}
-		
+
 		$transaction = new FSTransaction();
 		try {
 			$dbw = wfGetDB( DB_MASTER );
@@ -1869,11 +1904,11 @@ class Image
 			FileStore::unlock();
 			throw $e;
 		}
-		
+
 		wfDebug( __METHOD__.": deleted db items, applying file transaction\n" );
 		$transaction->commit();
 		FileStore::unlock();
-		
+
 		$this->purgeDescription();
 
 		// Squid purging
@@ -1886,7 +1921,7 @@ class Image
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Delete the current version of a file.
 	 * May throw a database error.
@@ -1960,12 +1995,12 @@ class Image
 	 */
 	private function prepareDeleteVersion( $path, $reason, $table, $fieldMap, $where, $fname ) {
 		global $wgUser, $wgSaveDeletedFiles;
-		
+
 		// Dupe the file into the file store
 		if( file_exists( $path ) ) {
 			if( $wgSaveDeletedFiles ) {
 				$group = 'deleted';
-				
+
 				$store = FileStore::get( $group );
 				$key = FileStore::calculateKey( $path, $this->extension );
 				$transaction = $store->insert( $key, $path,
@@ -1981,24 +2016,24 @@ class Image
 			$key = null;
 			$transaction = new FSTransaction(); // empty
 		}
-		
+
 		if( $transaction === false ) {
 			// Fail to restore?
 			wfDebug( __METHOD__.": import to file store failed, aborting\n" );
 			throw new MWException( "Could not archive and delete file $path" );
 			return false;
 		}
-		
+
 		$dbw = wfGetDB( DB_MASTER );
 		$storageMap = array(
 			'fa_storage_group' => $dbw->addQuotes( $group ),
 			'fa_storage_key'   => $dbw->addQuotes( $key ),
-			
+
 			'fa_deleted_user'      => $dbw->addQuotes( $wgUser->getId() ),
 			'fa_deleted_timestamp' => $dbw->timestamp(),
 			'fa_deleted_reason'    => $dbw->addQuotes( $reason ) );
 		$allFields = array_merge( $storageMap, $fieldMap );
-		
+
 		try {
 			if( $wgSaveDeletedFiles ) {
 				$dbw->insertSelect( 'filearchive', $table, $allFields, $where, $fname );
@@ -2011,10 +2046,10 @@ class Image
 			$transaction->rollback();
 			throw $e;
 		}
-		
+
 		return $transaction;
 	}
-	
+
 	/**
 	 * Restore all or specified deleted revisions to the given file.
 	 * Permissions and logging are left to the caller.
@@ -2031,31 +2066,31 @@ class Image
 			wfDebug( __METHOD__." could not acquire filestore lock\n" );
 			return false;
 		}
-		
+
 		$transaction = new FSTransaction();
 		try {
 			$dbw = wfGetDB( DB_MASTER );
 			$dbw->begin();
-			
+
 			// Re-confirm whether this image presently exists;
 			// if no we'll need to create an image record for the
 			// first item we restore.
 			$exists = $dbw->selectField( 'image', '1',
 				array( 'img_name' => $this->name ),
 				__METHOD__ );
-			
+
 			// Fetch all or selected archived revisions for the file,
 			// sorted from the most recent to the oldest.
 			$conditions = array( 'fa_name' => $this->name );
 			if( $versions ) {
 				$conditions['fa_id'] = $versions;
 			}
-			
+
 			$result = $dbw->select( 'filearchive', '*',
 				$conditions,
 				__METHOD__,
 				array( 'ORDER BY' => 'fa_timestamp DESC' ) );
-			
+
 			if( $dbw->numRows( $result ) < count( $versions ) ) {
 				// There's some kind of conflict or confusion;
 				// we can't restore everything we were asked to.
@@ -2072,7 +2107,7 @@ class Image
 				FileStore::unlock();
 				return true;
 			}
-			
+
 			$revisions = 0;
 			while( $row = $dbw->fetchObject( $result ) ) {
 				$revisions++;
@@ -2081,20 +2116,20 @@ class Image
 					wfDebug( __METHOD__.": skipping row with no file.\n" );
 					continue;
 				}
-				
+
 				if( $revisions == 1 && !$exists ) {
 					$destDir = wfImageDir( $row->fa_name );
 					if ( !is_dir( $destDir ) ) {
 						wfMkdirParents( $destDir );
 					}
 					$destPath = $destDir . DIRECTORY_SEPARATOR . $row->fa_name;
-					
+
 					// We may have to fill in data if this was originally
 					// an archived file revision.
 					if( is_null( $row->fa_metadata ) ) {
 						$tempFile = $store->filePath( $row->fa_storage_key );
 						$metadata = serialize( $this->retrieveExifData( $tempFile ) );
-						
+
 						$magic = wfGetMimeMagic();
 						$mime = $magic->guessMimeType( $tempFile, true );
 						$media_type = $magic->getMediaType( $tempFile, $mime );
@@ -2105,7 +2140,7 @@ class Image
 						$minor_mime = $row->fa_minor_mime;
 						$media_type = $row->fa_media_type;
 					}
-					
+
 					$table = 'image';
 					$fields = array(
 						'img_name'        => $row->fa_name,
@@ -2136,7 +2171,7 @@ class Image
 						wfMkdirParents( $destDir );
 					}
 					$destPath = $destDir . DIRECTORY_SEPARATOR . $archiveName;
-					
+
 					$table = 'oldimage';
 					$fields = array(
 						'oi_name'         => $row->fa_name,
@@ -2150,13 +2185,13 @@ class Image
 						'oi_user_text'    => $row->fa_user_text,
 						'oi_timestamp'    => $row->fa_timestamp );
 				}
-				
+
 				$dbw->insert( $table, $fields, __METHOD__ );
 				/// @fixme this delete is not totally safe, potentially
 				$dbw->delete( 'filearchive',
 					array( 'fa_id' => $row->fa_id ),
 					__METHOD__ );
-				
+
 				// Check if any other stored revisions use this file;
 				// if so, we shouldn't remove the file from the deletion
 				// archives so they will still work.
@@ -2172,39 +2207,39 @@ class Image
 				} else {
 					$flags = 0;
 				}
-				
+
 				$transaction->add( $store->export( $row->fa_storage_key,
 					$destPath, $flags ) );
 			}
-			
+
 			$dbw->immediateCommit();
 		} catch( MWException $e ) {
 			wfDebug( __METHOD__." caught error, aborting\n" );
 			$transaction->rollback();
 			throw $e;
 		}
-		
+
 		$transaction->commit();
 		FileStore::unlock();
-		
+
 		if( $revisions > 0 ) {
 			if( !$exists ) {
 				wfDebug( __METHOD__." restored $revisions items, creating a new current\n" );
-				
+
 				// Update site_stats
 				$site_stats = $dbw->tableName( 'site_stats' );
 				$dbw->query( "UPDATE $site_stats SET ss_images=ss_images+1", __METHOD__ );
-				
+
 				$this->purgeEverything();
 			} else {
 				wfDebug( __METHOD__." restored $revisions as archived versions\n" );
 				$this->purgeDescription();
 			}
 		}
-		
+
 		return $revisions;
 	}
-	
+
 } //class
 
 /**

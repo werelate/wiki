@@ -56,6 +56,7 @@ class AjaxDispatcher {
 				$this->args = array();
 			}
 		}
+      if (!is_array($this->args)) $this->args = array($this->args);
 		wfProfileOut( 'AjaxDispatcher::AjaxDispatcher' );
 	}
 
@@ -69,9 +70,9 @@ class AjaxDispatcher {
 		if (! in_array( $this->func_name, $wgAjaxExportList ) ) {
 			echo "-:{$this->func_name} not callable";
 		} else {
-			echo "+:";
+// WERELATE - remove echo and have ajaxcachepolicy write the content type
+//			echo "+:";
 			$result = call_user_func_array($this->func_name, $this->args);
-			header( 'Content-Type: text/html; charset=utf-8', true );
 			$wgAjaxCachePolicy->writeHeader();
 			echo $result;
 		}

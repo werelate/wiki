@@ -73,7 +73,7 @@ function wfCreativeCommonsRdf($article) {
 function rdfSetup() {
 	global $wgOut, $_SERVER;
 
-	$rdftype = wfNegotiateType(wfAcceptToPrefs($_SERVER['HTTP_ACCEPT']), wfAcceptToPrefs(RDF_TYPE_PREFS));
+	$rdftype = wfNegotiateType(wfAcceptToPrefs(@$_SERVER['HTTP_ACCEPT']), wfAcceptToPrefs(RDF_TYPE_PREFS));
 
 	if (!$rdftype) {
 		wfHttpError(406, "Not Acceptable", wfMsg("notacceptable"));

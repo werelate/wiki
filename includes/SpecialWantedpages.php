@@ -33,6 +33,7 @@ class WantedPagesPage extends QueryPage {
 		$dbr =& wfGetDB( DB_SLAVE );
 		$pagelinks = $dbr->tableName( 'pagelinks' );
 		$page      = $dbr->tableName( 'page' );
+      // WERELATE - replace left join w pg2 with straight_join ; query takes too long otherwise
 		return
 			"SELECT 'Wantedpages' AS type,
 			        pl_namespace AS namespace,
@@ -41,10 +42,10 @@ class WantedPagesPage extends QueryPage {
 			 FROM $pagelinks
 			 LEFT JOIN $page AS pg1
 			 ON pl_namespace = pg1.page_namespace AND pl_title = pg1.page_title
-			 LEFT JOIN $page AS pg2
+			 straight_join $page AS pg2
 			 ON pl_from = pg2.page_id
 			 WHERE pg1.page_namespace IS NULL
-			 AND pl_namespace NOT IN ( 2, 3 )
+			 AND pl_namespace not in (2,3)
 			 AND pg2.page_namespace != 8
 			 GROUP BY pl_namespace, pl_title
 			 HAVING COUNT(*) > $count";

@@ -9,14 +9,15 @@
  * @package MediaWiki
  */
 class WatchedItem {
-	var $mTitle, $mUser;
+// WERELATE - add summary
+	var $mTitle, $mUser, $mSummary;
 
 	/**
 	 * Create a WatchedItem object with the given user and title
 	 * @todo document
 	 * @access private
 	 */
-	function &fromUserTitle( &$user, &$title ) {
+	function &fromUserTitle( &$user, &$title) {
 		$wl = new WatchedItem;
 		$wl->mUser =& $user;
 		$wl->mTitle =& $title;
@@ -63,18 +64,21 @@ class WatchedItem {
 	/**
 	 * @todo document
 	 */
-	function addWatch() {
+	function addWatch($summary = null) {
+// WERELATE - add summary
 		$fname = 'WatchedItem::addWatch';
 		wfProfileIn( $fname );
 
 		// Use INSERT IGNORE to avoid overwriting the notification timestamp
 		// if there's already an entry for this page
 		$dbw =& wfGetDB( DB_MASTER );
+		
 		$dbw->insert( 'watchlist',
 		  array(
 		    'wl_user' => $this->id,
 			'wl_namespace' => ($this->ns & ~1),
 			'wl_title' => $this->ti,
+         'wr_summary' => $summary,
 			'wl_notificationtimestamp' => NULL
 		  ), $fname, 'IGNORE' );
 
@@ -140,8 +144,9 @@ class WatchedItem {
 	 * @param Title $nt Page title to add watches on
 	 * @static
 	 */
-	function duplicateEntries( $ot, $nt ) {
-		WatchedItem::doDuplicateEntries( $ot->getSubjectPage(), $nt->getSubjectPage() );
+	function duplicateEntries( $ot, $nt, $summary=null ) {
+//WERELATE - add optional $summary parameter
+		WatchedItem::doDuplicateEntries( $ot->getSubjectPage(), $nt->getSubjectPage(), $summary );
 		WatchedItem::doDuplicateEntries( $ot->getTalkPage(), $nt->getTalkPage() );
 	}
 
@@ -149,7 +154,8 @@ class WatchedItem {
 	 * @static
 	 * @access private
 	 */
-	function doDuplicateEntries( $ot, $nt ) {
+	function doDuplicateEntries( $ot, $nt, $summary=null ) {
+// WERELATE - add optional $summary parameter
 		$fname = "WatchedItem::duplicateEntries";
 		$oldnamespace = $ot->getNamespace();
 		$newnamespace = $nt->getNamespace();
@@ -157,17 +163,25 @@ class WatchedItem {
 		$newtitle = $nt->getDBkey();
 
 		$dbw =& wfGetDB( DB_MASTER );
-		$res = $dbw->select( 'watchlist', 'wl_user',
-			array( 'wl_namespace' => $oldnamespace, 'wl_title' => $oldtitle ),
-			$fname, 'FOR UPDATE'
-		);
+		// WERELATE - changed SQL call to filter out users already watching the new title
+//		$res = $dbw->select( 'watchlist', 'wl_user',
+//			array( 'wl_namespace' => $oldnamespace, 'wl_title' => $oldtitle ),
+//			$fname, 'FOR UPDATE'
+//		);
+// WERELATE - copy wr_flags and wr_summary
+		$res = $dbw->query('SELECT w1.wl_user, w1.wr_flags, w1.wr_summary FROM watchlist w1 WHERE w1.wl_namespace='.$dbw->addQuotes($oldnamespace).' AND w1.wl_title='.$dbw->addQuotes($oldtitle).
+								' AND NOT EXISTS (select 1 from watchlist w2 WHERE w2.wl_namespace='.$dbw->addQuotes($newnamespace).' AND w2.wl_title='.$dbw->addQuotes($newtitle).' AND w2.wl_user=w1.wl_user)',
+								 $fname);
+								 
 		# Construct array to replace into the watchlist
 		$values = array();
 		while ( $s = $dbw->fetchObject( $res ) ) {
 			$values[] = array(
 				'wl_user' => $s->wl_user,
 				'wl_namespace' => $newnamespace,
-				'wl_title' => $newtitle
+				'wl_title' => $newtitle,
+            'wr_flags' => $s->wr_flags,
+            'wr_summary' => (is_null($summary) ? $s->wr_summary : $summary) // set summary if passed in; old summary otherwise
 			);
 		}
 		$dbw->freeResult( $res );
@@ -180,7 +194,10 @@ class WatchedItem {
 		# Perform replace
 		# Note that multi-row replace is very efficient for MySQL but may be inefficient for
 		# some other DBMSes, mostly due to poor simulation by us
-		$dbw->replace( 'watchlist', array(array( 'wl_user', 'wl_namespace', 'wl_title')), $values, $fname );
+		// WERELATE - change replace to insert (replace is no longer necessary, if it ever even was)
+//		$dbw->replace( 'watchlist', array(array( 'wl_user', 'wl_namespace', 'wl_title')), $values, $fname );
+		$dbw->insert('watchlist', $values, $fname);
+		
 		return true;
 	}
 

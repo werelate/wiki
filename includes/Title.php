@@ -30,8 +30,8 @@ class Title {
 	 */
 	static private $titleCache=array();
 	static private $interwikiCache=array();
-	
-	
+
+
 	/**
 	 * All member variables should be considered private
 	 * Please use the accessor functions
@@ -108,7 +108,7 @@ class Title {
 	 * @static
 	 * @access public
 	 */
-	function newFromText( $text, $defaultNamespace = NS_MAIN ) {
+	static function newFromText( $text, $defaultNamespace = NS_MAIN ) {
 		$fname = 'Title::newFromText';
 
 		if( is_object( $text ) ) {
@@ -206,7 +206,7 @@ class Title {
 	}
 
 	/**
-	 * Make an array of titles from an array of IDs 
+	 * Make an array of titles from an array of IDs
 	 */
 	function newFromIDs( $ids ) {
 		$dbr =& wfGetDB( DB_SLAVE );
@@ -233,7 +233,7 @@ class Title {
 	 * @static
 	 * @access public
 	 */
-	function &makeTitle( $ns, $title ) {
+	static function &makeTitle( $ns, $title ) {
 		$t =& new Title();
 		$t->mInterwiki = '';
 		$t->mFragment = '';
@@ -256,7 +256,7 @@ class Title {
 	 * @static
 	 * @access public
 	 */
-	function makeTitleSafe( $ns, $title ) {
+	static function makeTitleSafe( $ns, $title ) {
 		$t = new Title();
 		$t->mDbkeyform = Title::makeName( $ns, $title );
 		if( $t->secureAndSplit() ) {
@@ -435,7 +435,7 @@ class Title {
 
 		return $s->iw_url;
 	}
-	
+
 	/**
 	 * Fetch interwiki prefix data from local cache in constant database
 	 *
@@ -617,7 +617,7 @@ class Title {
 	 */
 	function getSubjectNsText() {
 		global $wgContLang;
-		return $wgContLang->getNsText( Namespace::getSubject( $this->mNamespace ) );
+		return $wgContLang->getNsText( Namespac::getSubject( $this->mNamespace ) );
 	}
 
 	/**
@@ -626,17 +626,17 @@ class Title {
 	 */
 	function getTalkNsText() {
 		global $wgContLang;
-		return( $wgContLang->getNsText( Namespace::getTalk( $this->mNamespace ) ) );
+		return( $wgContLang->getNsText( Namespac::getTalk( $this->mNamespace ) ) );
 	}
-	
+
 	/**
 	 * Could this title have a corresponding talk page?
 	 * @return bool
 	 */
 	function canTalk() {
-		return( Namespace::canTalk( $this->mNamespace ) );
+		return( Namespac::canTalk( $this->mNamespace ) );
 	}
-	
+
 	/**
 	 * Get the interwiki prefix (or null string)
 	 * @return string
@@ -737,7 +737,7 @@ class Title {
 			return( $this->mTextform );
 		}
 	}
-	
+
 	/**
 	 * Get a URL-encoded form of the subpage text
 	 * @return string URL-encoded subpage name
@@ -860,7 +860,7 @@ class Title {
 					$url = "{$wgScript}?title={$dbkey}&{$query}";
 				}
 			}
-			
+
 			// FIXME: this causes breakage in various places when we
 			// actually expected a local URL and end up with dupe prefixes.
 			if ($wgRequest->getVal('action') == 'render') {
@@ -967,7 +967,7 @@ class Title {
 	function isProtected( $action = '' ) {
 		global $wgRestrictionLevels;
 		if ( -1 == $this->mNamespace ) { return true; }
-				
+
 		if( $action == 'edit' || $action == '' ) {
 			$r = $this->getRestrictions( 'edit' );
 			foreach( $wgRestrictionLevels as $level ) {
@@ -976,7 +976,7 @@ class Title {
 				}
 			}
 		}
-		
+
 		if( $action == 'move' || $action == '' ) {
 			$r = $this->getRestrictions( 'move' );
 			foreach( $wgRestrictionLevels as $level ) {
@@ -1047,21 +1047,39 @@ class Title {
 		# protect css/js subpages of user pages
 		# XXX: this might be better using restrictions
 		# XXX: Find a way to work around the php bug that prevents using $this->userCanEditCssJsSubpage() from working
-		if( NS_USER == $this->mNamespace
-			&& preg_match("/\\.(css|js)$/", $this->mTextform )
+// WERELATE - added User Talk move/create block
+		if( (NS_USER == $this->mNamespace ||
+           (NS_USER_TALK == $this->mNamespace &&
+            ($action == 'move' ||
+             ($action == 'create' &&
+              (User::idFromName(current(explode('/', $this->mTextform, 2))) == 0 || // user does not exist
+               (mb_strpos($this->mTextform, '/') !== false && // is sub-page
+                !$this->getSubjectPage()->exists()))))))
+// WERELATE - removed - don't allow anyone to edit user pages except sysops and the user
+//			&& preg_match("/\\.(css|js)$/", $this->mTextform )
 			&& !$wgUser->isAllowed('editinterface')
-			&& !preg_match('/^'.preg_quote($wgUser->getName(), '/').'\//', $this->mTextform) ) {
+// WERELATE - modified
+			&& !preg_match('/^'.preg_quote($wgUser->getName(), '/').'(\/|$)/', $this->mTextform) ) {
 			wfProfileOut( $fname );
 			return false;
 		}
+// WERELATE - added
+      if ((NS_MYSOURCE == $this->mNamespace || NS_MYSOURCE_TALK == $this->mNamespace) &&
+          ($action == 'create' || $action == 'move') &&
+          !$wgUser->isAllowed('editinterface') &&
+          (mb_strpos($this->mTextform, '/') === false || User::idFromName(current(explode('/', $this->mTextform, 2))) == 0)) {
+         wfProfileOut($fname);
+         return false;
+      }
 
 		foreach( $this->getRestrictions($action) as $right ) {
 			// Backwards compatibility, rewrite sysop -> protect
 			if ( $right == 'sysop' ) {
 				$right = 'protect';
 			}
-			if( '' != $right && !$wgUser->isAllowed( $right ) ) {
-				wfProfileOut( $fname );
+// WERELATE: added title parm
+			if( '' != $right && !$wgUser->isAllowed( $right, $this ) ) {
+			   wfProfileOut( $fname );
 				return false;
 			}
 		}
@@ -1118,7 +1136,7 @@ class Title {
 	 * @access public
 	 */
 	function isMovable() {
-		return Namespace::isMovable( $this->getNamespace() )
+		return Namespac::isMovable( $this->getNamespace() )
 			&& $this->getInterwiki() == '';
 	}
 
@@ -1171,7 +1189,7 @@ class Title {
 	 * @access public
 	 */
 	function isTalkPage() {
-		return Namespace::isTalk( $this->getNamespace() );
+		return Namespac::isTalk( $this->getNamespace() );
 	}
 
 	/**
@@ -1314,14 +1332,19 @@ class Title {
 		return $this->mArticleID;
 	}
 
-	function getLatestRevID() {
-		if ($this->mLatestID !== false)
+	// WERELATE - added flags parameter
+	function getLatestRevID( $flags = 0 ) {
+		if (!($flags & GAID_FOR_UPDATE) && $this->mLatestID !== false)
 			return $this->mLatestID;
 
-		$db =& wfGetDB(DB_SLAVE);
+		// WERELATE - added this too
+		$articleId = $this->getArticleID($flags);
+		if (!$articleId) return $this->mLatestID = false;
+		
+		$db =& wfGetDB($flags & GAID_FOR_UPDATE ? DB_MASTER : DB_SLAVE);
 		return $this->mLatestID = $db->selectField( 'revision',
 			"max(rev_id)",
-			array('rev_page' => $this->getArticleID()),
+			array('rev_page' => $articleId),
 			'Title::getLatestRevID' );
 	}
 
@@ -1351,7 +1374,8 @@ class Title {
 	 * @return bool true if the update succeded
 	 * @access public
 	 */
-	function invalidateCache() {
+	function invalidateCache($ts=0) {
+// WERELATE: add optional ts parameter
 		global $wgUseFileCache;
 
 		if ( wfReadOnly() ) {
@@ -1361,7 +1385,7 @@ class Title {
 		$dbw =& wfGetDB( DB_MASTER );
 		$success = $dbw->update( 'page',
 			array( /* SET */
-				'page_touched' => $dbw->timestamp()
+				'page_touched' => $dbw->timestamp($ts)
 			), array( /* WHERE */
 				'page_namespace' => $this->getNamespace() ,
 				'page_title' => $this->getDBkey()
@@ -1451,7 +1475,7 @@ class Title {
 			if ( preg_match( "/^(.+?)_*:_*(.*)$/S", $t, $m ) ) {
 				$p = $m[1];
 				$lowerNs = strtolower( $p );
-				if ( $ns = Namespace::getCanonicalIndex( $lowerNs ) ) {
+				if ( $ns = Namespac::getCanonicalIndex( $lowerNs ) ) {
 					# Canonical namespace
 					$t = $m[2];
 					$this->mNamespace = $ns;
@@ -1566,7 +1590,7 @@ class Title {
 		if ( $t !== '' && ':' == $t{0} ) {
 			return false;
 		}
-		
+
 		# Fill fields
 		$this->mDbkeyform = $t;
 		$this->mUrlform = wfUrlencode( $t );
@@ -1582,7 +1606,7 @@ class Title {
 	 * @access public
 	 */
 	function getTalkPage() {
-		return Title::makeTitle( Namespace::getTalk( $this->getNamespace() ), $this->getDBkey() );
+		return Title::makeTitle( Namespac::getTalk( $this->getNamespace() ), $this->getDBkey() );
 	}
 
 	/**
@@ -1593,7 +1617,7 @@ class Title {
 	 * @access public
 	 */
 	function getSubjectPage() {
-		return Title::makeTitle( Namespace::getSubject( $this->getNamespace() ), $this->getDBkey() );
+		return Title::makeTitle( Namespac::getSubject( $this->getNamespace() ), $this->getDBkey() );
 	}
 
 	/**
@@ -1758,6 +1782,17 @@ class Title {
 			return 'badarticleerror';
 		}
 
+// WERELATE - added
+      global $wgUser;
+      // can't rename user pages to a different user, and can't rename subpages to main user pages or vice-versa
+      if (($this->getNamespace() == NS_USER || $this->getNamespace() == NS_USER_TALK) && !$wgUser->isAllowed('protect')) {
+         $oldPieces = mb_split("/", $this->getText(), 2);
+         $newPieces = mb_split("/", $nt->getText(), 2);
+         if ($oldPieces[0] != $newPieces[0] || count($oldPieces) != count($newPieces)) {
+            return 'userpagemove';
+         }
+      }
+
 		if ( $auth && (
 				!$this->userCanEdit() || !$nt->userCanEdit() ||
 				!$this->userCanMove() || !$nt->userCanMove() ) ) {
@@ -1773,6 +1808,46 @@ class Title {
 				return 'articleexists';
 			}
 		}
+
+// WERELATE - added
+		if ($this->getNamespace() != $nt->getNamespace() && !($this->getNamespace() == NS_SOURCE && $nt->getNamespace() == NS_REPOSITORY)) {
+			return 'namespacemove';
+		}
+		if ($this->getNamespace() == NS_PLACE) {
+			$pieces = mb_split(",", $nt->getText(), 2);
+			if (count($pieces) > 1) {
+				$locatedIn = trim($pieces[1]);
+				if ($locatedIn) {
+					$t = Title::newFromText($locatedIn, NS_PLACE);
+					if (!$t || !$t->exists()) {
+						return 'movelocatedinmissing';
+					}
+				}
+			}
+		}
+// WERELATE - added
+      if ($this->getNamespace() == NS_PLACE && !$wgUser->isAllowed('protect')) {
+         $dbr =& wfGetDB(DB_SLAVE);
+         $sql = 'select page_title from page, pagelinks where pl_namespace='.$dbr->addQuotes(NS_PLACE).
+                 ' and pl_title='.$dbr->addQuotes($this->getDBkey()).
+                 ' and pl_from=page_id and page_is_redirect=0 and page_namespace='.$dbr->addQuotes(NS_PLACE);
+         $rows = $dbr->query($sql);
+         $suffix = ',_'.$this->getDBkey();
+         $slen = mb_strlen($suffix);
+         $found = false;
+         while ($row = $dbr->fetchObject($rows)) {
+            $rlen = mb_strlen($row->page_title);
+            if ($rlen > $slen && mb_substr($row->page_title, $rlen-$slen) == $suffix) {
+               $found = true;
+               break;
+            }
+         }
+         $dbr->freeResult($rows);
+         if ($found) {
+            return 'moveplacesubplaces';
+         }
+      }
+
 		return true;
 	}
 
@@ -2228,7 +2303,7 @@ class Title {
 
 	/**
 	 * Update page_touched timestamps and send squid purge messages for
-	 * pages linking to this title.	May be sent to the job queue depending 
+	 * pages linking to this title.	May be sent to the job queue depending
 	 * on the number of links. Typically called on create and delete.
 	 */
 	function touchLinks() {
@@ -2271,6 +2346,31 @@ class Title {
 	 */
 	function getNamespaceKey() {
 		switch ($this->getNamespace()) {
+// WERELATE added our namespaces
+			case NS_GIVEN_NAME:
+			case NS_GIVEN_NAME_TALK:
+				return 'nstab-givenname';
+			case NS_SURNAME:
+			case NS_SURNAME_TALK:
+				return 'nstab-surname';
+			case NS_SOURCE:
+			case NS_SOURCE_TALK:
+				return 'nstab-source';
+			case NS_MYSOURCE:
+			case NS_MYSOURCE_TALK:
+				return 'nstab-mysource';
+			case NS_REPOSITORY:
+			case NS_REPOSITORY_TALK:
+				return 'nstab-repository';
+			case NS_PLACE:
+			case NS_PLACE_TALK:
+				return 'nstab-place';
+			case NS_PERSON:
+			case NS_PERSON_TALK:
+				return 'nstab-person';
+			case NS_FAMILY:
+			case NS_FAMILY_TALK:
+				return 'nstab-family';
 			case NS_MAIN:
 			case NS_TALK:
 				return 'nstab-main';
@@ -2299,6 +2399,12 @@ class Title {
 			case NS_CATEGORY:
 			case NS_CATEGORY_TALK:
 				return 'nstab-category';
+         case NS_PORTAL:
+         case NS_PORTAL_TALK:
+            return 'nstab-portal';
+         case NS_TRANSCRIPT:
+         case NS_TRANSCRIPT_TALK:
+            return 'nstab-transcript';
 			default:
 				return 'nstab-' . strtolower( $this->getSubjectNsText() );
 		}

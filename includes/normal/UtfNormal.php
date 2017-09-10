@@ -125,7 +125,7 @@ class UtfNormal {
 	 * @param string $string a UTF-8 string
 	 * @return string a clean, shiny, normalized UTF-8 string
 	 */
-	function cleanUp( $string ) {
+	static function cleanUp( $string ) {
 		if( NORMALIZE_ICU ) {
 			# We exclude a few chars that ICU would not.
 			$string = preg_replace(
@@ -271,7 +271,7 @@ class UtfNormal {
 	 * Returns false if not or uncertain.
 	 * @param string $string a UTF-8 string, altered on output to be valid UTF-8 safe for XML.
 	 */
-	function quickIsNFCVerify( &$string ) {
+	static function quickIsNFCVerify( &$string ) {
 		# Screen out some characters that eg won't be allowed in XML
 		$string = preg_replace( '/[\x00-\x08\x0b\x0c\x0e-\x1f]/', UTF8_REPLACEMENT, $string );
 

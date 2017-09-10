@@ -136,23 +136,23 @@ class LoginForm {
 	 */
 	function addNewAccount() {
 		global $wgUser, $wgEmailAuthentication;
-		
+
 		# Create the account and abort if there's a problem doing so
 		$u = $this->addNewAccountInternal();
 		if( $u == NULL )
 			return;
-			
+
 		# If we showed up language selection links, and one was in use, be
 		# smart (and sensible) and save that language as the user's preference
 		global $wgLoginLanguageSelector;
 		if( $wgLoginLanguageSelector && $this->mLanguage )
 			$u->setOption( 'language', $this->mLanguage );
-		
+
 		# Save user settings and send out an email authentication message if needed
 		$u->saveSettings();
 		if( $wgEmailAuthentication && User::isValidEmailAddr( $u->getEmail() ) )
 			$u->sendConfirmationMail();
-			
+
 		# If not logged in, assume the new account as the current one and set session cookies
 		# then show a "welcome" message or a "need cookies" message as needed
 		if( $wgUser->isAnon() ) {
@@ -259,8 +259,9 @@ class LoginForm {
 			}
 		}
 
+		// WERELATE - added mEmail parameter
 		$abortError = '';
-		if( !wfRunHooks( 'AbortNewAccount', array( $u, &$abortError ) ) ) {
+		if( !wfRunHooks( 'AbortNewAccount', array( $u, &$abortError, $this->mEmail ) ) ) {
 			// Hook point to add extra creation throttles and blocks
 			wfDebug( "LoginForm::addNewAccountInternal: a hook blocked creation\n" );
 			$this->mainLoginForm( $abortError );
@@ -372,13 +373,13 @@ class LoginForm {
 	 */
 	function mailPassword() {
 		global $wgUser, $wgOut;
-		
+
 		# Check against the rate limiter
 		if( $wgUser->pingLimiter( 'mailpassword' ) ) {
 			$wgOut->rateLimited();
 			return;
 		}
-	
+
 		if ( '' == $this->mName ) {
 			$this->mainLoginForm( wfMsg( 'noname' ) );
 			return;
@@ -482,6 +483,16 @@ class LoginForm {
 			return;
 		}
 
+      // WERELATE
+      if ($this->mType == 'signup'  && $wgUser->isLoggedIn()) {
+         $wgOut->setPageTitle('Already signed in');
+         $wgOut->setRobotpolicy( 'noindex,nofollow' );
+         $wgOut->setArticleRelated(false);
+         $wgOut->addWikiText('You don\'t need to create an account. You\'re already signed in.');
+         $wgOut->returnToMain(false);
+         return;
+      }
+
 		if ( '' == $this->mName ) {
 			if ( $wgUser->isLoggedIn() ) {
 				$this->mName = $wgUser->getName();
@@ -512,7 +523,7 @@ class LoginForm {
 			$q .= $returnto;
 			$linkq .= $returnto;
 		}
-		
+
 		# Pass any language selection on to the mode switch link
 		if( $wgLoginLanguageSelector && $this->mLanguage )
 			$linkq .= '&uselang=' . $this->mLanguage;
@@ -526,7 +537,7 @@ class LoginForm {
 			$template->set( 'link', wfMsgHtml( $linkmsg, $link ) );
 		else
 			$template->set( 'link', '' );
-		
+
 		$template->set( 'header', '' );
 		$template->set( 'name', $this->mName );
 		$template->set( 'password', $this->mPassword );
@@ -542,14 +553,14 @@ class LoginForm {
 		$template->set( 'userealname', $wgAllowRealName );
 		$template->set( 'useemail', $wgEnableEmail );
 		$template->set( 'remember', $wgUser->getOption( 'rememberpassword' ) or $this->mRemember  );
-				
+
 		# Prepare language selection links as needed
 		if( $wgLoginLanguageSelector ) {
 			$template->set( 'languages', $this->makeLanguageSelector() );
 			if( $this->mLanguage )
 				$template->set( 'uselang', $this->mLanguage );
 		}
-		
+
 		// Give authentication and captcha plugins a chance to modify the form
 		$wgAuth->modifyUITemplate( $template );
 		if ( $this->mType == 'signup' ) {
@@ -563,13 +574,15 @@ class LoginForm {
 		$wgOut->setArticleRelated( false );
 		$wgOut->addTemplate( $template );
 	}
-	
+
 	/**
 	 * @private
 	 */
 	function showCreateOrLoginLink( &$user ) {
 		if( $this->mType == 'signup' ) {
 			return( true );
+      } elseif ($user->isLoggedIn()) { // WERELATE
+         return false;
 		} elseif( $user->isAllowedToCreateAccount() ) {
 			return( true );
 		} else {
@@ -625,7 +638,7 @@ class LoginForm {
 
 		$wgOut->addWikiText( wfMsg( 'acct_creation_throttle_hit', $limit ) );
 	}
-	
+
 	/**
 	 * Produce a bar of links which allow the user to select another language
 	 * during login/registration but retain "returnto"
@@ -647,7 +660,7 @@ class LoginForm {
 			return '';
 		}
 	}
-	
+
 	/**
 	 * Create a language selector link for a particular language
 	 * Links back to this page preserving type and returnto
@@ -666,6 +679,6 @@ class LoginForm {
 		$skin =& $wgUser->getSkin();
 		return $skin->makeKnownLinkObj( $self, htmlspecialchars( $text ), implode( '&', $attr ) );
 	}
-	
+
 }
 ?>

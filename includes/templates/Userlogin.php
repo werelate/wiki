@@ -25,7 +25,6 @@ class UserloginTemplate extends QuickTemplate {
 	</div>
 	<div class="visualClear"></div>
 <?php } ?>
-
 <div id="userloginForm">
 <form name="userlogin" method="post" action="<?php $this->text('action') ?>">
 	<h2><?php $this->msg('login') ?></h2>
@@ -83,9 +82,8 @@ class UserloginTemplate extends QuickTemplate {
 <?php if( @$this->haveData( 'uselang' ) ) { ?><input type="hidden" name="uselang" value="<?php $this->text( 'uselang' ); ?>" /><?php } ?>
 </form>
 </div>
-<div id="loginend"><?php $this->msgWiki( 'loginend' ); ?></div>
 <?php
-
+   $this->msgWiki( 'loginend' );
 	}
 }
 
@@ -114,6 +112,7 @@ class UsercreateTemplate extends QuickTemplate {
 			<td align='left'>
 				<input type='text' class='loginText' name="wpName" id="wpName2"
 					value="<?php $this->text('name') ?>" size='20' />
+            &nbsp;&nbsp;&nbsp;(don't use your email address)
 			</td>
 		</tr>
 		<tr>
@@ -164,6 +163,7 @@ class UsercreateTemplate extends QuickTemplate {
 					</td>
 			<?php } ?>
 		</tr>
+      <?php $this->html('captcha'); /* WERELATE */ ?>
 		<tr>
 			<td></td>
 			<td align='left'>
@@ -206,9 +206,8 @@ class UsercreateTemplate extends QuickTemplate {
 <?php if( @$this->haveData( 'uselang' ) ) { ?><input type="hidden" name="uselang" value="<?php $this->text( 'uselang' ); ?>" /><?php } ?>
 </form>
 </div>
-<div id="signupend"><?php $this->msgWiki( 'signupend' ); ?></div>
 <?php
-
+   $this->msgWiki( 'signupend' );
 	}
 }
 

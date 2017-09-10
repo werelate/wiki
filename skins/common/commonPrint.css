@@ -10,7 +10,7 @@
 a.stub,
 a.new{ color:#ba0000; text-decoration:none; }
 
-#toc { 
+#toc {
     /*border:1px solid #2f6fab;*/
     border:1px solid #aaaaaa;
     background-color:#f9f9f9;
@@ -27,22 +27,22 @@ a.new{ color:#ba0000; text-decoration:none; }
 }
 
 /* images */
-div.floatright { 
-    float: right; 
+div.floatright {
+    float: right;
     margin: 0;
     position:relative;
     border: 0.5em solid White;
     border-width: 0.5em 0 0.8em 1.4em;
 }
-div.floatright p { font-style: italic;} 
-div.floatleft { 
-    float: left; 
+div.floatright p { font-style: italic;}
+div.floatleft {
+    float: left;
     margin: 0.3em 0.5em 0.5em 0;
     position:relative;
     border: 0.5em solid White;
     border-width: 0.5em 1.4em 0.8em 0;
 }
-div.floatleft p { font-style: italic; } 
+div.floatleft p { font-style: italic; }
 /* thumbnails */
 div.thumb {
     margin-bottom: 0.5em;
@@ -77,10 +77,10 @@ div.tleft {
 
 /* table standards */
 table.rimage {
-    float:right; 
-    width:1pt; 
+    float:right;
+    width:1pt;
     position:relative;
-    margin-left:1em; 
+    margin-left:1em;
     margin-bottom:1em;
     text-align:center;
 }
@@ -93,10 +93,20 @@ body {
     padding: 0;
 }
 
+/* WERELATE - added tagline and navigation */
+#wr-navigation,
+#infobox,
+.addthis_toolbox,
+#adbox,
+#wr-logo,
+#wr-searchbox,
+#contentSub,
+#contentSub2,
+#siteNotice,
+.userMessage,
+.firstHeadingPersonFamily,
 .noprint,
-div#jump-to-nav,
 div.top,
-div#column-one,
 #colophon,
 .editsection,
 .toctoggle,
@@ -106,25 +116,65 @@ div#f-copyrightico,
 li#f-viewcount,
 li#f-about,
 li#f-disclaimer,
-li#f-privacy {
+.wr-infobox-editlink,
+.addfamilylink,
+.addchildlink,
+#wr_familytreelink {
     /* Hides all the elements irrelevant for printing */
     display: none;
 }
 
-ul { 
+.firstHeading {
+   padding-bottom: 20px;
+}
+#wr-navtitle {
+   margin-left: 0;
+}
+#wr-titlearea {
+   height: auto;
+   border: none;
+}
+
+/* WERELATE - left-align family infoboxes */
+.wr-infobox-person, .wr-infobox-family {
+   width: auto;
+   float: left;
+}
+.wr-infobox-familybadges {
+   float: left;
+   clear: left;
+}
+.wr-infobox-familybadge {
+   width: auto;
+}
+.wr-infobox-familybadge .wr-infobox-yearrange {
+   display: inline;
+   padding-left: 16px;
+}
+.h2like {
+   clear: left;
+}
+.wr-openclose {
+   display: none;
+}
+
+/* WERELATE - print these things */
+#siteSub, .printfooter {
+    display: block;
+}
+
+ul {
     list-style-type: square;
 }
 
-#content {
+#wr-content {
     background: none;
     border: none ! important;
     font-size: 11pt;
     padding: 0 ! important;
     margin: 0 ! important;
 }
-#footer {
-	background : white;
-	color : black;
+#wr-footer {
     border-top: 1px solid black;
 }
 
@@ -135,22 +185,34 @@ h1, h2, h3, h4, h5, h6
 
 p, .documentDescription {
     margin: 1em 0 ! important;
-    line-height: 1.2em;    
+    line-height: 1.2em;
 }
 
 .tocindent p {
 	margin: 0 0 0 0 ! important;
 }
 
+pre
+{
+	white-space: normal;
+	font: x-small sans-serif;
+	color: black;
+	padding: 0;
+	font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+   text-indent: 1.5em;
+   margin: 1em 0;
+	line-height: 1.2em;
+	font-size: 100%;
+}
+/*
 pre {
     border: 1pt dashed black;
     white-space: pre;
     font-size: 8pt;
     overflow: auto;
     padding: 1em 0;
-	background : white;
-	color : black;
 }
+*/
 
 table.listing,
 table.listing td {
@@ -160,7 +222,8 @@ table.listing td {
 
 a {
     color: Black !important;
-    padding: 0 !important
+    padding: 0 !important;
+    background: none !important;
 }
 
 a:link, a:visited {
@@ -169,26 +232,17 @@ a:link, a:visited {
     text-decoration: underline;
 }
 
-#content a.external.text:after, #content a.external.autonumber:after {
+#wr-content a.external.text:after, #wr-content a.external.autonumber:after {
     /* Expand URLs for printing */
     content: " (" attr(href) ") ";
 }
 
-#globalWrapper {
+#body {
     width: 100% !important;
     min-width: 0 !important;
 }
 
-#content {
-	background : white;
-	color : black;
-}
-
-#column-content {
-    margin: 0 !important;
-}
-
-#column-content #content {
+#wr-content {
     padding: 1em;
     margin: 0 !important;
 }
@@ -221,7 +275,7 @@ div.townBox {
 }
 div.townBox dl {
     padding: 0;
-    margin: 0 0 0.3em 0; 
+    margin: 0 0 0.3em 0;
     font-size: 96%;
 }
 div.townBox dl dt {
@@ -242,7 +296,7 @@ table.gallery {
         background-color:#ffffff;
 }
 
-table.gallery tr { 
+table.gallery tr {
         vertical-align:top;
 }
 
@@ -257,12 +311,12 @@ div.gallerybox div.thumb {
         text-align: center;
         border: 1px solid #cccccc;
         margin: 2px;
-}       
+}
 
 div.gallerytext {
         font-size: 94%;
         padding: 2px 4px;
-}       
+}
 
 /*
 ** Diff rendering

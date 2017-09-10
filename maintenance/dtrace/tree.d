@@ -1,7 +1,7 @@
 /*
  * This software is in the public domain.
  *
- * $Id$
+ * $Id: tree.d 10510 2005-08-15 01:46:19Z kateturner $
  */
 
 #pragma D option quiet

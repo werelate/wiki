@@ -26,7 +26,7 @@ class OutputPage {
 	var $mShowFeedLinks = false;
 	var $mEnableClientCache = true;
 	var $mArticleBodyOnly = false;
-	
+
 	var $mNewSectionLink = false;
 	var $mNoGallery = false;
 
@@ -53,8 +53,14 @@ class OutputPage {
 		$this->mRevisionId = null;
 		$this->mNewSectionLink = false;
 	}
-	
-	function redirect( $url, $responsecode = '302' ) { 
+
+	function redirect( $url, $responsecode = '302' ) {
+	    # WR DWQ
+	    global $wrProtocol;
+	    if ( substr( $url, 0, 7 ) === "http://" && $wrProtocol = "https" ) {
+	        $url = $wrProtocol . "://" . substr( $url, 7);
+	    }
+
 		# Strip newlines as a paranoia check for header injection in PHP<5.1.2
 		$this->mRedirect = str_replace( "\n", '', $url );
 		$this->mRedirectCode = $responsecode;
@@ -341,9 +347,18 @@ class OutputPage {
 	 * For anything that isn't primary text or interface message
 	 */
 	function addSecondaryWikiText( $text, $linestart = true ) {
-		global $wgTitle;
+		global $wgTitle, $wgParser;
 		$this->mParserOptions->setTidy(true);
-		$this->addWikiTextTitle($text, $wgTitle, $linestart);
+
+// WERELATE - replace call to addWikiTextTitle with function contents so I can add call to hook		
+		$parserOutput = $wgParser->parse( $text, $wgTitle, $this->mParserOptions,
+			$linestart, true, $this->mRevisionId );
+		$this->addParserOutputNoText( $parserOutput );
+		$text =	$parserOutput->getText();
+		wfRunHooks( 'OutputPageBeforeHTML',array( &$this, &$text ) );
+		$parserOutput->setText( $text );
+		$this->addHTML( $parserOutput->getText() );
+
 		$this->mParserOptions->setTidy(false);
 	}
 
@@ -386,6 +401,9 @@ class OutputPage {
 			$this->addKeywords( $parserOutput );
 			$this->mNewSectionLink = $parserOutput->getNewSection();
 			$this->mNoGallery = $parserOutput->getNoGallery();
+         // WERELATE
+         $this->mSubtitle .= $parserOutput->mSubtitle;
+
 			$text = $parserOutput->getText();
 			wfRunHooks( 'OutputPageBeforeHTML', array( &$this, &$text ) );
 			$this->addHTML( $text );
@@ -489,13 +507,14 @@ class OutputPage {
 		wfProfileIn( $fname );
 		$sk = $wgUser->getSkin();
 
-		if ( $wgUseAjax ) {
-			$this->addScript( "<script type=\"{$wgJsMimeType}\">
-				var wgScriptPath=\"{$wgScriptPath}\";
-				var wgServer=\"{$wgServer}\";
-			</script>" );
-			$this->addScript( "<script type=\"{$wgJsMimeType}\" src=\"{$wgStylePath}/common/ajax.js\"></script>\n" );
-		}
+// WERELATE - remove
+//		if ( $wgUseAjax ) {
+//			$this->addScript( "<script type=\"{$wgJsMimeType}\">
+//				var wgScriptPath=\"{$wgScriptPath}\";
+//				var wgServer=\"{$wgServer}\";
+//			</script>" );
+//			$this->addScript( "<script type=\"{$wgJsMimeType}\" src=\"{$wgStylePath}/common/ajax.js\"></script>\n" );
+//		}
 
 		if ( '' != $this->mRedirect ) {
 			if( substr( $this->mRedirect, 0, 4 ) != 'http' ) {
@@ -663,7 +682,7 @@ class OutputPage {
 		$link = '[[' . $wgContLang->getNsText( NS_USER ) . ":{$name}|{$name}]]";
 
 		$this->addWikiText( wfMsg( 'blockedtext', $link, $reason, $ip, $name ) );
-		
+
 		# Don't auto-return to special pages
 		if( $return ) {
 			$return = $wgTitle->getNamespace() > -1 ? $wgTitle->getPrefixedText() : NULL;
@@ -695,7 +714,7 @@ class OutputPage {
 	function errorpage( $title, $msg ) {
 		throw new ErrorPageError( $title, $msg );
 	}
-		
+
 	/**
 	 * Display an error page indicating that a given version of MediaWiki is
 	 * required to use it
@@ -775,17 +794,17 @@ class OutputPage {
 	function loginToUse() {
 		global $wgUser, $wgTitle, $wgContLang;
 		$skin = $wgUser->getSkin();
-		
+
 		$this->setPageTitle( wfMsg( 'loginreqtitle' ) );
 		$this->setHtmlTitle( wfMsg( 'errorpagetitle' ) );
 		$this->setRobotPolicy( 'noindex,nofollow' );
 		$this->setArticleFlag( false );
-		
+
 		$loginTitle = Title::makeTitle( NS_SPECIAL, 'Userlogin' );
 		$loginLink = $skin->makeKnownLinkObj( $loginTitle, wfMsgHtml( 'loginreqlink' ), 'returnto=' . $wgTitle->getPrefixedUrl() );
 		$this->addHtml( wfMsgWikiHtml( 'loginreqpagetext', $loginLink ) );
 		$this->addHtml( "\n<!--" . $wgTitle->getPrefixedUrl() . "-->" );
-		
+
 		$this->returnToMain();
 	}
 
@@ -804,7 +823,7 @@ class OutputPage {
 			$skin = $wgUser->getSkin();
 			$this->setPageTitle( wfMsg( 'viewsource' ) );
 			$this->setSubtitle( wfMsg( 'viewsourcefor', $skin->makeKnownLinkObj( $wgTitle ) ) );
-			
+
 			# Determine if protection is due to the page being a system message
 			# and show an appropriate explanation
 			if( $wgTitle->getNamespace() == NS_MEDIAWIKI && !$wgUser->isAllowed( 'editinterface' ) ) {
@@ -833,7 +852,7 @@ class OutputPage {
 			}
 			$rows = $wgUser->getIntOption( 'rows' );
 			$cols = $wgUser->getIntOption( 'cols' );
-			
+
 			$text = "\n<textarea name='wpTextbox1' id='wpTextbox1' cols='$cols' rows='$rows' readonly='readonly'>" .
 				htmlspecialchars( $source ) . "\n</textarea>";
 			$this->addHTML( $text );
@@ -843,10 +862,10 @@ class OutputPage {
 	}
 
 	/** @obsolete */
-	function fatalError( $message ) { 
-		throw new FatalError( $message ); 
+	function fatalError( $message ) {
+		throw new FatalError( $message );
 	}
-	
+
 	/** @obsolete */
 	function unexpectedValueError( $name, $val ) {
 		throw new FatalError( wfMsg( 'unexpected', $name, $val ) );
@@ -908,13 +927,19 @@ class OutputPage {
 	 */
 	function returnToMain( $auto = true, $returnto = NULL ) {
 		global $wgUser, $wgOut, $wgRequest;
-		
+
 		if ( $returnto == NULL ) {
 			$returnto = $wgRequest->getText( 'returnto' );
 		}
-		
+
 		if ( '' === $returnto ) {
 			$returnto = wfMsgForContent( 'mainpage' );
+		}
+
+// WERELATE - use page title for link text of MyRelate when we makeLinkObj below
+		$linkText = '';
+		if ($returnto == 'Special:MyRelate') {
+			$linkText = wfmsg('myrelate');
 		}
 
 		if ( is_object( $returnto ) ) {
@@ -927,12 +952,13 @@ class OutputPage {
 		}
 
 		$sk = $wgUser->getSkin();
-		$link = $sk->makeLinkObj( $titleObj, '' );
+		$link = $sk->makeLinkObj( $titleObj, $linkText );
 
 		$r = wfMsg( 'returnto', $link );
-		if ( $auto ) {
-			$wgOut->addMeta( 'http:Refresh', '10;url=' . $titleObj->escapeFullURL() );
-		}
+// WERELATE - don't automatically redirect
+//		if ( $auto ) {
+//			$wgOut->addMeta( 'http:Refresh', '10;url=' . $titleObj->escapeFullURL() );
+//		}
 		$wgOut->addHTML( "\n<p>$r</p>\n" );
 	}
 
@@ -1060,11 +1086,12 @@ class OutputPage {
 	function rateLimited() {
 		global $wgOut;
 		$wgOut->disable();
+// WERELATE: changed message
 		wfHttpError( 500, 'Internal Server Error',
-			'Sorry, the server has encountered an internal error. ' .
+			'Sorry, to discourage spammers we limit the number of edits that can be made in a short period of time. ' .
 			'Please wait a moment and hit "refresh" to submit the request again.' );
 	}
-	
+
 	/**
 	 * Show an "add new section" link?
 	 *

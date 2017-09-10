@@ -109,7 +109,7 @@ class Skin extends Linker {
 	 */
 	function &newFromKey( $key ) {
 		global $wgStyleDirectory;
-		
+
 		$key = Skin::normalizeKey( $key );
 
 		$skinNames = Skin::getSkinNames();
@@ -169,7 +169,7 @@ class Skin extends Linker {
 		$this->addMetadataLinks($out);
 
 		$this->mRevisionId = $out->mRevisionId;
-		
+
 		$this->preloadExistence();
 
 		wfProfileOut( $fname );
@@ -186,14 +186,14 @@ class Skin extends Linker {
 		} else {
 			$otherTab = $wgTitle->getTalkPage();
 		}
-		$lb = new LinkBatch( array( 
+		$lb = new LinkBatch( array(
 			$wgUser->getUserPage(),
 			$wgUser->getTalkPage(),
 			$otherTab
 		));
 		$lb->execute();
 	}
-	
+
 	function addMetadataLinks( &$out ) {
 		global $wgTitle, $wgEnableDublinCoreRdf, $wgEnableCreativeCommonsRdf;
 		global $wgRightsPage, $wgRightsUrl;
@@ -262,7 +262,8 @@ class Skin extends Linker {
 
 	function getHeadScripts() {
 		global $wgStylePath, $wgUser, $wgAllowUserJs, $wgJsMimeType;
-		$r = "<script type=\"{$wgJsMimeType}\" src=\"{$wgStylePath}/common/wikibits.js\"></script>\n";
+// WERELATE - already included		
+//		$r = "<script type=\"{$wgJsMimeType}\" src=\"{$wgStylePath}/common/wikibits.js\"></script>\n";
 		if( $wgAllowUserJs && $wgUser->isLoggedIn() ) {
 			$userpage = $wgUser->getUserPage();
 			$userjs = htmlspecialchars( $this->makeUrl(
@@ -654,7 +655,8 @@ END;
 			(($wgTitle->getArticleId() == 0) || ($action == "history")) &&
 			($n = $wgTitle->isDeleted() ) )
 		{
-			if ( $wgUser->isAllowed( 'delete' ) ) {
+// WERELATE: added title parm; undelete action
+		   if ( $wgUser->isAllowed( 'undelete', $wgTitle ) ) {
 				$msg = 'thisisdeleted';
 			} else {
 				$msg = 'viewdeleted';
@@ -871,7 +873,8 @@ END;
 			}
 			if ( $wgTitle->getArticleId() ) {
 				$s .= "\n<br />";
-				if($wgUser->isAllowed('delete')) { $s .= $this->deleteThisPage(); }
+// WERELATE: added title parm
+				if($wgUser->isAllowed('delete', $wgTitle)) { $s .= $this->deleteThisPage(); }
 				if($wgUser->isAllowed('protect')) { $s .= $sep . $this->protectThisPage(); }
 				if($wgUser->isAllowed('move')) { $s .= $sep . $this->moveThisPage(); }
 			}
@@ -1135,7 +1138,8 @@ END;
 		global $wgUser, $wgTitle, $wgRequest;
 
 		$diff = $wgRequest->getVal( 'diff' );
-		if ( $wgTitle->getArticleId() && ( ! $diff ) && $wgUser->isAllowed('delete') ) {
+// WERELATE: added title parm
+		if ( $wgTitle->getArticleId() && ( ! $diff ) && $wgUser->isAllowed('delete', $wgTitle) ) {
 			$t = wfMsg( 'deletethispage' );
 
 			$s = $this->makeKnownLinkObj( $wgTitle, $t, 'action=delete' );
@@ -1354,7 +1358,7 @@ END;
 		if ( $wgTitle->getNamespace() == NS_SPECIAL ) {
 			return '';
 		}
-		
+
 		# __NEWSECTIONLINK___ changes behaviour here
 		# If it's present, the link points to this page, otherwise
 		# it points to the talk page
@@ -1365,7 +1369,7 @@ END;
 		} else {
 			$title =& $wgTitle->getTalkPage();
 		}
-		
+
 		return $this->makeKnownLinkObj( $title, wfMsg( 'postcomment' ), 'action=edit&section=new' );
 	}
 
@@ -1453,7 +1457,7 @@ END;
 		$key = "{$wgDBname}:sidebar";
 		$cacheSidebar = $wgEnableSidebarCache &&
 			($wgLanguageCode == $wgContLanguageCode);
-		
+
 		if ($cacheSidebar) {
 			$cachedsidebar = $parserMemc->get( $key );
 			if ($cachedsidebar!="") {
