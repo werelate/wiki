@@ -484,7 +484,7 @@ END;
                <?php if($this->data['catlinks']) { ?><div id="catlinks"><?php $this->html('catlinks') ?></div><?php } ?>
                <!-- end content -->
             </td>
-            <?php if (!$suppressAds && $wgUser->getOption('wrnoads') < $now) { ?>
+            <?php if (!$suppressAds && $wgUser->getOption('wrnoads') < $now && $wgTitle->getArticleID() != 0) { ?>
                <td id="rhsadbox">
                   <div id="rhsads">
 <div style="text-align: right; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
