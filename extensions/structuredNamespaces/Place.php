@@ -599,7 +599,7 @@ END;
       $types = explode(',', $type);
       for ($i = 0; $i < count($types); $i++) {
          $type = trim($types[$i]);
-         $types[$i] = mb_strtoupper(mb_substr($type,0,1)).mb_strtolower(mb_substr($type,1));
+         $types[$i] = mb_strtoupper(mb_substr($type,0,1)).mb_substr($type,1);
       }
       return join(', ', $types);
    }
