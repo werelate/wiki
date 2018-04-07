@@ -163,7 +163,7 @@ class UsercreateTemplate extends QuickTemplate {
 					</td>
 			<?php } ?>
 		</tr>
-      <?php $this->html('captcha'); /* WERELATE */ ?>
+      <?php /* $this->html('captcha'); WERELATE */ ?>
 		<tr>
 			<td></td>
 			<td align='left'>

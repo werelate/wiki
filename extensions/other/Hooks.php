@@ -9,7 +9,7 @@ if( !defined( 'MEDIAWIKI' ) )
 
 require_once("$IP/extensions/familytree/FamilyTreeUtil.php");
 require_once("$IP/extensions/familytree/AddTreePagesJob.php");
-require_once("$IP/extensions/recaptchalib.php");
+//require_once("$IP/extensions/recaptchalib.php");
 require_once("$IP/extensions/Mobile_Detect.php");
 
 # Register with MediaWiki as an extension
