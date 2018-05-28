@@ -598,7 +598,8 @@ function wrValidateUser($user, &$errorMsg, $email) {
       }
    }
 
-   if ($email == '') {
+   $needle = 'gsasearchenginerankersocialser.com';
+   if ($email == '' || (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle)) {
 		$errorMsg = wfMsg( 'emailrequired' );
 		return false;
 	}
