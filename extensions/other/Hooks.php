@@ -598,11 +598,44 @@ function wrValidateUser($user, &$errorMsg, $email) {
       }
    }
 
-   $needle = 'gsasearchenginerankersocialser.com';
-   if ($email == '' || (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle)) {
-		$errorMsg = wfMsg( 'emailrequired' );
-		return false;
-	}
+   $needles = array(
+"163.com",
+"bali-traveller.com",
+"bestwrinklecreamnow.com",
+"bk.ru",
+"brainboostingsupplements.org",
+"bursa303.win",
+"buygsalist.com",
+"captchaeu.info",
+"coloncleanse.club",
+"dietingadvise.club",
+"dynainbox.com",
+"eshreky.com",
+"geomenon.com",
+"get-bitcoins.club",
+"get-bitcoins.online",
+"gmx.com",
+"gsasearchengineranker.services",
+"gsasearchenginerankerhelp.com",
+"inbox.ru",
+"list.ru",
+"mail.ru",
+"missi.fun",
+"msgstart.com",
+"ropainterior-ck.com",
+"sazi.vn",
+"socialsergsasearchengineranker.com",
+"soleindotrade.id",
+"wirelax.com",
+"wp-viralclick.com",
+"yulua.com"
+);
+   foreach($needles as $needle) {
+      if ($email == '' || (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle)) {
+         $errorMsg = wfMsg( 'emailrequired' );
+         return false;
+      }
+   }
    if (mb_strpos($user->getName(), '@') !== false) {
       $errorMsg = wfMsg('invalidusername');
       return false;
