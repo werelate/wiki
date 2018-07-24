@@ -274,6 +274,9 @@ END;
    <script type="<?php $this->text('jsmimetype') ?>" src="<?php echo $wgScriptPath; ?>/jquery.json-2.3.min.1.js"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="<?php echo $wgScriptPath; ?>/jquery.ezpz_hint.min.2.js"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="<?php echo $wgScriptPath; ?>/jquery.plugins.4.js"></script>
+   <?php if ($wgTitle->getNamespace() === NS_SPECIAL && $wgTitle->getText() === 'Userlogin') { ?>
+   <script src='https://www.google.com/recaptcha/api.js'></script>
+   <?php } ?>
 <?php
 //   jquery.bgiframe.min.1.js separator.js
 //   jquery.clickmenu.yui.3.js separator.js

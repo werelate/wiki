@@ -25,6 +25,7 @@ class UserloginTemplate extends QuickTemplate {
 	</div>
 	<div class="visualClear"></div>
 <?php } ?>
+<?php /* WERELATE */ ?><script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <div id="userloginForm">
 <form name="userlogin" method="post" action="<?php $this->text('action') ?>">
 	<h2><?php $this->msg('login') ?></h2>
@@ -163,7 +164,11 @@ class UsercreateTemplate extends QuickTemplate {
 					</td>
 			<?php } ?>
 		</tr>
-      <?php /* $this->html('captcha'); WERELATE */ ?>
+<tr>
+<td></td><td align='left'>
+        <?php /* WERELATE */ ?><div class="g-recaptcha" data-sitekey="6LekH2YUAAAAAGYolYmTGetvG6ZEoocthn6qb1cv"></div>
+</td>
+</tr>
 		<tr>
 			<td></td>
 			<td align='left'>

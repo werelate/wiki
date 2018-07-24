@@ -38,7 +38,6 @@ function wfHooksSetup() {
 	$wgHooks['UnwatchArticleComplete'][] = 'wrIndexPurgeArticle';
 	$wgHooks['ArticlePurge'][] = 'wrIndexArticle';
    $wgHooks['TitleMoveComplete'][] = 'wrMovePage';
-   $wgHooks['UserCreateForm'][] = 'wrAddCaptcha';
 
    # Add new log types
    global $wgLogTypes, $wgLogNames, $wgLogHeaders, $wgLogActions;
@@ -576,26 +575,28 @@ END
 	return false; // stop processing
 }
 
-function wrAddCaptcha(&$template) {
-   global $wrRecaptchaPublicKey;
-
-   if ($wrRecaptchaPublicKey) {
-      $template->set('captcha', '<tr><td></td><td>'.recaptcha_get_html($wrRecaptchaPublicKey, null, true).'</td></tr>');
-   }
-}
-
 function wrValidateUser($user, &$errorMsg, $email) {
    global $wrRecaptchaPrivateKey;
 
    if ($wrRecaptchaPrivateKey) {
-      $resp = recaptcha_check_answer($wrRecaptchaPrivateKey,
-                                   $_SERVER["REMOTE_ADDR"],
-                                   $_POST["recaptcha_challenge_field"],
-                                   $_POST["recaptcha_response_field"]);
-      if (!$resp->is_valid) {
-         $errorMsg = "The reCAPTCHA wasn't entered correctly. Please try again.";
-         return false;
-      }
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = array(
+            'secret' => $wrRecaptchaPrivateKey,
+            'response' => $_POST["g-recaptcha-response"]
+        );
+        $options = array(
+            'http' => array (
+                'method' => 'POST',
+                'content' => http_build_query($data)
+            )
+        );
+        $context  = stream_context_create($options);
+        $verify = file_get_contents($url, false, $context);
+        $captcha_success=json_decode($verify);
+        if ($captcha_success->success==false) {
+            $errorMsg = "The reCAPTCHA wasn't entered correctly. Please try again.";
+            return false;
+        }
    }
 
    $needle = 'gsasearchenginerankersocialser.com';
