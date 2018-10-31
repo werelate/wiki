@@ -1,8 +1,10 @@
 var map;
 var parm;
 var markersArray = [];
+var key;
 
-function initGoogleLoader(key,callback,p) {
+function initGoogleLoader(k,callback,p) {
+  key = k;
   parm = p;
   var script = document.createElement("script");
   script.src = "https://www.google.com/jsapi?key="+key+"&callback="+callback;
@@ -11,7 +13,7 @@ function initGoogleLoader(key,callback,p) {
 }
 
 function loadMaps() {
-  google.load("maps", "3", {"other_params" : "sensor=false", "callback" : showPlaceMap});
+  google.load("maps", "3", {"other_params" : "key="+key, "callback" : showPlaceMap});
 }
 
 function showPlaceMap() {
