@@ -110,20 +110,27 @@ class WhatLinksHerePage {
 		);
 
 		$options = array();
+		$pageTitle = "case page_namespace when 108 then concat(substring_index(substring_index(page_title, '_', 2), '_', -1), '_', substring_index(page_title, '_', 1), '_', substring_index(page_title, '_', -1)) else page_title end";
 		if ( $from && strpos($from, ':')) {
 			$flds = split(":", $from, 2);
 			$fromNamespace = $dbr->addQuotes($flds[0]);
 			$fromTitle = $dbr->addQuotes($flds[1]);
+			if ($flds[0] == '108') {
+			  $pieces = explode('_', $flds[1]);
+			  if (count($pieces) >= 2) {
+			    $fromTitle = $dbr->addQuotes($pieces[1].'_'.$pieces[0].'_'.$pieces[count($pieces)-1]);
+			  }
+			}
 			if ( 'prev' == $dir ) {
-				$offsetCond = "(page_namespace < $fromNamespace OR (page_namespace = $fromNamespace AND page_title < $fromTitle))";
-				$options['ORDER BY'] = 'page_namespace DESC, page_title DESC';
+				$offsetCond = "(page_namespace < $fromNamespace OR (page_namespace = $fromNamespace AND $pageTitle < $fromTitle))";
+				$options['ORDER BY'] = "page_namespace DESC, $pageTitle DESC";
 			} else {
-				$offsetCond = "(page_namespace > $fromNamespace OR (page_namespace = $fromNamespace AND page_title >= $fromTitle))";
-				$options['ORDER BY'] = 'page_namespace, page_title';
+				$offsetCond = "(page_namespace > $fromNamespace OR (page_namespace = $fromNamespace AND $pageTitle >= $fromTitle))";
+				$options['ORDER BY'] = "page_namespace, $pageTitle";
 			}
 		} else {
 			$offsetCond = false;
-			$options['ORDER BY'] = 'page_namespace, page_title';
+			$options['ORDER BY'] = "page_namespace, $pageTitle";
 		}
 		// Read an extra row as an at-end check
 		$queryLimit = $limit + 1;
@@ -152,12 +159,26 @@ class WhatLinksHerePage {
 		$rows = array();
 		while ( $row = $dbr->fetchObject( $plRes ) ) {
 			$row->is_template = 0;
-			$rows[$this->padNs($row->page_namespace).':'.$row->page_title] = $row;
+			$pageTitle = $row->page_title;
+			if ($row->page_namespace == 108) {
+			  $pieces = explode('_', $pageTitle);
+			  if (count($pieces) >= 2) {
+			    $pageTitle = implode('_',array_slice($pieces, 1, -1)).'_'.$pieces[0].'_'.$pieces[count($pieces)-1];
+			  }
+			}
+			$rows[$this->padNs($row->page_namespace).':'.$pageTitle] = $row;
 		}
 		$dbr->freeResult( $plRes );
 		while ( $row = $dbr->fetchObject( $tlRes ) ) {
 			$row->is_template = 1;
-			$rows[$this->padNs($row->page_namespace).':'.$row->page_title] = $row;
+			$pageTitle = $row->page_title;
+			if ($row->page_namespace == 108) {
+			  $pieces = explode('_', $pageTitle);
+			  if (count($pieces) >= 2) {
+			    $pageTitle = implode('_',array_slice($pieces, 1, -1)).'_'.$pieces[0].'_'.$pieces[count($pieces)-1];
+			  }
+			}
+			$rows[$this->padNs($row->page_namespace).':'.$pageTitle] = $row;
 		}
 		$dbr->freeResult( $tlRes );
 
@@ -222,7 +243,14 @@ class WhatLinksHerePage {
 				$extra = '';
 			}
 
-			$link = $this->skin->makeKnownLinkObj( $nt, '', $extra );
+            $pageTitle = '';
+            if ($row->page_namespace == 108) {
+			  $pieces = explode('_', $row->page_title);
+			  if (count($pieces) >= 2) {
+			    $pageTitle = 'Person:'.implode(' ',array_slice($pieces, 1, -1)).', '.$pieces[0].' '.$pieces[count($pieces)-1];
+			  }
+            }
+			$link = $this->skin->makeKnownLinkObj( $nt, $pageTitle, $extra );
 			$wgOut->addHTML( '<li>'.$link );
 
 			// Display properties (redirect or template)
