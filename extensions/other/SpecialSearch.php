@@ -91,7 +91,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 
             $mhAd = <<< END
 <div style="margin: -23px 0 16px 0;">
-<iframe src="https://www.myheritage.com/FP/partner-widget.php?firstName=$firstName&lastName=$lastName&clientId=3401&partnerName=werelate&widget=records&tr_device=$device" frameborder="0" scrolling="no" width="728" height="90"></iframe></div>
+<iframe src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=werelate_widgets_+aug19&widget=records_carousel&width=728&height=90&onSitePlacement=Search+People_728x90_records&tr_ifid=werelate_252927986&firstName=$firstName&lastName=$lastName&tr_device=$device&size=728x90" frameborder="0" scrolling="no" width="728" height="90"></iframe></div>
 END;
          }
 		 list ($sideText, $results) = $searchForm->getSearchResultsHtml($searchServerQuery);
