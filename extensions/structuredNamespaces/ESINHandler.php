@@ -544,21 +544,25 @@ END;
       else {
          $citation .= $title;
       }
+      $extra = "";
       $page = (string)$sourceCitation['page'];
       if ($page) {
-         $citation = StructuredData::chomp($citation,',').", $page";
+         $extra = $page;
       }
       $date = (string)$sourceCitation['date'];
       if ($date) {
-         $citation = StructuredData::chomp($citation,',').", $date";
+         $extra = $extra ? "$extra, $date" : $date;
       }
-      $quality = (string)$sourceCitation['quality'];
-      if (strlen($quality) > 0) {
-         $qualName = array_search($quality, self::$QUALITY_OPTIONS);
-         if (!$qualName && @self::$QUALITY_OPTIONS[$quality]) $qualName = $quality; // allow old alpha form
-         if ($qualName) {
-            $citation = StructuredData::chomp($citation,',').", $qualName quality";
-         }
+//       $quality = (string)$sourceCitation['quality'];
+//       if (strlen($quality) > 0) {
+//          $qualName = array_search($quality, self::$QUALITY_OPTIONS);
+//          if (!$qualName && @self::$QUALITY_OPTIONS[$quality]) $qualName = $quality; // allow old alpha form
+//          if ($qualName) {
+//          $extra = StructuredData::chomp($extra,',').", $qualName quality";
+//          }
+//       }
+      if ($extra) {
+            $citation .= "<br>$extra";
       }
       return $citation;
    }
