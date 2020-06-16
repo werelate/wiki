@@ -122,7 +122,7 @@ class ESINHandler extends StructuredData {
       }
       $birthYear = StructuredData::getYear($birthDate);
       $chrYear = StructuredData::getYear($chrDate);
-      return ($birthYear && (int)date("Y") - (int)$birthYear < 110) || ($chrYear && (int)date("Y") - (int)$chrYear < 110);
+      return ($birthYear && (int)date("Y") - (int)$birthYear < 110) || (!$birthYear && $chrYear && (int)date("Y") - (int)$chrYear < 110);
    }
 
    public static function isAmbiguousDate($date) {
