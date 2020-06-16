@@ -44,12 +44,7 @@ class PlaceSearcher {
 	   $contentString = 'q='.urlencode($query);
 	   $contentLength = strlen($contentString);
 
-	   $requestBody = "POST $url HTTP/1.0
-Host: $host
-Content-type: application/x-www-form-urlencoded
-Content-length: $contentLength
-
-$contentString";
+	   $requestBody = "POST $url HTTP/1.0\r\nHost: $host\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: $contentLength\r\n$contentString";
 
 	   $sh = fsockopen($host, $port, $errno, $errstr, $timeout)
 	     or die("can't open socket to $host: $errno $errstr");

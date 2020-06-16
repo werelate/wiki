@@ -57,7 +57,7 @@ class OutputPage {
 	function redirect( $url, $responsecode = '302' ) {
 	    # WR DWQ
 	    global $wrProtocol;
-	    if ( substr( $url, 0, 7 ) === "http://" && $wrProtocol = "https" ) {
+	    if ( substr( $url, 0, 7 ) === "http://" && $wrProtocol === "https" ) {
 	        $url = $wrProtocol . "://" . substr( $url, 7);
 	    }
 
