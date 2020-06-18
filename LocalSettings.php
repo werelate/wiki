@@ -44,6 +44,8 @@ $wrBotUserID = getenv('BOT_USER_ID');
 $wrAdminUserName = getenv('ADMIN_USER_NAME');
 $wrMyHeritageKey = getenv('MYHERITAGE_KEY');
 
+# $wgSiteNotice = '<b>NOTICE: WeRelate will be going down at 10:15pm Pacific time, 1:15am Eastern time</b>';
+
 # If PHP's memory limit is very low, some operations may fail.
 # let php.ini control the memory
 # ini_set( 'memory_limit', '32M' );
@@ -56,8 +58,6 @@ if ( $wgCommandLineMode ) {
 	## Compress output if the browser supports it
 	if( !ini_get( 'zlib.output_compression' ) ) @ob_start( 'ob_gzhandler' );
 }
-
-# $wgSiteNotice = '<b>NOTICE: WeRelate will be going down at 10:15pm Pacific time, 1:15am Eastern time</b>';
 
 $wgSitename         = "WeRelate";
 
