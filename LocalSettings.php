@@ -79,7 +79,7 @@ $wgEnableUserEmail = true;
 $wrIconCircleFilePath = $wgStyleDirectory.'/common/images/maps/balloon-48-circle.png';
 $wrIconMaskFilePath = $wgStyleDirectory.'/common/images/maps/balloon-48-mask.png';
 
-$wrProtocol = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') ? 'http' : 'https';
+$wrProtocol = 'https';
 $wgServerName = $wrHostName;
 $wgServer = $wrProtocol.'://'.$wgServerName;
 $wgDisableTextSearch=true;
