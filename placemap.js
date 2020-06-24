@@ -1,23 +1,8 @@
 var map;
-var parm;
 var markersArray = [];
-var key;
-
-function initGoogleLoader(k,callback,p) {
-  key = k;
-  parm = p;
-  var script = document.createElement("script");
-  script.src = "https://www.google.com/jsapi?key="+key+"&callback="+callback;
-  script.type = "text/javascript";
-  document.getElementsByTagName("head")[0].appendChild(script);
-}
-
-function loadMaps() {
-  google.load("maps", "3", {"other_params" : "key="+key, "callback" : showPlaceMap});
-}
 
 function showPlaceMap() {
-	var size = parm;
+   var size = getSize();
    // get map data
    var placeData = getPlaceData();
    var xmlDoc = parseXml(placeData);
