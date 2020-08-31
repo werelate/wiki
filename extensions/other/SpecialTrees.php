@@ -7,6 +7,7 @@
 
 require_once("$IP/extensions/familytree/FamilyTreeUtil.php");
 
+
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfSpecialTreesSetup";
 
@@ -31,6 +32,25 @@ class SpecialTrees {
    var $newName;
    var $confirmed;
    var $gedcomId;
+   
+   // option lists added Aug 2020 by Janet Bjorndahl
+	 public static $EXPLORE_NAMESPACE_OPTIONS = array( 
+		'All pages' => '',
+		'People' => NS_PERSON,
+		'Families' => NS_FAMILY,
+		'Articles' => '0',
+		'Images' => NS_IMAGE,
+		'MySources' => NS_MYSOURCE,
+		'Sources' => NS_SOURCE,
+    'Transcripts' => NS_TRANSCRIPT,
+		'Repositories' => NS_REPOSITORY,
+		'Places' => NS_PLACE,
+		'User pages' => NS_USER,
+		'Surnames' => NS_SURNAME,
+		'Given names' => NS_GIVEN_NAME,
+	 );
+
+   public static $EXPLORE_ROWS_OPTIONS = array('10','15','20','30','40','50','100','200');
 
    public function __construct() {
 		$this->action = '';
@@ -409,6 +429,18 @@ END
    	return join('<br/>',$gedcoms);
    }
 
+   /** Construct SQL case statement to set namespace sort order for exploring a tree (added by Janet Bjorndahl Aug 2020) */
+   public function getExploreTreeOrder() {
+     global $wgSortedNamespaces;
+   
+     $case = 'CASE fp_namespace'; 
+		 foreach( $wgSortedNamespaces as $namespace => $val ) {
+			 $case .= ' WHEN ' . $val . ' THEN ' . $namespace;
+		 }
+     $case .= ' ELSE 999 END';
+     return $case;
+   }  
+
    public function getTrees() {
       global $wgUser, $wrHostName;
 
@@ -431,11 +463,31 @@ END
             $deletionImpact = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'TreeDeletionImpact'), 'impact', wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'])));
             $delete = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'delete', wfArrayToCGI(array('action' => 'deleteTree', 'name' => $familyTree['name'])));
             $search = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'view', wfArrayToCGI(array('k' => '+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')));
+
+            // Code to explore a family tree added Aug 2020 by Janet Bjorndahl
+    
+            // Allow user to explore a tree only if the tree has at least one page, because exploring starts with displaying a page        
+		        if ($familyTree['count'] > 0) {
+              // Issue db query to get the first page to display
+              $sql = 'SELECT fp_namespace, fp_title FROM familytree_page USE INDEX (PRIMARY)'
+		            . ' WHERE fp_tree_id = ' . $familyTree['id']
+                . ' ORDER BY ' . $this->getExploreTreeOrder() . ', fp_title'
+		            . ' LIMIT 1;';
+  		        $res = $db->query($sql, 'ExploreFamilyTree');
+              $firstPage = $db->fetchObject( $res );
+              $firstTitle = Title::newFromText($firstPage->fp_title, $firstPage->fp_namespace);
+              $explore = $skin->makeKnownLinkObj($firstTitle, 'explore', 
+                wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
+              }            
+            
             $fte = '<a href="/fte/index.php?'.wfArrayToCGI(array('userName' => $wgUser->getName(), 'treeName' => $familyTree['name'])).'">launch&nbsp;FTE</a>';
             $ret .= '<tr><td>' . htmlspecialchars($familyTree['name']) . ' <span class="plainlinks">'
               . " (&nbsp;$search&nbsp;)"
-              . " (&nbsp;$fte&nbsp;)"
-              . '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td><td>$delete</td></tr>";
+              . " (&nbsp;$fte&nbsp;)";
+		        if ($familyTree['count'] > 0) {     // If statement added 11 Aug 2020 by Janet Bjorndahl
+              $ret .= " (&nbsp;$explore&nbsp;)";
+              }
+            $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td><td>$delete</td></tr>";
          }
       }
 

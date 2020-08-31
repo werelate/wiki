@@ -167,6 +167,80 @@ class MonoBookTemplate extends QuickTemplate {
 </li>
 END;
    }
+	
+  /** Function initExploreTree added Aug 2020 by Janet Bjorndahl
+    * to determine whether we are displaying a page in the context of exploring a tree, and 
+    * if so, to get the parameters for the page list to be incorporated in the page
+    */
+  public function initExploreTree() {
+    global $wgRequest;
+     
+   /** Initialize isExploreContext if it has no value (first structured page to be displayed in this session). */   
+    if ( !isset($_SESSION['isExploreContext']) ) {
+      $_SESSION['isExploreContext'] = false;
+    }
+    
+   /** If the page has parameters for exploring a user tree, capture them and set isExploreContext to true.
+     * Parameters are stored as session global variables so that all pages display in the context of exploring a tree until the 
+     * user selects to exit.
+     */
+    $treeParm = $wgRequest->getVal('tree');
+    if ( $treeParm !== null ) {
+      $_SESSION['listParms']['tree'] = $treeParm;
+      $_SESSION['listParms']['user'] = $wgRequest->getVal('user');
+      $_SESSION['listParms']['start'] = $wgRequest->getVal('liststart');
+      $_SESSION['listParms']['rows'] = $wgRequest->getVal('listrows');
+      $_SESSION['listParms']['ns'] = $wgRequest->getVal('listns');
+      $_SESSION['isExploreContext'] = true;
+    }
+    
+    if ( $wgRequest->getVal('exitexplore') == 'yes' ) {
+      $_SESSION['isExploreContext'] = false;
+    }    
+  }
+
+  /** Function createInPageList added Aug 2020 by Janet Bjorndahl
+    * to create page title links to display as a list within another page.
+    * This function also sets a listParms variable to indicate if there are more pages to display.
+    */
+	public static function createInPageList($title) {
+    global $wgUser;
+    
+    $sk =& $wgUser->getSkin();
+
+    $linkList = array();
+    // issue db query to get pages in the user's tree
+    $dbr =& wfGetDB( DB_SLAVE );
+    $sql = 'SELECT fp_namespace, fp_title FROM familytree_page USE INDEX (PRIMARY)'
+      . ' WHERE fp_tree_id = (SELECT ft_tree_id FROM familytree WHERE ft_user = ' . $dbr->addQuotes($_SESSION['listParms']['user']) 
+      . ' AND ft_name = ' . $dbr->addQuotes($_SESSION['listParms']['tree']) . ')';
+    if ($_SESSION['listParms']['ns'] != null) {
+      $sql .= ' AND fp_namespace = ' . $_SESSION['listParms']['ns'];
+		}
+		$sql .= ' ORDER BY ' . SpecialTrees::getExploreTreeOrder() . ', fp_title'
+         . ' LIMIT ' . ($_SESSION['listParms']['start'] + $_SESSION['listParms']['rows'] + 1);
+		$res = $dbr->query($sql, 'ExploreFamilyTree');
+
+    // add page links to $linkList, ignoring pages before the value of 'start'
+		$n = 0;
+		while( ($n < ($_SESSION['listParms']['start'] + $_SESSION['listParms']['rows'])) && ($s = $dbr->fetchObject( $res )) ) {
+      if ($n >= $_SESSION['listParms']['start']) {
+        $listTitle = Title::makeTitle($s->fp_namespace, $s->fp_title);
+        $linkList[$n-$_SESSION['listParms']['start']] = array('link'=>($sk->makeKnownLinkObj($listTitle, htmlspecialchars($listTitle->getPrefixedText()) )));
+      } 
+      $n++; 
+    }
+    $_SESSION['listParms']['end'] = $n; // number in list of last record read
+    
+    // determine if there is another page (list should allow scrolling to next page)
+    if ($s = $dbr->fetchObject( $res )) {
+      $_SESSION['listParms']['more'] = true;
+    }
+    else {  
+      $_SESSION['listParms']['more'] = false;
+    }
+    return $linkList;
+  }
 
 	/**
 	 * Template filter callback for MonoBook skin.
@@ -276,7 +350,7 @@ END;
 	<?php $this->html('headlinks') ?>
 	<title><?php $this->text('pagetitle') ?></title>
    <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/themes/redmond/jquery-ui.css">
-   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.79.css"; /*]]>*/</style>
+   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.80.css"; /*]]>*/</style>
 	<link rel="stylesheet" type="text/css" <?php if(empty($this->data['printable']) ) { ?>media="print"<?php } ?> href="<?php $this->text('stylepath') ?>/common/commonPrint.7.css" />
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
@@ -307,9 +381,25 @@ END;
        <a href="<?php echo Title::makeTitle('', 'Main_Page')->getLocalURL()?>" title="<?php $this->msg('mainpage') ?>">
            <img src="<?php $this->text('logopath') ?>"/>
        </a>
-      <div class="wr-sidebar-separator"></div>
+       <?php
+         // determine if page is being displayed in the context of exploring a tree (added Aug 2020 by Janet Bjorndahl)
+         $this->initExploreTree();
+         if ( $_SESSION['isExploreContext'] ) {    // This check added Aug 2020 by Janet Bjorndahl
+           echo '<div class="wr-sidebar-separator-wide"></div>';
+         }
+         else {
+           echo '<div class="wr-sidebar-separator"></div>';
+         }
+       ?>  
    </div>
-   <div id="wr-navtitle">
+       <?php
+         if ( $_SESSION['isExploreContext'] ) {    // This check added Aug 2020 by Janet Bjorndahl
+           echo '<div id="wr-navtitle-wide">';
+         }
+         else {
+           echo '<div id="wr-navtitle">';
+         }
+       ?>  
       <div id="wr-navigation">
          <div class="portlet" id="wr-menu">
             <h5><?php echo 'Menu'; ?></h5>
@@ -385,8 +475,13 @@ END;
    <div id="bodyContent">
       <table id="sdlayout">
          <tr>
-            <td id="infobox">
             <?php
+            if ( $_SESSION['isExploreContext'] ) {    // This check added Aug 2020 by Janet Bjorndahl
+              echo '<td id="pagelistbox">';
+            }
+            else {  
+              echo '<td id="infobox">';
+            }
             if ($this->data['notspecialpage']) {
                ?><div class="portlet" id="wr-actions">
                   <h5><?php $this->msg('views') ?></h5>
@@ -423,7 +518,14 @@ END;
                      </ul>
                   </div>
                </div>
-               <div class="wr-sidebar-separator"></div>
+               <?php
+                 if ( $_SESSION['isExploreContext'] ) {    // This check added Aug 2020 by Janet Bjorndahl
+                   echo '<div class="wr-sidebar-separator-wide"></div>';
+                 }
+                 else {
+                   echo '<div class="wr-sidebar-separator"></div>';
+                 }
+               ?>  
                <div class="portlet" id="wr-watchers">
                   <h5>Watchers</h5>
                   <div class="nav-body"><?php
@@ -441,8 +543,81 @@ END;
                      }
                   ?></div>
                </div>
-               <div class="portlet" id="wr-morelikethis">
-                  <?php
+               
+               <?php
+               /* In lower left portlet for a structured data page, display either an in-page list or browse facets,
+                * depending on the context. */
+                 if ( $_SESSION['isExploreContext'] ) {
+                   
+                   /* In-page list (code added Aug 2020 by Janet Bjorndahl) */
+                   $currentTitleText = $wgRequest->getVal('title');
+                   echo '<div class="portlet" id="page-list">';
+                   echo '<table><tr><td><h5>Tree: ' . $_SESSION['listParms']['tree'] . '</h5></td>';
+                   echo '<td class="td-right">' . $sk->makeKnownLink($currentTitleText, 'Exit', wfArraytoCGI(array('exitexplore' => 'yes')));
+                   echo '</td></tr></table>';
+                   
+                   // if user selected/entered an option, update parms then (re)display options
+                   $newRows = $wgRequest->getVal('listrows');
+                   if ( $newRows > 0 ) {
+                     $_SESSION['listParms']['ns'] = $wgRequest->getVal('listns');
+                     $_SESSION['listParms']['rows'] = $newRows;
+                     $jump = $wgRequest->getVal('listjump');
+                     if ( $jump > 0 ) {
+                       $_SESSION['listParms']['start'] = $jump - 1;
+                     }
+                   }    
+                   echo '<form method="get" action="/wiki/' . $wgTitle->getPrefixedURL($currentTitleText) . '">';
+              	   $namespace = 'listns';
+                   $rows = 'listrows';
+                   echo StructuredData::addSelectToHtml(0, $namespace, SpecialTrees::$EXPLORE_NAMESPACE_OPTIONS, 
+                     $_SESSION['listParms']['ns'], 'onchange="this.form.submit()"', false);
+                   echo '<label for="listrows"> Show </label>' . StructuredData::addSelectToHtml(0, $rows, SpecialTrees::$EXPLORE_ROWS_OPTIONS, 
+                     $_SESSION['listParms']['rows'], 'onchange="this.form.submit()"', false);
+                   echo '<label for="listjump"> Jump to # </label><input type="number" id="listjump" name="listjump"/>';
+                   echo '</form>';
+                   
+                   // create list of page links
+                   $linkList = $this->createInPageList($wgTitle);
+                   // start can be past the end when user jumps to a particular row or changes namespace filter - if so, reset 'start' and create page links again
+                   if ( $_SESSION['listParms']['start'] > 0 && ($_SESSION['listParms']['end'] <= $_SESSION['listParms']['start']) ) {
+                     if ( $jump > 0 ) {
+                       $_SESSION['listParms']['start'] = max(0,  $_SESSION['listParms']['end'] - $_SESSION['listParms']['rows']); // if jumped beyond end, go to last full page of list
+                     }
+                     else {
+                       $_SESSION['listParms']['start'] = 0; // if namespace filter changed, go to beginning of list
+                     }
+                     $linkList = $this->createInPageList($wgTitle);
+                   }
+                   
+                   // scrolling info
+                   echo '<div class="prev_next_links_top">';
+                   if ( $_SESSION['listParms']['start'] > 0 ) { 
+                     $newStart = max(0 , $_SESSION['listParms']['start'] - $_SESSION['listParms']['rows']);
+                     echo $sk->makeKnownLink($currentTitleText, '&laquo;&nbsp;Prev', 
+                       wfArrayToCGI(array('user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
+                       'liststart' => $newStart, 'listrows' => $_SESSION['listParms']['rows'], 'listns' => $_SESSION['listParms']['ns']))) . ' | ';
+                   }
+                   echo 'Viewing <b>';
+                   echo $_SESSION['listParms']['start']+1 . '-' . $_SESSION['listParms']['end'] . '</b>'; 
+                   if ( $_SESSION['listParms']['more'] ) {
+                     $newStart = $_SESSION['listParms']['start'] + $_SESSION['listParms']['rows'];
+                     echo ' | ' . $sk->makeKnownLink($currentTitleText, 'Next&nbsp;&raquo;', 
+                       wfArrayToCGI(array('user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
+                       'liststart' => $newStart, 'listrows' => $_SESSION['listParms']['rows'], 'listns' => $_SESSION['listParms']['ns'])));
+                   }
+                   echo '</div>';
+
+                   // the list of pages
+                   echo '<div class="page-list-main"><ul>'; 
+                   foreach ($linkList as $pageLink) {
+                     echo '<li>' . $pageLink['link'] . '</li>';
+                   }
+                   echo '</ul></div></div>';
+                 }
+                 else {
+
+                   /* Browse facets */
+                   echo '<div class="portlet" id="wr-morelikethis">';
                      $moreLikeThis = StructuredData::getMoreLikeThis($wgTitle);
                      if (count($moreLikeThis) > 0) {
                         echo '<h5>Browse</h5><div class="nav-body morelikethis"><ul>';
@@ -459,8 +634,10 @@ END;
                         }
                         echo '</ul></div>';
                      }
-                  ?>
-               </div>
+                   echo '</div>';
+                 }                     
+               ?>
+               
                <?php
                if ($mainPage) {
                ?><div id="awards"><?php
