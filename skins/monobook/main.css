@@ -217,6 +217,25 @@ span.subpages
 	padding: .4em .9em;
 }
 
+/* pagelistbox styles added Aug 2020 by Janet Bjorndahl */
+#pagelistbox {
+   margin: 0;
+   padding: 0;
+	width: 300px;
+   min-width: 300px;
+   max-width: 300px;
+	background-color: #fff;
+	text-align: left;
+	vertical-align: top;
+   border-right: 1px solid #ccc;
+}
+#pagelistbox .portlet {
+   padding-left: 12px;
+}
+#pagelistbox table {
+  padding: 0;
+}
+
 #contentbox
 {
 	vertical-align: top;
@@ -448,6 +467,14 @@ span.subpages
    height: 1px;
 }
 
+.wr-sidebar-separator-wide {    /* added Aug 2020 by Janet Bjorndahl */
+   width: 276px;
+   margin: 16px 0 0 12px;
+   border-top: 1px solid #eee;
+   font-size: 1px;
+   height: 1px;
+}
+
 /* wr-watchers */
 
 #wr-watchers {
@@ -477,6 +504,56 @@ span.subpages
    margin-top: 4px;
 }
 
+/* page-list styles added Aug 2020 by Janet Bjorndahl */
+#page-list {
+   width: 288px;
+   max-width: 288px;
+   overflow: hidden;
+}   
+#page-list h5 {
+   margin-bottom: 0 !important;
+   color: #333; 
+   font-weight: normal;
+   font-size: 13px;
+   line-height: 1;
+}
+#page-list table {
+  width: 100%;
+  padding: 0;
+  margin: -0.3em;
+  font-size: 13px;
+}
+#page-list td-right {
+  text-align: right;
+}  
+#listns, #listrows, #listjump {
+   font-size: 10px;
+   vertical-align: baseline; 
+}
+#listjump {
+   width: 40px;
+} 
+#page-list ul {
+   list-style: none none;
+   padding: 0 4px 0 0;
+   margin: 0;
+}
+#page-list li {
+   color: #333;
+   padding-left: 8px;
+   white-space: nowrap;
+} 
+li.page-list-main {
+   font-size: 12px;
+   line-height: 1em;
+   margin-top: 4px;
+}
+li.page-list-sub {
+   font-size: 11px;
+   line-height: 1em;
+   margin-top: 2px;
+}
+
 #awards {
    margin-top: 100px;
    padding-left: 12px;
@@ -499,6 +576,10 @@ span.subpages
 {
    margin-left: 160px;
 }
+#wr-navtitle-wide {   /* added Aug 2020 by Janet Bjorndahl */
+   margin-left: 300px;
+}
+
 /********** FOOTER **********/
 
 #wr-footer
