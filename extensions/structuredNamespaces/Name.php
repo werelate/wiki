@@ -135,7 +135,12 @@ class Name extends StructuredData {
 	            $relatedNames .= htmlspecialchars($related['name']) .'|' . htmlspecialchars($related['source']) ."\n";
 	        }
         }
-		return "<br>Related names (one per line): Name | Source<br><textarea tabindex=\"1\" name=\"related\" rows=\"20\" cols=\"50\">$relatedNames</textarea><br>Text:<br>";
+
+		return "<br>Related names (one per line): Name | Source<br>".
+		"<div style=\"margin: 8px 0\"><strong>Important:</strong> Instead of editing related names here, ".
+		"please edit them on the <a href=\"https://www.werelate.org/wiki/WeRelate:Variant_names_project\">Variant names project</a>, ".
+		"where they will be used as alternate names in search.</strong></div>".
+		"<textarea tabindex=\"1\" name=\"related\" rows=\"20\" cols=\"50\">$relatedNames</textarea><br>Text:<br>";
     }
 
     /**
