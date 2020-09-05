@@ -158,6 +158,7 @@ class UserPage extends StructuredData {
         return '';
     }
 
+    // This function is no longer used - the code is handled inline below
     protected function formatFamilyTree($value, $dummy) {
     	 global $wrHostName;
        return $value['name'].' <span class="plainlinks">'
@@ -279,11 +280,17 @@ class UserPage extends StructuredData {
           }
 
           $values = array();
+          $n=0;
           foreach ($familyTrees as $familyTree) {
-            $values[] = '<dl><dt>'.$familyTree['name'].' <span class="plainlinks">'
+            $values[$n] = '<dl><dt>'.$familyTree['name'].' <span class="plainlinks">'
                    . ' ([http://'.$wrHostName.'/wiki/Special:Search?k='. urlencode('+Tree:"'.$this->userName.'/'.$familyTree['name'].'"') . " view])"
-                   . ' ([http://'.$wrHostName.'/fte/index.php?userName='. urlencode($this->userName) . '&treeName=' . urlencode($familyTree['name']) . " launch FTE])"
-                   . "</span><dd>people: {$familyTree['count']}</dl>";
+                   . ' ([http://'.$wrHostName.'/fte/index.php?userName='. urlencode($this->userName) . '&treeName=' . urlencode($familyTree['name']) . " launch FTE])";
+            if ( $familyTree['count'] > 0 ) { // Add explore link, but only for trees with at least one page (added Sep 2020 by Janet Bjorndahl)
+              $firstTitle = SpecialTrees::getExploreFirstTitle($this->userName, $familyTree['name']);
+              $values[$n] .= ' ([http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&user=' . $this->userName. '&tree=' . $familyTree['name'] 
+                      . '&liststart=0&listrows=20 explore])';
+            }
+            $values[$n++] .= "</span><dd>people: {$familyTree['count']}</dl>";
           }
           $familyTrees = $this->getLV('Family Trees', $values);
 
