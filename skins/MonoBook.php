@@ -640,6 +640,11 @@ END;
                
                <?php
                if ($mainPage) {
+                  if ($wgUser->getOption('wrnoads') < $now) {
+               ?><div id="mh_ad" style="margin: 32px 0 0 16px"><a href="https://www.myheritage.com/search-records?utm_source=partner_werelate&utm_medium=partner&utm_campaign=werelate_hpSmall2020&tr_funnel=supersearch">
+                  <img src="/w/skins/common/images/mh_ad_100x300.png"/>
+               </a></div><?php
+                  }
                ?><div id="awards"><?php
                   echo wfMsg('awards');
                ?></div><?php
@@ -678,6 +683,9 @@ END;
                   <div id="rhsads">
 <div style="text-align: right; padding-right: 3px"><a href="/wiki/WeRelate:Donate">Don't want ads?</a></div>
 <div style="margin-top: 16px">
+<?php
+if ($wgTitle->getNamespace() == NS_PERSON) {
+?>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- rhs600 -->
 <ins class="adsbygoogle"
@@ -687,6 +695,13 @@ END;
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
+<?php
+} else {
+?>
+<iframe height="600" width="300" src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=Mixed_Records_300x600&widget=mixed&width=300&height=600&onSitePlacement=Mixed_Records_300x600&tr_ifid=werelate_281825853&firstName=&lastName=&tr_device="/>
+<?php
+}
+?>
 </div>
                   </div>
                </td>
