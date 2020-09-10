@@ -429,8 +429,8 @@ END
    	return join('<br/>',$gedcoms);
    }
 
-   /** Construct SQL case statement to set namespace sort order for exploring a tree (added by Janet Bjorndahl Aug 2020) */
-   public function getExploreTreeOrder() {
+   /** Construct SQL case statement to set namespace sort order for exploring a tree (added Aug 2020 by Janet Bjorndahl) */
+   public static function getExploreTreeOrder() {
      global $wgSortedNamespaces;
    
      $case = 'CASE fp_namespace'; 
@@ -441,6 +441,24 @@ END
      return $case;
    }  
 
+   /** Get title of first page for exploring a family tree (refactored Sep 2020 by Janet Bjorndahl) */
+   public static function getExploreFirstTitle($userName, $treeName) {
+     global $wgUser;
+     
+     // Issue db query to get the first page to display
+   	 $skin =& $wgUser->getSkin();
+     $dbr =& wfGetDB (DB_SLAVE);
+     $sql = 'SELECT fp_namespace, fp_title FROM familytree_page USE INDEX (PRIMARY)'
+		      . ' WHERE fp_tree_id = (SELECT ft_tree_id FROM familytree WHERE ft_user = ' . $dbr->addQuotes($userName) 
+          . ' AND ft_name = ' . $dbr->addQuotes($treeName) . ')'
+          . ' ORDER BY ' . SpecialTrees::getExploreTreeOrder() . ', fp_title'
+		      . ' LIMIT 1;';
+  	 $res = $dbr->query($sql, 'ExploreFamilyTree');
+     $firstPage = $dbr->fetchObject( $res );
+     $firstTitle = Title::newFromText($firstPage->fp_title, $firstPage->fp_namespace);
+     return $firstTitle;   
+   }
+   
    public function getTrees() {
       global $wgUser, $wrHostName;
 
@@ -463,28 +481,15 @@ END
             $deletionImpact = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'TreeDeletionImpact'), 'impact', wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'])));
             $delete = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'delete', wfArrayToCGI(array('action' => 'deleteTree', 'name' => $familyTree['name'])));
             $search = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'view', wfArrayToCGI(array('k' => '+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')));
-
-            // Code to explore a family tree added Aug 2020 by Janet Bjorndahl
-    
-            // Allow user to explore a tree only if the tree has at least one page, because exploring starts with displaying a page        
-		        if ($familyTree['count'] > 0) {
-              // Issue db query to get the first page to display
-              $sql = 'SELECT fp_namespace, fp_title FROM familytree_page USE INDEX (PRIMARY)'
-		            . ' WHERE fp_tree_id = ' . $familyTree['id']
-                . ' ORDER BY ' . $this->getExploreTreeOrder() . ', fp_title'
-		            . ' LIMIT 1;';
-  		        $res = $db->query($sql, 'ExploreFamilyTree');
-              $firstPage = $db->fetchObject( $res );
-              $firstTitle = Title::newFromText($firstPage->fp_title, $firstPage->fp_namespace);
-              $explore = $skin->makeKnownLinkObj($firstTitle, 'explore', 
-                wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
-              }            
             
             $fte = '<a href="/fte/index.php?'.wfArrayToCGI(array('userName' => $wgUser->getName(), 'treeName' => $familyTree['name'])).'">launch&nbsp;FTE</a>';
             $ret .= '<tr><td>' . htmlspecialchars($familyTree['name']) . ' <span class="plainlinks">'
               . " (&nbsp;$search&nbsp;)"
               . " (&nbsp;$fte&nbsp;)";
-		        if ($familyTree['count'] > 0) {     // If statement added 11 Aug 2020 by Janet Bjorndahl
+            // Allow user to explore a tree only if the tree has at least one page, because exploring starts with displaying a page (added Aug 2020 by Janet Bjorndahl)     
+		        if ($familyTree['count'] > 0) { 
+              $explore = $skin->makeKnownLinkObj($this->getExploreFirstTitle($wgUser->getName(), $familyTree['name']), 'explore', 
+                wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
               $ret .= " (&nbsp;$explore&nbsp;)";
               }
             $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td><td>$delete</td></tr>";

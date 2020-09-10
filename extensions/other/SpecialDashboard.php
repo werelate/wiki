@@ -222,12 +222,18 @@ END;
 		$dbr->freeResult($rows);
      	
    	$ret = '<div class="myrelate-header">Tree(s)</div><ul>';
-		$familyTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName());
+		$familyTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName(), true, $dbr);  // changed Sep 2020 by Janet Bjorndahl
       foreach($familyTrees as $familyTree) {
       	$ret .= '<li>' . htmlspecialchars($familyTree['name']) . ' (&nbsp;' .
 					$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'view', 'k='.urlencode('+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')) .
 					'&nbsp;) (&nbsp;' .
 					'<a href="/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($familyTree['name']) . '">launch FTE</a>&nbsp;)';
+        // Allow user to explore a tree only if the tree has at least one page, because exploring starts with displaying a page (added Sep 2020 by Janet Bjorndahl)     
+        if ($familyTree['count'] > 0) { 
+          $explore = $skin->makeKnownLinkObj(SpecialTrees::getExploreFirstTitle($wgUser->getName(), $familyTree['name']), 'explore', 
+                     wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
+          $ret .= " (&nbsp;$explore&nbsp;)";
+          }
 			$found = false;
 			foreach ($gedcoms as $gedcom) {
 				if ($gedcom['fg_tree_id'] == $familyTree['id']) {
