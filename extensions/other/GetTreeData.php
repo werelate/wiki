@@ -386,35 +386,56 @@ class TreeData {
      global $wgUser;
      
      $treeLabel = '';
-     $treeList = array();
-     if ( $wgUser->isLoggedIn() ) {
-       // issue db query to get list of the user's trees that the page is in
-       $dbr =& wfGetDB( DB_SLAVE );
-
+     $dbr =& wfGetDB( DB_SLAVE );
+     $dbTitle = str_replace(' ', '_', Sanitizer::decodeCharReferences($titleText));
+     
+     /* If the user is exploring a tree, determine whether this page is in the tree being explored. */ 
+     $pageInExploreTree = false;
+     if ( $_SESSION['isExploreContext'] ) {
        $sql = 'SELECT ft_name FROM familytree INNER JOIN familytree_page ON ft_tree_id = fp_tree_id'
-         . ' WHERE ft_user = ' . $dbr->addQuotes($wgUser->getName())
+         . ' WHERE ft_user = ' . $dbr->addQuotes($_SESSION['listParms']['user'])
          . ' AND fp_namespace = ' . $ns
-         . ' AND fp_title = ' . $dbr->addQuotes(str_replace(' ', '_', Sanitizer::decodeCharReferences($titleText)))
-         . ' ORDER BY ft_name LIMIT ' . ($maxTrees+1);
-		   $res = $dbr->query($sql, 'getUserTreesforPage');
-
-		   while( $s = $dbr->fetchObject($res) ) {
+         . ' AND fp_title = ' . $dbr->addQuotes($dbTitle)
+         . ' ORDER BY ft_name';
+       $res = $dbr->query($sql, 'getUserTreesforPage');
+       $treeList = array();
+	     while( $s = $dbr->fetchObject($res) ) {
          $treeList[] = $s->ft_name;
+       }
+       if ( in_array($_SESSION['listParms']['tree'], $treeList) ) {
+         $pageInExploreTree = true;
+       }  
+     }
+     
+     /* If the user is signed in, generate a list of the user's trees that the page is in (limited to $maxTrees). 
+        This can reuse the $treeList constructed above if the user is exploring one of their own user trees. Otherwise, 
+        it needs to (re)read the database and (re)construct $treeList. */
+     if ( $wgUser->isLoggedIn() ) {
+       if ( !$_SESSION['isExploreContext'] || ($_SESSION['listParms']['user'] != $wgUser->getName()) ) {
+         $sql = 'SELECT ft_name FROM familytree INNER JOIN familytree_page ON ft_tree_id = fp_tree_id'
+           . ' WHERE ft_user = ' . $dbr->addQuotes($wgUser->getName())
+           . ' AND fp_namespace = ' . $ns
+           . ' AND fp_title = ' . $dbr->addQuotes($dbTitle)
+           . ' ORDER BY ft_name LIMIT ' . ($maxTrees+1);
+		     $res = $dbr->query($sql, 'getUserTreesforPage');
+         $treeList = array();
+		     while( $s = $dbr->fetchObject($res) ) {
+           $treeList[] = $s->ft_name;
+         }
        }
        if ( count($treeList) > $maxTrees ) {
          $treeList[$maxTrees] = 'etc.';
+         for ($n=$maxTrees+1; $n<count($treeList); $n++) { // needed if reusing $treeList from above, which is not limited to $maxTrees+1 
+           unset($treeList[$n]);
+         }
        }
        if ( count($treeList) == 0 ) {
          $treeList[0] = 'none';
        }
-       $treeLabel = 'User Trees:';
+       $treeLabel = 'My Trees:';
+     $treeString = implode(", ", $treeList);
      }
      
-     $treeString = implode(", ", $treeList); 
-     $pageInExploreTree = false;
-     if ( $_SESSION['isExploreContext'] && in_array($_SESSION['listParms']['tree'], $treeList) ) {
-       $pageInExploreTree = true;
-     }
      return $pageInExploreTree;  
    }
      
