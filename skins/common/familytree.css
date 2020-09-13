@@ -48,6 +48,17 @@ span.node-yearrange {
    display: block;
 }
 
+/* table.node-yearrange and td-right added Sep 2020 by Janet Bjorndahl */
+table.node-yearrange {
+   width: 100%;
+   padding: 0;
+   margin: -0.3em;
+   font-size: 8px;
+}
+td.td-right {
+   text-align: right;
+}
+   
 /*TOOLTIPS*/
 .tip {
     color: #111;
@@ -69,6 +80,12 @@ td.popup-image {
 }
 td.popup-content {
    vertical-align: top;
+}
+/* popup-trees added Sep 2020 by Janet Bjorndahl */
+div.popup-trees {
+   font-size: 10px;
+   font-weight: normal;
+   padding-left: 0px;
 }
 div.popup-fullname {
    font-size: 16px;

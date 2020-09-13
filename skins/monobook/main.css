@@ -1165,7 +1165,7 @@ div.patrollink
 	text-align: right;
 }
 
-span.newpage, span.minor, span.searchmatch
+span.newpage, span.minor, span.searchmatch, span.attn /* attn added Sep 2020 by Janet Bjorndahl */
 {
 	font-weight: bold;
 }

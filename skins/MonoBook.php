@@ -350,7 +350,7 @@ END;
 	<?php $this->html('headlinks') ?>
 	<title><?php $this->text('pagetitle') ?></title>
    <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/themes/redmond/jquery-ui.css">
-   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.80.css"; /*]]>*/</style>
+   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.81.css"; /*]]>*/</style>
 	<link rel="stylesheet" type="text/css" <?php if(empty($this->data['printable']) ) { ?>media="print"<?php } ?> href="<?php $this->text('stylepath') ?>/common/commonPrint.7.css" />
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
