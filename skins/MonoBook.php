@@ -173,7 +173,7 @@ END;
     * if so, to get the parameters for the page list to be incorporated in the page
     */
   public function initExploreTree() {
-    global $wgRequest;
+    global $wgRequest, $wgUser;
      
    /** Initialize isExploreContext if it has no value (first structured page to be displayed in this session). */   
     if ( !isset($_SESSION['isExploreContext']) ) {
@@ -192,6 +192,21 @@ END;
       $_SESSION['listParms']['rows'] = $wgRequest->getVal('listrows');
       $_SESSION['listParms']['ns'] = $wgRequest->getVal('listns');
       $_SESSION['isExploreContext'] = true;
+      
+      /* If the user is exploring their own tree, set the default for tree checkboxes to just this tree (added Sep 2020 by Janet Bjorndahl) */
+      if ( $wgUser->getName() == $_SESSION['listParms']['user'] ) {
+        $dbw =& wfGetDB( DB_MASTER );
+        $allTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName(), false, $dbw);
+        foreach ( $allTrees as $tree ) {
+          $check = !$tree['checked'] && ($tree['name'] == $_SESSION['listParms']['tree']);
+          $uncheck = $tree['checked'] && ($tree['name'] != $_SESSION['listParms']['tree']);
+          if ($check || $uncheck) {
+             $dbw->update('familytree', array('ft_checked' => ($check ? 1 : 0)), array('ft_tree_id' => $tree['id']));
+             FamilyTreeUtil::deleteFamilyTreesCache($wgUser->getName());
+          }
+        }
+			$dbw->commit();
+      }  
     }
     
     if ( $wgRequest->getVal('exitexplore') == 'yes' ) {
@@ -350,7 +365,7 @@ END;
 	<?php $this->html('headlinks') ?>
 	<title><?php $this->text('pagetitle') ?></title>
    <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/themes/redmond/jquery-ui.css">
-   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.81.css"; /*]]>*/</style>
+   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.82.css"; /*]]>*/</style>
 	<link rel="stylesheet" type="text/css" <?php if(empty($this->data['printable']) ) { ?>media="print"<?php } ?> href="<?php $this->text('stylepath') ?>/common/commonPrint.7.css" />
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
