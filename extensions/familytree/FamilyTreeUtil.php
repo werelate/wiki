@@ -239,6 +239,7 @@ class FamilyTreeUtil {
    	
       $result = '';
       $cnt = 0;
+      $proposedTrees = array();
 	   // $editPage is true also for adding a page in Special:Search
       // title may be null for image upload or adding a page in Special:Search
       if ($title == null || FamilyTreeUtil::isTreePage($title->getNamespace(), $title->getDBkey())) {
