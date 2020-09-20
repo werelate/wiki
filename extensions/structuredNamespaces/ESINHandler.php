@@ -1024,7 +1024,7 @@ END;
 		$tempNum = $srcNum+1;
 		return '<tr>'
 			.'<td align="right" style="padding-top:13px"><b>Citation ID</b></td>'
-			."<td style=\"padding-top:13px\">$id<input type=\"hidden\" name=\"source_id$srcNum\" value=\"$id\"/>&nbsp;&nbsp;&nbsp;<a title=\"Remove this source\" href=\"javascript:void(0);\" onClick=\"removeSource($tempNum); return preventDefaultAction(event);\">remove</a></td>"
+			."<td style=\"padding-top:13px\">$id<input type=\"hidden\" name=\"source_id$srcNum\" value=\"$id\"/>&nbsp;&nbsp;&nbsp;<a title=\"Copy this source\" href=\"javascript:void(0);\" onClick=\"copySource($tempNum); return preventDefaultAction(event);\">copy</a>&nbsp;|&nbsp;<a title=\"Remove this source\" href=\"javascript:void(0);\" onClick=\"removeSource($tempNum); return preventDefaultAction(event);\">remove</a></td>" // copy link added Sep 2020 by Janet Bjorndahl
 			.'</tr><tr>'
 			.'<td align="right">Source</td><td><span class="s_source">'.StructuredData::addSelectToHtml(1, "source_namespace$srcNum", self::$SOURCE_NAMESPACE_OPTIONS, $ns, 'class="s_select" onChange="changeSourceNamespace('.$srcNum.',\''.$id.'\')"', false).'</span>'
 			."<span class=\"s_label\">Title</span><input class=\"s_title$autocompleteClass\" id=\"{$id}input\" tabindex=\"1\" type=\"text\" name=\"source_title$srcNum\" value=\"$titleString\"/>"
