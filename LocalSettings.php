@@ -351,6 +351,7 @@ require_once("$IP/extensions/other/SpecialReviewMerge.php");
 require_once("$IP/extensions/other/SpecialList.php");
 require_once("$IP/extensions/other/IndexAjaxFunctions.php");
 require_once("$IP/extensions/other/ListAjaxFunctions.php");
+require_once("$IP/extensions/other/MiscAjaxFunctions.php");  // added Sep 2020 by Janet Bjorndahl
 require_once("$IP/extensions/other/Hooks.php");
 require_once("$IP/extensions/other/GetTreeData.php");
 require_once("$IP/extensions/cite/Cite.php");
