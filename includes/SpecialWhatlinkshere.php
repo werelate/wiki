@@ -28,7 +28,7 @@ class WhatLinksHerePage {
 	}
 
 	function execute() {
-		global $wgOut;
+		global $wgOut, $wgRequest;
 
 		$this->limit = min( $this->request->getInt( 'limit', 500 ), 5000 );
 		if ( $this->limit <= 0 ) {
@@ -60,8 +60,18 @@ class WhatLinksHerePage {
 		$isredir = ' (' . wfMsg( 'isredirect' ) . ")\n";
 
 		$wgOut->addHTML('&lt; '.$this->skin->makeLinkObj($this->target, '', 'redirect=no' )."<br />\n");
+   
+    // Filter on namespace added Sep 2020 by Janet Bjorndahl
+    $this->ns = $wgRequest->getVal('namespace');
+    $nsForm = '<br><form method="get" action="/wiki/' . $this->selfTitle->getPrefixedURL() . '">';
+    $nsForm .= '<label for="namespace">Namespace: </label>';
+    $nsForm .= HTMLnamespaceselector( $this->ns, '' );
+    $nsForm .= '<input type="hidden" name="limit" value="' . $this->limit . '">';
+	  $nsForm .= '<input type="submit" name="submit" value="' . wfMsgExt( 'allpagessubmit', array( 'escape') ) . '" />';
+  	$nsForm .= '</form>';
+  	$wgOut->addHTML( $nsForm );
 
-		$this->showIndirectLinks( 0, $this->target, $this->limit, $this->from, $this->dir );
+		$this->showIndirectLinks( 0, $this->target, $this->limit, $this->from, $this->dir, $this->ns );
 	}
 
 	function padNs($ns) {
@@ -82,7 +92,7 @@ class WhatLinksHerePage {
 	 * @param string    $dir        'next' or 'prev', whether $fromTitle is the start or end of the list
 	 * @private
 	 */
-	function showIndirectLinks( $level, $target, $limit, $from = '', $dir = 'next' ) {
+	function showIndirectLinks( $level, $target, $limit, $from = '', $dir = 'next', $ns = '' ) {
 		global $wgOut;
 		$fname = 'WhatLinksHerePage::showIndirectLinks';
 
@@ -111,7 +121,15 @@ class WhatLinksHerePage {
 
 		$options = array();
 		$pageTitle = "case page_namespace when 108 then concat(substring_index(substring_index(page_title, '_', 2), '_', -1), '_', substring_index(page_title, '_', 1), '_', substring_index(page_title, '_', -1)) else page_title end";
-		if ( $from && strpos($from, ':')) {
+   
+    if ( $ns == '' ) {      // filter on namespace added Sep 2020 by Janet Bjorndahl 
+      $nsCond = false;
+    }  
+    else {
+      $nsCond = "page_namespace = $ns";
+    }
+
+    if ( $from && strpos($from, ':')) {
 			$flds = split(":", $from, 2);
 			$fromNamespace = $dbr->addQuotes($flds[0]);
 			$fromTitle = $dbr->addQuotes($flds[1]);
@@ -132,9 +150,13 @@ class WhatLinksHerePage {
 			$offsetCond = false;
 			$options['ORDER BY'] = "page_namespace, $pageTitle";
 		}
+   
 		// Read an extra row as an at-end check
 		$queryLimit = $limit + 1;
 		$options['LIMIT'] = $queryLimit;
+    if ( $nsCond ) {       // filter on namespace added Sep 2020 by Janet Bjorndahl
+      $plConds[] = $nsCond;
+    }
 		if ( $offsetCond ) {
 			$tlConds[] = $offsetCond;
 			$plConds[] = $offsetCond;
@@ -148,7 +170,12 @@ class WhatLinksHerePage {
 
 		if ( !$dbr->numRows( $plRes ) && !$dbr->numRows( $tlRes ) ) {
 			if ( 0 == $level ) {
-				$wgOut->addWikiText( wfMsg( 'nolinkshere' ) );
+        if ( $ns == '' ) {
+				  $wgOut->addWikiText( wfMsg( 'nolinkshere' ) );
+        }
+        else {
+				  $wgOut->addWikiText( wfMsg( 'nonamespacelinkshere' ) );   // If user selected a namespace, the message is different (added Sep 2020 by Janet Bjorndahl)
+        }
 			}
 			return;
 		}
@@ -229,7 +256,11 @@ class WhatLinksHerePage {
 		$istemplate = wfMsg( 'istemplate' );
 
 		if( $level == 0 ) {
-			$prevnext = $this->getPrevNext( $limit, $prevId, $nextId );
+      $otherParms = '';  // add parameters such as filtered namespace to prev/next links (added Sep 2020 by Janet Bjorndahl)
+      if ( $ns != '' ) {
+        $otherParms .= '&namespace=' . $ns;
+      }
+			$prevnext = $this->getPrevNext( $limit, $prevId, $nextId, $otherParms );
 			$wgOut->addHTML( $prevnext );
 		}
 
@@ -284,34 +315,34 @@ class WhatLinksHerePage {
 		return $this->skin->makeKnownLinkObj( $this->selfTitle, $text, $query );
 	}
 
-	function getPrevNext( $limit, $prevId, $nextId ) {
+  function getPrevNext( $limit, $prevId, $nextId, $otherParms ) {     // other parameters added Sep 2020 by Janet Bjorndahl
 		global $wgLang;
 		$fmtLimit = $wgLang->formatNum( $limit );
 		$prev = wfMsg( 'prevn', $fmtLimit );
 		$next = wfMsg( 'nextn', $fmtLimit );
 
 		if ( 0 != $prevId ) {
-			$prevLink = $this->makeSelfLink( $prev, "limit={$limit}&from={$prevId}&dir=prev" );
+			$prevLink = $this->makeSelfLink( $prev, "limit={$limit}{$otherParms}&from={$prevId}&dir=prev" );
 		} else {
 			$prevLink = $prev;
 		}
 		if ( 0 != $nextId ) {
-			$nextLink = $this->makeSelfLink( $next, "limit={$limit}&from={$nextId}" );
+			$nextLink = $this->makeSelfLink( $next, "limit={$limit}{$otherParms}&from={$nextId}" );
 		} else {
 			$nextLink = $next;
 		}
-		$nums = $this->numLink( 20, $prevId ) . ' | ' .
-		  $this->numLink( 50, $prevId ) . ' | ' .
-		  $this->numLink( 100, $prevId ) . ' | ' .
-		  $this->numLink( 250, $prevId ) . ' | ' .
-		  $this->numLink( 500, $prevId );
+		$nums = $this->numLink( 20, $prevId, $otherParms ) . ' | ' .
+		  $this->numLink( 50, $prevId, $otherParms ) . ' | ' .
+		  $this->numLink( 100, $prevId, $otherParms ) . ' | ' .
+		  $this->numLink( 250, $prevId, $otherParms ) . ' | ' .
+		  $this->numLink( 500, $prevId, $otherParms );
 
 		return wfMsg( 'viewprevnext', $prevLink, $nextLink, $nums );
 	}
 
-	function numLink( $limit, $from ) {
+	function numLink( $limit, $from, $otherParms ) {    // other parameters added Sep 2020 by Janet Bjorndahl
 		global $wgLang;
-		$query = "limit={$limit}&from={$from}";
+		$query = "limit={$limit}{$otherParms}&from={$from}";
 		$fmtLimit = $wgLang->formatNum( $limit );
 		return $this->makeSelfLink( $fmtLimit, $query );
 	}
