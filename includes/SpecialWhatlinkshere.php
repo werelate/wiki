@@ -28,7 +28,7 @@ class WhatLinksHerePage {
 	}
 
 	function execute() {
-		global $wgOut, $wgRequest;
+		global $wgOut, $wgRequest, $wgUser;
 
 		$this->limit = min( $this->request->getInt( 'limit', 500 ), 5000 );
 		if ( $this->limit <= 0 ) {
@@ -61,17 +61,29 @@ class WhatLinksHerePage {
 
 		$wgOut->addHTML('&lt; '.$this->skin->makeLinkObj($this->target, '', 'redirect=no' )."<br />\n");
    
-    // Filter on namespace added Sep 2020 by Janet Bjorndahl
+    // Filters on namespace and whether watched added Sep 2020 by Janet Bjorndahl
     $this->ns = $wgRequest->getVal('namespace');
-    $nsForm = '<br><form method="get" action="/wiki/' . $this->selfTitle->getPrefixedURL() . '">';
-    $nsForm .= '<label for="namespace">Namespace: </label>';
-    $nsForm .= HTMLnamespaceselector( $this->ns, '' );
-    $nsForm .= '<input type="hidden" name="limit" value="' . $this->limit . '">';
-	  $nsForm .= '<input type="submit" name="submit" value="' . wfMsgExt( 'allpagessubmit', array( 'escape') ) . '" />';
-  	$nsForm .= '</form>';
-  	$wgOut->addHTML( $nsForm );
+    $this->watched = $wgRequest->getVal('watched');
+    if (!$this->watched) {
+    	$this->watched = 'wu';
+    }
+    $parmForm = '<form method="get" action="/wiki/' . $this->selfTitle->getPrefixedURL() . '">';
+    $parmForm .= '<table class="parmform"><tr><td><label for="namespace">Namespace: </label>';
+    $parmForm .= HTMLnamespaceselector( $this->ns, '' ) . '</td>';
+    if ($wgUser->isLoggedIn()) {
+      $watchSelectExtra = '';
+    }
+    else {
+	   	$watchSelectExtra = 'disabled';
+      $this->watched = 'wu';
+	  }
+    $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'watched', SearchForm::$WATCH_OPTIONS, $this->watched, $watchSelectExtra, false) . '</td>';
+    $parmForm .= '<input type="hidden" name="limit" value="' . $this->limit . '">';
+	  $parmForm .= '<td><input type="submit" name="submit" value="' . wfMsgExt( 'allpagessubmit', array( 'escape') ) . '" /></td></tr></table>';
+  	$parmForm .= '</form>';
+  	$wgOut->addHTML( $parmForm );
 
-		$this->showIndirectLinks( 0, $this->target, $this->limit, $this->from, $this->dir, $this->ns );
+		$this->showIndirectLinks( 0, $this->target, $this->limit, $this->from, $this->dir, $this->ns, $this->watched );
 	}
 
 	function padNs($ns) {
@@ -92,8 +104,8 @@ class WhatLinksHerePage {
 	 * @param string    $dir        'next' or 'prev', whether $fromTitle is the start or end of the list
 	 * @private
 	 */
-	function showIndirectLinks( $level, $target, $limit, $from = '', $dir = 'next', $ns = '' ) {
-		global $wgOut;
+	function showIndirectLinks( $level, $target, $limit, $from = '', $dir = 'next', $ns = '', $watched = 'wu' ) {
+		global $wgOut, $wgUser;
 		$fname = 'WhatLinksHerePage::showIndirectLinks';
 
 		$dbr =& wfGetDB( DB_READ );
@@ -122,13 +134,25 @@ class WhatLinksHerePage {
 		$options = array();
 		$pageTitle = "case page_namespace when 108 then concat(substring_index(substring_index(page_title, '_', 2), '_', -1), '_', substring_index(page_title, '_', 1), '_', substring_index(page_title, '_', -1)) else page_title end";
    
-    if ( $ns == '' ) {      // filter on namespace added Sep 2020 by Janet Bjorndahl 
+    if ( $ns == '' ) {      // filters on namespace and whether watched added Sep 2020 by Janet Bjorndahl 
       $nsCond = false;
     }  
     else {
       $nsCond = "page_namespace = $ns";
     }
-
+    if ( $watched == 'w' || $watched == 'ws') {  // ws option is not enabled; including it here reduces the chance of negative impact if and when it is enabled
+      $watchedSelect = 'IN';
+    }
+    if ( $watched == 'u' ) {
+      $watchedSelect = 'NOT IN';
+    }
+    if ( $watched == 'wu' ) {
+      $watchedCond = false;
+    }
+    else {
+      $watchedCond = '(page_namespace, page_title) ' . $watchedSelect . ' (SELECT wl_namespace, wl_title FROM watchlist WHERE wl_user = ' . $wgUser->getID() . ')';
+    }
+    
     if ( $from && strpos($from, ':')) {
 			$flds = split(":", $from, 2);
 			$fromNamespace = $dbr->addQuotes($flds[0]);
@@ -154,8 +178,12 @@ class WhatLinksHerePage {
 		// Read an extra row as an at-end check
 		$queryLimit = $limit + 1;
 		$options['LIMIT'] = $queryLimit;
-    if ( $nsCond ) {       // filter on namespace added Sep 2020 by Janet Bjorndahl
+    if ( $nsCond ) {       // filters on namespace and whether watched added Sep 2020 by Janet Bjorndahl
       $plConds[] = $nsCond;
+    }
+    if ( $watchedCond ) {
+			$tlConds[] = $watchedCond;
+      $plConds[] = $watchedCond;
     }
 		if ( $offsetCond ) {
 			$tlConds[] = $offsetCond;
@@ -170,11 +198,11 @@ class WhatLinksHerePage {
 
 		if ( !$dbr->numRows( $plRes ) && !$dbr->numRows( $tlRes ) ) {
 			if ( 0 == $level ) {
-        if ( $ns == '' ) {
+        if ( $ns == '' && $watched == 'wu' ) {
 				  $wgOut->addWikiText( wfMsg( 'nolinkshere' ) );
         }
         else {
-				  $wgOut->addWikiText( wfMsg( 'nonamespacelinkshere' ) );   // If user selected a namespace, the message is different (added Sep 2020 by Janet Bjorndahl)
+				  $wgOut->addWikiText( wfMsg( 'nonamespacelinkshere' ) );   // If user selected a namespace or other filter, the message is different (added Sep 2020 by Janet Bjorndahl)
         }
 			}
 			return;
@@ -260,6 +288,7 @@ class WhatLinksHerePage {
       if ( $ns != '' ) {
         $otherParms .= '&namespace=' . $ns;
       }
+      $otherParms .= '&watched=' . $watched; 
 			$prevnext = $this->getPrevNext( $limit, $prevId, $nextId, $otherParms );
 			$wgOut->addHTML( $prevnext );
 		}
