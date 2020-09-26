@@ -286,7 +286,7 @@ function copySource(srcNum) {
                 text: $(tbl.rows[rowNum+4].cells[1]).find('textarea').val()
                }; 
                
-  var sourceJSON = JSON.stringify(source);  
+  var sourceJSON = encodeURIComponent(JSON.stringify(source)); 
   $.getJSON('/w/index.php?action=ajax&rs=wfStoreSource&source="'+sourceJSON+'"');
 }   
 
@@ -297,7 +297,7 @@ function pasteSource(srcNum) {
 
   $.getJSON('/w/index.php?action=ajax&rs=wfRetrieveSource&callback=?', function(source) {
     if ( ! $.isEmptyObject(source) ) { // check to see if returned object is empty, which would be the case if user didn't execute a copy
-  	  var row=tbl.rows[rowNum+1];
+      var row=tbl.rows[rowNum+1];
       $(row.cells[1]).find('select').val(source.type);
       $(row.cells[1]).find('input').val(source.name);
   	  var row=tbl.rows[rowNum+2];
