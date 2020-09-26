@@ -286,8 +286,13 @@ function copySource(srcNum) {
                 text: $(tbl.rows[rowNum+4].cells[1]).find('textarea').val()
                }; 
                
-  var sourceJSON = JSON.stringify(source);  
-  $.getJSON('/w/index.php?action=ajax&rs=wfStoreSource&source="'+sourceJSON+'"');
+  var sourceJSON = encodeURIComponent(JSON.stringify(source));
+  if ( sourceJSON.length > 8000 || !sourceJSON.endsWith('%22%7D') ) {
+    alert('Attempt to copy source was not successful. Probable cause is that it is too long.');
+  }  
+  else {
+    $.getJSON('/w/index.php?action=ajax&rs=wfStoreSource&source="'+sourceJSON+'"');
+  }  
 }   
 
 function pasteSource(srcNum) {
