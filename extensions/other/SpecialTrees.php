@@ -34,20 +34,22 @@ class SpecialTrees {
    var $gedcomId;
    
    // option lists added Aug 2020 by Janet Bjorndahl
+   // This list is a shorter version of SearchForm::$NAMESPACE_OPTIONS_ID (SpecialSearch.php). It excludes namespaces that cannot be added to trees.
+   // This list should be kept in sync (relative order and labels) with SearchForm::$NAMESPACE_OPTIONS_ID
 	 public static $EXPLORE_NAMESPACE_OPTIONS = array( 
-		'All pages' => '',
-		'People' => NS_PERSON,
-		'Families' => NS_FAMILY,
-		'Articles' => '0',
-		'Images' => NS_IMAGE,
-		'MySources' => NS_MYSOURCE,
-		'Sources' => NS_SOURCE,
-    'Transcripts' => NS_TRANSCRIPT,
-		'Repositories' => NS_REPOSITORY,
-		'Places' => NS_PLACE,
-		'User pages' => NS_USER,
-		'Surnames' => NS_SURNAME,
-		'Given names' => NS_GIVEN_NAME,
+		'All' => '',
+		'Person' => NS_PERSON,
+		'Family' => NS_FAMILY,
+		'Article' => '0',
+		'Image' => NS_IMAGE,
+		'Place' => NS_PLACE,
+		'MySource' => NS_MYSOURCE,
+		'Source' => NS_SOURCE,
+    'Transcript' => NS_TRANSCRIPT,
+		'Repository' => NS_REPOSITORY,
+		'User' => NS_USER,
+		'Surname' => NS_SURNAME,
+		'Givenname' => NS_GIVEN_NAME,
 	 );
 
    public static $EXPLORE_ROWS_OPTIONS = array('10','15','20','30','40','50','100','200');

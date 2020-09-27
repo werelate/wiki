@@ -292,26 +292,27 @@ END;
         'home' => 'Main_Page',
         'search' => array(
             'all' => 'Special:Search',
-            'articles' => 'Special:Search/Article',
             'people' => 'Special:Search/Person',
+            'families' => 'Special:Search/Family',
+            'articles' => 'Special:Search/Article',
             'images' => 'Special:Search/Image',
-            'sources' => 'Special:Search/Source',
-            'places' => 'Special:Search/Place'
+            'places' => 'Special:Search/Place',
+            'sources' => 'Special:Search/Source'
         ),
         'list' => array(
             'people' => ($wgUser->isLoggedIn() ? 'Special:ListPages/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
             'contributions' => ($wgUser->isLoggedIn() ? 'Special:Contributions/' . urlencode($wgUser->getName()) : 'Special:Userlogin')
         ),
         'add' => array(
-           'article' => 'Special:AddPage/Article',
             'person' => 'Special:AddPage/Person',
             'family' => 'Special:AddPage/Family',
+            'article' => 'Special:AddPage/Article',
             'image' => 'Special:Upload',
+            'place' => 'Special:AddPage/Place',
             'mysource' => 'Special:AddPage/MySource',
             'source' => 'Special:AddPage/Source',
             'transcript' => 'Special:AddPage/Transcript',
             'repository' => 'Special:AddPage/Repository',
-            'place' => 'Special:AddPage/Place',
             'userpage' => 'Special:AddPage/User',
             'otherpage' => 'Special:AddPage',
             '-importgedcom' => 'Special:ImportGedcom'
