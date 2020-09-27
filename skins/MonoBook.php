@@ -184,9 +184,9 @@ END;
      * Parameters are stored as session global variables so that all pages display in the context of exploring a tree until the 
      * user selects to exit.
      */
-    $treeParm = $wgRequest->getVal('tree');
-    if ( $treeParm !== null ) {
-      $_SESSION['listParms']['tree'] = $treeParm;
+    $mode = $wgRequest->getVal('mode');
+    if ( $mode == 'explore' ) {
+      $_SESSION['listParms']['tree'] = $wgRequest->getVal('tree');
       $_SESSION['listParms']['user'] = $wgRequest->getVal('user');
       $_SESSION['listParms']['start'] = $wgRequest->getVal('liststart');
       $_SESSION['listParms']['rows'] = $wgRequest->getVal('listrows');
@@ -610,7 +610,7 @@ END;
                    if ( $_SESSION['listParms']['start'] > 0 ) { 
                      $newStart = max(0 , $_SESSION['listParms']['start'] - $_SESSION['listParms']['rows']);
                      echo $sk->makeKnownLink($currentTitleText, '&laquo;&nbsp;Prev', 
-                       wfArrayToCGI(array('user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
+                       wfArrayToCGI(array('mode' => 'explore', 'user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
                        'liststart' => $newStart, 'listrows' => $_SESSION['listParms']['rows'], 'listns' => $_SESSION['listParms']['ns']))) . ' | ';
                    }
                    echo 'Viewing <b>';
@@ -618,7 +618,7 @@ END;
                    if ( $_SESSION['listParms']['more'] ) {
                      $newStart = $_SESSION['listParms']['start'] + $_SESSION['listParms']['rows'];
                      echo ' | ' . $sk->makeKnownLink($currentTitleText, 'Next&nbsp;&raquo;', 
-                       wfArrayToCGI(array('user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
+                       wfArrayToCGI(array('mode' => 'explore', 'user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
                        'liststart' => $newStart, 'listrows' => $_SESSION['listParms']['rows'], 'listns' => $_SESSION['listParms']['ns'])));
                    }
                    echo '</div>';
