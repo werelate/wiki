@@ -208,18 +208,18 @@ class SearchForm {
 	const THUMB_WIDTH = 96;
    const THUMB_HEIGHT = 96;
 
-	public static $NAMESPACE_OPTIONS = array(
+	public static $NAMESPACE_OPTIONS_NAME = array(  // list reordered (moved Place higher) Sep 2020 by Janet Bjorndahl
 		'All' => 'All',
 		'Person' => 'Person',
 		'Family' => 'Family',
 		'Portal' => 'Portal',
 		'Article' => 'Article',
 		'Image' => 'Image',
+		'Place' => 'Place',
 		'MySource' => 'MySource',
 		'Source' => 'Source',
-      'Transcript' => 'Transcript',
+    'Transcript' => 'Transcript',
 		'Repository' => 'Repository',
-		'Place' => 'Place',
 		'User' => 'User',
 		'Category' => 'Category',
 		'Surname' => 'Surname',
@@ -228,6 +228,31 @@ class SearchForm {
 		'WeRelate' => 'WeRelate',
 		'Template' => 'Template',
 		'MediaWiki' => 'MediaWiki'
+	);
+
+  // This list is not used in this file, but was moved here to make it easier to keep in sync with the one above
+  // Note that SpecialTrees also has a list with fewer options that should be kept in sync
+  // The order of these lists should be kept in sync with LocalSettings $wgSortedNamespaces
+	public static $NAMESPACE_OPTIONS_ID = array(    // list reordered Sep 2020 by Janet Bjorndahl
+		'All' => '',
+    'Person' => NS_PERSON,
+		'Family' => NS_FAMILY,
+		'Portal' => NS_PORTAL,
+		'Article' => '0',
+		'Image' => NS_IMAGE,
+		'Place' => NS_PLACE,
+		'MySource' => NS_MYSOURCE,
+    'Source' => NS_SOURCE,
+    'Transcript' => NS_TRANSCRIPT,
+		'Repository' => NS_REPOSITORY,
+		'User' => NS_USER,
+		'Category' => NS_CATEGORY,
+		'Surname' => NS_SURNAME,
+		'Givenname' => NS_GIVEN_NAME,
+		'Help' => NS_HELP,
+		'WeRelate' => NS_PROJECT,
+		'Template' => NS_TEMPLATE,
+		'MediaWiki' => NS_MEDIAWIKI
 	);
 
    public static $WATCH_OPTIONS = array(
@@ -1794,7 +1819,7 @@ END;
       $hiddenFields .= $this->addHiddenInput('wt', $this->wifeTitle);
       $hiddenFields .= $this->addHiddenInput('pf', $this->parentFamily);
       $hiddenFields .= $this->addHiddenInput('sf', $this->spouseFamily);
-	   $nsSelect = StructuredData::addSelectToHtml(0, $nsSelectField, self::$NAMESPACE_OPTIONS, $this->namespace, $nsSelectExtra, false);
+	   $nsSelect = StructuredData::addSelectToHtml(0, $nsSelectField, self::$NAMESPACE_OPTIONS_NAME, $this->namespace, $nsSelectExtra, false);
       if ($this->ecp == 'p') {
          $this->sort = 'score';
       }
