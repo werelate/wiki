@@ -127,6 +127,112 @@ function bindExactClick() {
    }).trigger('change');
 }
 
+// Disable/enable structured search criteria based on "Include talk" checkbox and vice versa (added Sep 2020 by Janet Bjorndahl) 
+function bindIncludeTalk() {
+   $('#checkbox_talk').change(function() {
+      if (document.getElementById("checkbox_talk").checked) {     
+         $("#input_g").attr('disabled', 'disabled');
+         $("#input_s").attr('disabled', 'disabled');
+         $("#input_p").attr('disabled', 'disabled');
+         $("#input_bd").attr('disabled', 'disabled');
+         $("#input_bp").attr('disabled', 'disabled');
+         $("#input_dd").attr('disabled', 'disabled');
+         $("#input_dp").attr('disabled', 'disabled');
+         $("#input_fg").attr('disabled', 'disabled');
+         $("#input_fs").attr('disabled', 'disabled');
+         $("#input_mg").attr('disabled', 'disabled');
+         $("#input_ms").attr('disabled', 'disabled');
+         $("#input_sg").attr('disabled', 'disabled');
+         $("#input_ss").attr('disabled', 'disabled');
+         $("#input_hg").attr('disabled', 'disabled');
+         $("#input_hs").attr('disabled', 'disabled');
+         $("#input_wg").attr('disabled', 'disabled');
+         $("#input_ws").attr('disabled', 'disabled');
+         $("#input_md").attr('disabled', 'disabled');
+         $("#input_mp").attr('disabled', 'disabled');
+         $("#input_pn").attr('disabled', 'disabled');
+         $("#input_li").attr('disabled', 'disabled');
+         $("#input_a").attr('disabled', 'disabled');
+         $("#br").attr('disabled', 'disabled');
+         $("#dr").attr('disabled', 'disabled');
+         $("#mr").attr('disabled', 'disabled');
+         $("#su").attr('disabled', 'disabled');
+         $("#sa").attr('disabled', 'disabled');
+         $("#checkbox_sub").attr('disabled', 'disabled');
+         $("#checkbox_sup").attr('disabled', 'disabled');
+      }
+      else {
+         $("#input_g").removeAttr('disabled');
+         $("#input_s").removeAttr('disabled');
+         $("#input_p").removeAttr('disabled');
+         $("#input_bd").removeAttr('disabled');
+         $("#input_bp").removeAttr('disabled');
+         $("#input_dd").removeAttr('disabled');
+         $("#input_dp").removeAttr('disabled');
+         $("#input_fg").removeAttr('disabled');
+         $("#input_fs").removeAttr('disabled');
+         $("#input_mg").removeAttr('disabled');
+         $("#input_ms").removeAttr('disabled');
+         $("#input_sg").removeAttr('disabled');
+         $("#input_ss").removeAttr('disabled');
+         $("#input_hg").removeAttr('disabled');
+         $("#input_hs").removeAttr('disabled');
+         $("#input_wg").removeAttr('disabled');
+         $("#input_ws").removeAttr('disabled');
+         $("#input_md").removeAttr('disabled');
+         $("#input_mp").removeAttr('disabled');
+         $("#input_pn").removeAttr('disabled');
+         $("#input_li").removeAttr('disabled');
+         $("#input_a").removeAttr('disabled');
+         $("#br").removeAttr('disabled');
+         $("#dr").removeAttr('disabled');
+         $("#mr").removeAttr('disabled');
+         $("#su").removeAttr('disabled');
+         $("#sa").removeAttr('disabled');
+         $("#checkbox_sub").removeAttr('disabled');
+         $("#checkbox_sup").removeAttr('disabled');
+      }
+   }).trigger('change');
+   
+   // If any structured criteria entered (with minor exceptions), disable "Include talk" since the search engine won't return Talk pages anyway
+   // This code needs to be kept in sync with similar code in SpecialSearch.php
+   $('#searchform').change(function() {
+      if ( document.getElementById("input_g").value ||          
+           document.getElementById("input_s").value ||          
+           document.getElementById("input_p").value ||          
+           document.getElementById("input_bd").value ||          
+           document.getElementById("input_bp").value ||          
+           document.getElementById("input_dd").value ||          
+           document.getElementById("input_dp").value ||          
+           document.getElementById("input_fg").value ||          
+           document.getElementById("input_fs").value ||          
+           document.getElementById("input_mg").value ||          
+           document.getElementById("input_ms").value ||          
+           document.getElementById("input_sg").value ||          
+           document.getElementById("input_ss").value ||          
+           document.getElementById("input_hg").value ||          
+           document.getElementById("input_hs").value ||          
+           document.getElementById("input_wg").value ||          
+           document.getElementById("input_ws").value ||          
+           document.getElementById("input_md").value ||          
+           document.getElementById("input_mp").value ||          
+           document.getElementById("input_pn").value ||          
+           document.getElementById("input_li").value ||  
+           document.getElementById("input_a").value ||               
+           document.getElementById("su").value ||          
+           document.getElementById("sa").value ) {
+         $("#checkbox_talk").attr('disabled', 'disabled');
+      }   
+      else {
+      // Enable "Include talk" only if no structured criteria entered and not comparing or adding pages
+         if ( document.getElementsByName("match").length == 0 &&
+              document.getElementsByName("target").length == 0) {
+            $("#checkbox_talk").removeAttr('disabled');
+         }   
+      }
+   });
+}
+
 function closeWindow() {
    window.close();
 }
@@ -500,5 +606,6 @@ function readcache() {
 $(document).ready(function() {
 	showFocusSearchFields(true);
 	bindExactClick();
+  bindIncludeTalk();
    readcache();
 });
