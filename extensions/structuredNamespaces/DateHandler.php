@@ -30,7 +30,8 @@ abstract class DateHandler {
 
   private static $GEDCOM_QUALIFIERS = array('abt'=>'Abt','cal'=>'Cal','est'=>'Est','bef'=>'Bef','aft'=>'Aft','from'=>'From','to'=>'to','bet'=>'Bet','and'=>'and','int'=>'Int',
                                             'about'=>'Abt','calculated'=>'Cal','calc'=>'Cal','calcd'=>'Cal','estd'=>'Est','estimated'=>'Est','c'=>'Est','ca'=>'Est','circa'=>'Est',
-                                            'before'=>'Bef','after'=>'Aft','frm'=>'From','btw'=>'Bet','between'=>'Bet','interpreted'=>'Int');
+                                            'before'=>'Bef','after'=>'Aft','frm'=>'From','btw'=>'Bet','between'=>'Bet','interpreted'=>'Int',
+                                            'say'=>'Est');
                                             // will add other languages at user request, if they provide the full words and abbreviations
 
   public static function editDate($date, &$formatedDate, &$languageDate, $discreteEvent=false) {
