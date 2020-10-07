@@ -7,6 +7,7 @@ require_once("$IP/extensions/structuredNamespaces/StructuredData.php");
 require_once("$IP/extensions/structuredNamespaces/PropagationManager.php");
 require_once("$IP/extensions/other/PlaceSearcher.php");
 require_once("$IP/extensions/structuredNamespaces/TipManager.php");
+require_once("$IP/extensions/structuredNamespaces/DateHandler.php");  // added Oct 2020 by Janet Bjorndahl
 
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfESINHandlerSetup";
@@ -42,6 +43,11 @@ class ESINHandler extends StructuredData {
 		'Primary' => '3'
 	);
 
+  private static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
+      'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Census', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
+      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Obituary', 'Ordination', 'Probate', 'Stilborn', 'Will',
+      'Estate Inventory', 'Estate Settlement'); 
+  
    private $parseLevel;
    private $childrenText;
    private $eventText;
@@ -842,13 +848,28 @@ END;
 		$sources = '';
 		$notes = '';
 		$images = '';
-      $dateStyle = '';
+    $dateStyle = '';
+    $dateStatus = '';
+    $formatedDate = '';
+    $languageDate = '';
 		if (isset($eventFact)) {
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
-         if (ESINHandler::isAmbiguousDate($date)) {
-            $dateStyle = ' style="background-color:#fdd;"';
-         }
+      if (ESINHandler::isAmbiguousDate($date)) {
+         $dateStyle = ' style="background-color:#fdd;"';
+      }
+      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT));        // added Oct 2020 by Janet Bjorndahl
+      if ( $dateStatus === true ) {
+        if ( mb_strtolower($formatedDate) == mb_strtolower($date) || trim(mb_strtolower($date)) == 'unknown' ) {
+          $date = $formatedDate;
+          $formatedDate = '';
+          $languageDate = '';
+        }
+        if (mb_strtolower($languageDate) == mb_strtolower($date) ) {
+          $languageDate = '';
+        }
+      }
+         
 			$place = htmlspecialchars((string)$eventFact['place']);
 			$desc = htmlspecialchars((string)$eventFact['desc']);
 			$sources = htmlspecialchars((string)$eventFact['sources']);
@@ -893,7 +914,10 @@ END;
       else {
          $result .= "<td></td>";
       }
-      $result .= "</tr><tr><td colspan=\"2\"></td>";
+//      $result .= "</tr><tr><td colspan=\"2\"></td>";   this statement commented out Oct 2020 by Janet Bjorndahl (replaced by 3 below) - TEMPORARY CHANGE
+      $result .= "</tr><tr><td colspan=\"2\">" ;
+      $result .= ( $dateStatus === true && $languageDate ? "suggested: $languageDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); 
+      $result .= "</td>";  
       if ($efNum == 0) {
 //         if ($typeString == 'Birth') {
 //            $sourceTip = '<b>Sources'.$tm->addMsgTip('EventFactSourceIDs').'&nbsp; Images'.$tm->addMsgTip('EventFactImageIDs').'&nbsp; Notes'.$tm->addMsgTip('EventFactNoteIDs').'&nbsp; &raquo; &nbsp; &nbsp;</b>';
