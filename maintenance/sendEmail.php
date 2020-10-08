@@ -19,21 +19,21 @@ while ($row = $db->fetchObject($rows)) {
     $u = User::newFromName($name);
     $dest = $u->getEmail();
     if ($u->mTouched > '20190901000000' && $u->canSendEmail() && $u->canReceiveEmail()) {
-        echo "name=$name email ".$dest,"\n";
-        $count += 1;
-        $body = wordwrap(getBody($name), 70, "\r\n");
-		$headers =
-			"MIME-Version: 1.0\r\n" .
-			"Content-type: text/html; charset=utf-8\r\n" .
-			"Content-Transfer-Encoding: 8bit\r\n" .
-			"X-Mailer: MediaWiki mailer\r\n".
-			"From: {$from}\r\n".
-			"Reply-To: ${from}";
-		$success = mail( $dest, wfQuotedPrintable( $subject ), $body, $headers );
-		if (!$success) {
-            echo("Error sending mail ".error_get_last()['message']."\n");
-		}
-        sleep(1);
+        echo $dest.",".$name."\n";
+//         $count += 1;
+//         $body = wordwrap(getBody($name), 70, "\r\n");
+// 		$headers =
+// 			"MIME-Version: 1.0\r\n" .
+// 			"Content-type: text/html; charset=utf-8\r\n" .
+// 			"Content-Transfer-Encoding: 8bit\r\n" .
+// 			"X-Mailer: MediaWiki mailer\r\n".
+// 			"From: {$from}\r\n".
+// 			"Reply-To: ${from}";
+// 		$success = mail( $dest, wfQuotedPrintable( $subject ), $body, $headers );
+// 		if (!$success) {
+//             echo("Error sending mail ".error_get_last()['message']."\n");
+// 		}
+//         sleep(1);
     }
 }
 $db->freeResult($rows);
