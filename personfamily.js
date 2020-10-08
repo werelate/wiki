@@ -206,8 +206,9 @@ function newSource() {
 	var srcId='S'+(srcNum+1);
 	var row=tbl.insertRow(rowNum);
 	var cell=row.insertCell(0); cell.align='right'; cell.style.paddingTop="13px"; cell.innerHTML='<b>Citation ID</b>';
-	cell=row.insertCell(1); cell.style.paddingTop="13px"; 
-	cell.innerHTML=srcId+'<input type="hidden" name="source_id'+srcNum+'" value="'+srcId+'"/>&nbsp;&nbsp;&nbsp;<a title="Remove this source" href="javascript:void(0);" onClick="removeSource('+(srcNum+1)+'); return preventDefaultAction(event);">remove</a>';
+	cell=row.insertCell(1); cell.style.paddingTop="13px";
+  // paste link added Sep 2020 by Janet Bjorndahl
+ 	cell.innerHTML=srcId+'<input type="hidden" name="source_id'+srcNum+'" value="'+srcId+'"/>&nbsp;&nbsp;&nbsp;<a title="Paste to this source" href="javascript:void(0);" onClick="pasteSource('+(srcNum+1)+'); return preventDefaultAction(event);">paste</a>&nbsp;|&nbsp;<a title="Remove this source" href="javascript:void(0);" onClick="removeSource('+(srcNum+1)+'); return preventDefaultAction(event);">remove</a>';
 	row=tbl.insertRow(rowNum+1);
 	cell=row.insertCell(0); cell.align='right'; cell.innerHTML='Source';
 	cell=row.insertCell(1);
@@ -266,6 +267,60 @@ function removeSource(srcNum) {
 	for (i=1; i <= 5; i++) {
   		tbl.deleteRow(numRows-i);
 	}
+}
+
+/* copySource and pasteSource added Sep 2020 by Janet Bjorndahl
+ * Javascript used to interact with the screen, and PHP used to persist the source data across multiple windows/tabs
+ */
+function copySource(srcNum) {
+	var tbl=document.getElementById('source_input');
+	var rowNum=(srcNum-1)*5;
+	var row=tbl.rows[rowNum+1];
+  var source = {type: $(tbl.rows[rowNum+1].cells[1]).find('select').val(),
+                name: $(tbl.rows[rowNum+1].cells[1]).find('input').val(),
+                record: $(tbl.rows[rowNum+2].cells[1]).find('input.s_recordname').val(),
+                refImage: $(tbl.rows[rowNum+2].cells[1]).find('input.s_ref-images').val(),
+                refNote: $(tbl.rows[rowNum+2].cells[1]).find('input.s_ref-notes').val(),
+                page: $(tbl.rows[rowNum+3].cells[1]).find('input.s_page').val(),
+                date: $(tbl.rows[rowNum+3].cells[1]).find('input.s_date').val(),
+                text: $(tbl.rows[rowNum+4].cells[1]).find('textarea').val()
+               }; 
+               
+  var sourceJSON = encodeURIComponent(JSON.stringify(source));
+  if ( sourceJSON.length > 8000 || !sourceJSON.endsWith('%22%7D') ) {
+    alert('Attempt to copy source was not successful. Probable cause is that it is too long.');
+  }  
+  else {
+    $.getJSON('/w/index.php?action=ajax&rs=wfStoreSource&source="'+sourceJSON+'"');
+  }  
+}   
+
+function pasteSource(srcNum) {
+	var tbl=document.getElementById('source_input');
+  var srcNum=srcNum-1; // set to index value rather than display value, to be consistent with newSource function so that innerHTML statement uses it the same way
+	var rowNum=(srcNum)*5;
+
+  $.getJSON('/w/index.php?action=ajax&rs=wfRetrieveSource&callback=?', function(source) {
+    if ( ! $.isEmptyObject(source) ) { // check to see if returned object is empty, which would be the case if user didn't execute a copy
+  	  var row=tbl.rows[rowNum+1];
+      $(row.cells[1]).find('select').val(source.type);
+      $(row.cells[1]).find('input').val(source.name);
+  	  var row=tbl.rows[rowNum+2];
+		  $(row.cells[1]).find('input.s_recordname').val(source.record);
+		  $(row.cells[1]).find('input.s_ref-images').val(source.refImage);
+		  $(row.cells[1]).find('input.s_ref-notes').val(source.refNote);
+  	  var row=tbl.rows[rowNum+3];
+		  $(row.cells[1]).find('input.s_page').val(source.page);
+		  $(row.cells[1]).find('input.s_date').val(source.date);
+  	  var row=tbl.rows[rowNum+4];
+		  $(row.cells[1]).find('textarea').val(source.text);
+   
+      // redisplay the first line with "copy" instead of "paste"   
+  	  var row=tbl.rows[rowNum];
+      var srcId='S'+(srcNum+1);
+      row.cells[1].innerHTML=srcId+'<input type="hidden" name="source_id'+srcNum+'" value="'+srcId+'"/>&nbsp;&nbsp;&nbsp;<a title="Copy this source" href="javascript:void(0);" onClick="copySource('+(srcNum+1)+'); return preventDefaultAction(event);">copy</a>&nbsp;|&nbsp;<a title="Remove this source" href="javascript:void(0);" onClick="removeSource('+(srcNum+1)+'); return preventDefaultAction(event);">remove</a>';
+    }
+  })
 }
 
 function addImage() {

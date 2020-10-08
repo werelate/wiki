@@ -8,7 +8,7 @@
 <title>Family Tree</title>
 
 <!-- CSS Files -->
-<link type="text/css" href="/w/skins/common/familytree.10.css" rel="stylesheet" />
+<link type="text/css" href="/w/skins/common/familytree.11.css" rel="stylesheet" />
 
 </head>
 
@@ -27,8 +27,8 @@
 
 <script id="personNodeTemplate" type="text/x-jQuery-tmpl">
    <div><a class="popup-anchor" href="${data.url}">${name}</a>
-      {{if data.yearrange}}
-         <span class="node-yearrange">${data.yearrange}</span>
+      {{if data.yearrange || data.treemsg}}          <!-- this and next line modified Sep 2020 by Janet Bjorndahl -->
+         <table class="node-yearrange"><tr><td>${data.yearrange}</td><td class="td-right">${data.treemsg}</td></tr></table>
       {{/if}}
    </div>
 </script>
@@ -38,6 +38,7 @@
       <td class="popup-image">{{html data.thumb}}</td>
       <td class="popup-content">
          <div class="popup-fullname"><a class="popup-anchor" href="${data.url}">${name}</a></div>
+         <div class="popup-trees">${data.treelabel} ${data.treestring}</div>   <!-- added Sep 2020 by Janet Bjorndahl -->
          {{if data.birthdate || data.birthplace}}
             <div class="popup-event">${data.birthlabel}. <span class="popup-date">${data.birthdate}</span> <span class="popup-place">${data.birthplace}</span></div>
          {{/if}}
@@ -84,6 +85,7 @@
             {{if data.marriagedate || data.marriageplace}}
                <div class="popup-marriage">m.&nbsp; <span class="popup-date">${data.marriagedate}</span> <span class="popup-place">${data.marriageplace}</span></div>
             {{/if}}
+            <div class="popup-trees">${data.treelabel} ${data.treestring}</div>   <!-- added Sep 2020 by Janet Bjorndahl -->
          </td>
       </tr></table>
       {{if data.children.length}}

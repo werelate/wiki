@@ -173,7 +173,7 @@ END;
     * if so, to get the parameters for the page list to be incorporated in the page
     */
   public function initExploreTree() {
-    global $wgRequest;
+    global $wgRequest, $wgUser;
      
    /** Initialize isExploreContext if it has no value (first structured page to be displayed in this session). */   
     if ( !isset($_SESSION['isExploreContext']) ) {
@@ -184,14 +184,29 @@ END;
      * Parameters are stored as session global variables so that all pages display in the context of exploring a tree until the 
      * user selects to exit.
      */
-    $treeParm = $wgRequest->getVal('tree');
-    if ( $treeParm !== null ) {
-      $_SESSION['listParms']['tree'] = $treeParm;
+    $mode = $wgRequest->getVal('mode');
+    if ( $mode == 'explore' ) {
+      $_SESSION['listParms']['tree'] = $wgRequest->getVal('tree');
       $_SESSION['listParms']['user'] = $wgRequest->getVal('user');
       $_SESSION['listParms']['start'] = $wgRequest->getVal('liststart');
       $_SESSION['listParms']['rows'] = $wgRequest->getVal('listrows');
       $_SESSION['listParms']['ns'] = $wgRequest->getVal('listns');
       $_SESSION['isExploreContext'] = true;
+      
+      /* If the user is exploring their own tree, set the default for tree checkboxes to just this tree (added Sep 2020 by Janet Bjorndahl) */
+      if ( $wgUser->getName() == $_SESSION['listParms']['user'] ) {
+        $dbw =& wfGetDB( DB_MASTER );
+        $allTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName(), false, $dbw);
+        foreach ( $allTrees as $tree ) {
+          $check = !$tree['checked'] && ($tree['name'] == $_SESSION['listParms']['tree']);
+          $uncheck = $tree['checked'] && ($tree['name'] != $_SESSION['listParms']['tree']);
+          if ($check || $uncheck) {
+             $dbw->update('familytree', array('ft_checked' => ($check ? 1 : 0)), array('ft_tree_id' => $tree['id']));
+             FamilyTreeUtil::deleteFamilyTreesCache($wgUser->getName());
+          }
+        }
+			$dbw->commit();
+      }  
     }
     
     if ( $wgRequest->getVal('exitexplore') == 'yes' ) {
@@ -277,26 +292,27 @@ END;
         'home' => 'Main_Page',
         'search' => array(
             'all' => 'Special:Search',
-            'articles' => 'Special:Search/Article',
             'people' => 'Special:Search/Person',
+            'families' => 'Special:Search/Family',
+            'articles' => 'Special:Search/Article',
             'images' => 'Special:Search/Image',
-            'sources' => 'Special:Search/Source',
-            'places' => 'Special:Search/Place'
+            'places' => 'Special:Search/Place',
+            'sources' => 'Special:Search/Source'
         ),
         'list' => array(
             'people' => ($wgUser->isLoggedIn() ? 'Special:ListPages/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
             'contributions' => ($wgUser->isLoggedIn() ? 'Special:Contributions/' . urlencode($wgUser->getName()) : 'Special:Userlogin')
         ),
         'add' => array(
-           'article' => 'Special:AddPage/Article',
             'person' => 'Special:AddPage/Person',
             'family' => 'Special:AddPage/Family',
+            'article' => 'Special:AddPage/Article',
             'image' => 'Special:Upload',
+            'place' => 'Special:AddPage/Place',
             'mysource' => 'Special:AddPage/MySource',
             'source' => 'Special:AddPage/Source',
             'transcript' => 'Special:AddPage/Transcript',
             'repository' => 'Special:AddPage/Repository',
-            'place' => 'Special:AddPage/Place',
             'userpage' => 'Special:AddPage/User',
             'otherpage' => 'Special:AddPage',
             '-importgedcom' => 'Special:ImportGedcom'
@@ -350,7 +366,7 @@ END;
 	<?php $this->html('headlinks') ?>
 	<title><?php $this->text('pagetitle') ?></title>
    <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/themes/redmond/jquery-ui.css">
-   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.80.css"; /*]]>*/</style>
+   <style type="text/css" media="all">/*<![CDATA[*/ @import "<?php $this->text('stylepath') ?>/<?php $this->text('stylename') ?>/main.84.css"; /*]]>*/</style>
 	<link rel="stylesheet" type="text/css" <?php if(empty($this->data['printable']) ) { ?>media="print"<?php } ?> href="<?php $this->text('stylepath') ?>/common/commonPrint.7.css" />
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
    <script type="<?php $this->text('jsmimetype') ?>" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
@@ -594,7 +610,7 @@ END;
                    if ( $_SESSION['listParms']['start'] > 0 ) { 
                      $newStart = max(0 , $_SESSION['listParms']['start'] - $_SESSION['listParms']['rows']);
                      echo $sk->makeKnownLink($currentTitleText, '&laquo;&nbsp;Prev', 
-                       wfArrayToCGI(array('user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
+                       wfArrayToCGI(array('mode' => 'explore', 'user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
                        'liststart' => $newStart, 'listrows' => $_SESSION['listParms']['rows'], 'listns' => $_SESSION['listParms']['ns']))) . ' | ';
                    }
                    echo 'Viewing <b>';
@@ -602,7 +618,7 @@ END;
                    if ( $_SESSION['listParms']['more'] ) {
                      $newStart = $_SESSION['listParms']['start'] + $_SESSION['listParms']['rows'];
                      echo ' | ' . $sk->makeKnownLink($currentTitleText, 'Next&nbsp;&raquo;', 
-                       wfArrayToCGI(array('user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
+                       wfArrayToCGI(array('mode' => 'explore', 'user' => $_SESSION['listParms']['user'], 'tree' => $_SESSION['listParms']['tree'], 
                        'liststart' => $newStart, 'listrows' => $_SESSION['listParms']['rows'], 'listns' => $_SESSION['listParms']['ns'])));
                    }
                    echo '</div>';

@@ -64,7 +64,7 @@ function wfSpecialAddPage($par) {
    $wgOut->setArticleRelated(false);
    $wgOut->setRobotpolicy('noindex,nofollow');
    if ($addPageForm->namespace == NS_PERSON || $addPageForm->namespace == NS_FAMILY || $addPageForm->namespace == NS_SOURCE || $addPageForm->namespace == NS_PLACE) {
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.31.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.32.js\"></script>");
    	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
    }
 
@@ -438,7 +438,9 @@ END;
 			$title = htmlspecialchars($this->titleText);
 	   	if (strlen($this->namespace) == 0) {
 				$hiddenField = '';
-	     	   $namespaceselect = "<tr><td align=\"right\">Namespace:</td><td align=\"left\">" . HTMLnamespaceselector('', null) . "</tr>";
+        // namespace selector replaced to exclude Talk pages Sep 2020 (Janet Bjorndahl)
+			  $namespaceselect = "<tr><td align=\"right\"><label for='namespace'> " . wfMsgHtml('namespace') . "</label></td><td align=\"left\">";
+        $namespaceselect .= StructuredData::addSelectToHtml(0, 'namespace', array_slice(SearchForm::$NAMESPACE_OPTIONS_ID,1), $this->namespace, '', false) . "</td></tr>";
 	   	}
 			else {
 				$hiddenField = "<input type=\"hidden\" name=\"namespace\" value=\"{$this->namespace}\"/>";

@@ -133,6 +133,17 @@ class TreeData {
          if ($thumbURL) $data['thumb'] = $this->makeImgTag($thumbURL, $fullname);
 //         $defaultIcon = (string)$xml->gender == 'F' ? TreeData::WOMAN_ICON : TreeData::MAN_ICON;
 //         $data['icon'] = $this->makeImgTag($iconURL ? $iconURL : $wgServer.$wgStylePath.$defaultIcon, $fullname);
+
+         /* Code to add message about user trees added Sep 2020 by Janet Bjorndahl */
+         $pageInExploreTree = $this->getUserTreesForPage(NS_PERSON, $titleString, 10, $treeLabel, $data['treestring']); // note: sets values of $treeLabel and $data['treestring']
+         $data['treelabel'] = $treeLabel;
+         if ( $_SESSION['isExploreContext'] && !$pageInExploreTree ) {
+           $data['treemsg'] = 'not in tree';
+         }
+         else {
+           $data['treemsg'] = '';
+         }  
+
          $obj['data'] = $data;
 
          $children = array();
@@ -252,6 +263,11 @@ class TreeData {
          $data['$orn'] = $orn;
          if ($thumbURL) $data['thumb'] = $this->makeImgTag($thumbURL, $titleString);
 //         $data['icon'] = $this->makeImgTag($wgServer.$wgStylePath.TreeData::FAMILY_ICON, 'Family', TreeData::FAMILY_ICON_WIDTH, TreeData::FAMILY_ICON_HEIGHT);
+
+         /* Code to add list of user trees added Sep 2020 by Janet Bjorndahl */
+         $pageInExploreTree = $this->getUserTreesForPage(NS_FAMILY, $titleString, 10, $treeLabel, $data['treestring']); // note: sets values of $treeLabel and $data['treestring']
+         $data['treelabel'] = $treeLabel;
+         
          $obj['data'] = $data;
 
          // populate children
@@ -361,5 +377,67 @@ class TreeData {
          return '';
       }
    }
+   
+   /** Function getUserTreesForPage added Sep 2020 by Janet Bjorndahl
+     * Sets parameter $treeString to a string of the names of the user's trees that the page is in (if the user is signed in). 
+     * Returns an indicator of whether the page is in the tree the user is exploring, if the user is exploring a tree (false otherwise).
+     */
+   private function getUserTreesForPage($ns, $titleText, $maxTrees=10, &$treeLabel, &$treeString) {
+     global $wgUser;
+     
+     $treeLabel = '';
+     $dbr =& wfGetDB( DB_SLAVE );
+     $dbTitle = str_replace(' ', '_', Sanitizer::decodeCharReferences($titleText));
+     
+     /* If the user is exploring a tree, determine whether this page is in the tree being explored. */ 
+     $pageInExploreTree = false;
+     if ( $_SESSION['isExploreContext'] ) {
+       $sql = 'SELECT ft_name FROM familytree INNER JOIN familytree_page ON ft_tree_id = fp_tree_id'
+         . ' WHERE ft_user = ' . $dbr->addQuotes($_SESSION['listParms']['user'])
+         . ' AND fp_namespace = ' . $ns
+         . ' AND fp_title = ' . $dbr->addQuotes($dbTitle)
+         . ' ORDER BY ft_name';
+       $res = $dbr->query($sql, 'getUserTreesforPage');
+       $treeList = array();
+	     while( $s = $dbr->fetchObject($res) ) {
+         $treeList[] = $s->ft_name;
+       }
+       if ( in_array($_SESSION['listParms']['tree'], $treeList) ) {
+         $pageInExploreTree = true;
+       }  
+     }
+     
+     /* If the user is signed in, generate a list of the user's trees that the page is in (limited to $maxTrees). 
+        This can reuse the $treeList constructed above if the user is exploring one of their own user trees. Otherwise, 
+        it needs to (re)read the database and (re)construct $treeList. */
+     if ( $wgUser->isLoggedIn() ) {
+       if ( !$_SESSION['isExploreContext'] || ($_SESSION['listParms']['user'] != $wgUser->getName()) ) {
+         $sql = 'SELECT ft_name FROM familytree INNER JOIN familytree_page ON ft_tree_id = fp_tree_id'
+           . ' WHERE ft_user = ' . $dbr->addQuotes($wgUser->getName())
+           . ' AND fp_namespace = ' . $ns
+           . ' AND fp_title = ' . $dbr->addQuotes($dbTitle)
+           . ' ORDER BY ft_name LIMIT ' . ($maxTrees+1);
+		     $res = $dbr->query($sql, 'getUserTreesforPage');
+         $treeList = array();
+		     while( $s = $dbr->fetchObject($res) ) {
+           $treeList[] = $s->ft_name;
+         }
+       }
+       if ( count($treeList) > $maxTrees ) {
+         $treeList[$maxTrees] = 'etc.';
+         for ($n=$maxTrees+1; $n<count($treeList); $n++) { // needed if reusing $treeList from above, which is not limited to $maxTrees+1 
+           unset($treeList[$n]);
+         }
+       }
+       if ( count($treeList) == 0 ) {
+         $treeList[0] = 'none';
+       }
+       $treeLabel = 'My Trees:';
+     $treeString = implode(", ", $treeList);
+     }
+     
+     return $pageInExploreTree;  
+   }
+     
 }
 ?>

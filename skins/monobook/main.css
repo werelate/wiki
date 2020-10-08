@@ -1165,7 +1165,7 @@ div.patrollink
 	text-align: right;
 }
 
-span.newpage, span.minor, span.searchmatch
+span.newpage, span.minor, span.searchmatch, span.attn /* attn added Sep 2020 by Janet Bjorndahl */
 {
 	font-weight: bold;
 }
@@ -4617,4 +4617,15 @@ classes should alter those!
 
 sup, sub {
     line-height: 1;
+}
+
+/* parmform added Sep 2020 by Janet Bjorndahl */
+table.parmform
+{
+   padding: 12px 0px 6px 10px;
+}
+table.parmform td
+{
+	 background-color: inherit;
+   padding-right: 10px;
 }

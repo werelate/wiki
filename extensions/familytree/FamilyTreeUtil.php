@@ -239,6 +239,7 @@ class FamilyTreeUtil {
    	
       $result = '';
       $cnt = 0;
+      $proposedTrees = array();
 	   // $editPage is true also for adding a page in Special:Search
       // title may be null for image upload or adding a page in Special:Search
       if ($title == null || FamilyTreeUtil::isTreePage($title->getNamespace(), $title->getDBkey())) {
@@ -257,18 +258,18 @@ class FamilyTreeUtil {
       	   	else {
 	         		$checkedTrees = ($title == null ? array() : FamilyTreeUtil::getOwnerTrees($user, $title, false));
          		}
-         		// if we're creating the page and the user has just one tree and no tree is checked
+         		// if we're creating the page and the user has just one tree and no tree is checked, propose the user's one tree
 	            if ($editPage && $isNew && count($allTrees) == 1 && count($checkedTrees) == 0) {
-	               $checkedTrees[] = $allTrees[0]['id'];
+	               $proposedTrees[] = $allTrees[0]['id']; // changed from checkedTrees to proposedTrees Sep 2020 by Janet Bjorndahl
 	            }
          	}
-            // if no trees checked, check the default tree(s)
-            if (count($checkedTrees) == 0 && !$wgRequest->wasPosted() &&
+            // if no trees checked or proposed, propose the default tree(s) (changed Sep 2020 by Janet Bjorndahl)
+            if (count($checkedTrees) == 0 && count($proposedTrees) == 0 && !$wgRequest->wasPosted() && 
                 !(($isNew && $wgUser->getIntOption('watchcreations') === 0) ||
                   (!$isNew && $wgUser->getIntOption('watchdefault') === 0))) {
                foreach ($allTrees as $tree) {
                   if ($tree['checked']) {
-                     $checkedTrees[] = $tree['id'];
+                     $proposedTrees[] = $tree['id'];
                   }
                }
             }
@@ -283,10 +284,11 @@ class FamilyTreeUtil {
 	               	$class = ' treeCheckbox';
                	}
                }
-               $result .= " <input type=\"checkbox\" class=\"treeCheck$class\"" .
-			' name="'.htmlspecialchars(FamilyTreeUtil::toInputName($tree['name'])).'"'.
-                                 (in_array($tree['id'], $checkedTrees) ? " checked='checked'":"")."/> ".htmlspecialchars($tree['name']).
-                                 ($editPage ? '' : "<br/>\n");
+               $result .= " <input type=\"checkbox\" class=\"treeCheck$class\"" . /* current & proposed labels added Sep 2020 by Janet Bjorndahl */
+                          ' name="'.htmlspecialchars(FamilyTreeUtil::toInputName($tree['name'])).'"' .
+                          ((in_array($tree['id'], $checkedTrees) || in_array($tree['id'], $proposedTrees)) ? " checked='checked'":"") . "/> ".htmlspecialchars($tree['name']) .
+                          '<span class="attn">' . (in_array($tree['id'], $checkedTrees) ? '&nbsp;(current)' : (in_array($tree['id'], $proposedTrees) ? "&nbsp;(proposed)" : "")) . '</span>' .
+                          ($editPage ? '' : "<br/>\n");
             }
          }
       }

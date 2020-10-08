@@ -46,7 +46,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	}
 	
 	$wgOut->setPageTitle($searchForm->target ? 'Search for possible matches' : 'Search WeRelate');
-   $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.31.js\"></script>");
+   $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.32.js\"></script>");
 	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
     $now = wfTimestampNow();
@@ -208,18 +208,18 @@ class SearchForm {
 	const THUMB_WIDTH = 96;
    const THUMB_HEIGHT = 96;
 
-	public static $NAMESPACE_OPTIONS = array(
+	public static $NAMESPACE_OPTIONS_NAME = array(  // list reordered (moved Place higher) Sep 2020 by Janet Bjorndahl
 		'All' => 'All',
 		'Person' => 'Person',
 		'Family' => 'Family',
 		'Portal' => 'Portal',
 		'Article' => 'Article',
 		'Image' => 'Image',
+		'Place' => 'Place',
 		'MySource' => 'MySource',
 		'Source' => 'Source',
-      'Transcript' => 'Transcript',
+    'Transcript' => 'Transcript',
 		'Repository' => 'Repository',
-		'Place' => 'Place',
 		'User' => 'User',
 		'Category' => 'Category',
 		'Surname' => 'Surname',
@@ -228,6 +228,31 @@ class SearchForm {
 		'WeRelate' => 'WeRelate',
 		'Template' => 'Template',
 		'MediaWiki' => 'MediaWiki'
+	);
+
+  // This list is not used in this file, but was moved here to make it easier to keep in sync with the one above
+  // Note that SpecialTrees also has a list with fewer options that should be kept in sync
+  // The order of these lists should be kept in sync with LocalSettings $wgSortedNamespaces
+	public static $NAMESPACE_OPTIONS_ID = array(    // list reordered Sep 2020 by Janet Bjorndahl
+		'All' => '',
+    'Person' => NS_PERSON,
+		'Family' => NS_FAMILY,
+		'Portal' => NS_PORTAL,
+		'Article' => '0',
+		'Image' => NS_IMAGE,
+		'Place' => NS_PLACE,
+		'MySource' => NS_MYSOURCE,
+    'Source' => NS_SOURCE,
+    'Transcript' => NS_TRANSCRIPT,
+		'Repository' => NS_REPOSITORY,
+		'User' => NS_USER,
+		'Category' => NS_CATEGORY,
+		'Surname' => NS_SURNAME,
+		'Givenname' => NS_GIVEN_NAME,
+		'Help' => NS_HELP,
+		'WeRelate' => NS_PROJECT,
+		'Template' => NS_TEMPLATE,
+		'MediaWiki' => NS_MEDIAWIKI
 	);
 
    public static $WATCH_OPTIONS = array(
@@ -436,10 +461,10 @@ class SearchForm {
       if ($ns == '' || $ns == 'Image' || $ns == 'Person') {
 			$this->givenname = trim($wgRequest->getVal('g'));
       }
-      if ($ns == '' || $ns == 'Image' || $ns == 'Person' || $ns == 'Article' || $ns == 'Source' || $ns == 'MySource' || $ns == 'User') {
+      if ($ns == '' || $ns == 'Image' || $ns == 'Person' || $ns == 'Article' || $ns == 'Source' || $ns == 'MySource' || $ns == 'User' || $ns == 'Transcript' ) {
 			$this->surname = trim($wgRequest->getVal('s'));
       }
-      if ($ns == '' || $ns == 'Image' || $ns == 'Article' || $ns == 'Source' || $ns == 'MySource' || $ns == 'User' || $ns == 'Repository') {
+      if ($ns == '' || $ns == 'Image' || $ns == 'Article' || $ns == 'Source' || $ns == 'MySource' || $ns == 'User' || $ns == 'Transcript' || $ns == 'Repository') {
 			$this->place = trim($wgRequest->getVal('p'));
       }
       if ($ns == 'Person') {
@@ -818,8 +843,7 @@ class SearchForm {
       	}
       }
       if (!$this->talk) {
-         // TODO
-         //$filters .= '&fq=' . urlencode('-TalkNamespace:T');
+        $filters .= '&fq=' . urlencode('-TalkNamespace:T');
       }
 		if ($this->sourceSubject) {
 			$filters .= '&fq=' . urlencode('SourceSubject:' . $this->addQuotes($this->sourceSubject));
@@ -1778,10 +1802,23 @@ END;
 	   	$hiddenFields .= '<input id="ns" type="hidden" name="ns" value="'.htmlspecialchars($this->namespace).'"/>';
 	   	$nsSelectField = 'dummy'; // disabled fields don't get passed back
 	   	$nsSelectExtra = 'disabled';
+      $talkInputExtra = 'disabled'; // added Sep 2020 by Janet Bjorndahl               
 	   }
 	   else {
 	   	$nsSelectField = 'ns';
 	   	$nsSelectExtra = 'onChange="showSearchFields()"';
+      // The following code to set $talkInputExtra was added Sep 2020 by Janet Bjorndahl                     
+      // If any structured criteria entered (with minor exceptions), disable "Include talk" since the search engine won't return Talk pages anyway 
+      // This code needs to be kept in sync with similar code in search.js
+      if ( $givenname || $surname || $place || $birthdate || $birthplace ||
+           $deathdate || $deathplace || $fathergivenname || $fathersurname || $mothergivenname || $mothersurname ||
+           $spousegivenname || $spousesurname || $husbandgivenname || $husbandsurname || $wifegivenname || $wifesurname ||
+           $marriagedate || $marriageplace || $placename  || $locatedinplace || $author || $this->sourceSubject || $this->sourceAvailability ) {               
+        $talkInputExtra = 'disabled';
+      }
+      else {               
+        $talkInputExtra = '';
+      }                
 	   }
       $hiddenFields .= $this->addHiddenInput('gnd', $this->personGender);
       $hiddenFields .= $this->addHiddenInput('bt', $this->birthType);
@@ -1794,14 +1831,12 @@ END;
       $hiddenFields .= $this->addHiddenInput('wt', $this->wifeTitle);
       $hiddenFields .= $this->addHiddenInput('pf', $this->parentFamily);
       $hiddenFields .= $this->addHiddenInput('sf', $this->spouseFamily);
-	   $nsSelect = StructuredData::addSelectToHtml(0, $nsSelectField, self::$NAMESPACE_OPTIONS, $this->namespace, $nsSelectExtra, false);
+	   $nsSelect = StructuredData::addSelectToHtml(0, $nsSelectField, self::$NAMESPACE_OPTIONS_NAME, $this->namespace, $nsSelectExtra, false);
       if ($this->ecp == 'p') {
          $this->sort = 'score';
       }
       $sortSelect = StructuredData::addSelectToHtml(0, "sort", self::$SORT_OPTIONS, $this->sort, '', false);
-      // TODO
-      //$talkSpan = '<span id="talk_input"><input type="checkbox" name="talk"'.($this->talk ? ' checked' : '').'/>Include talk</span>';
-      $talkSpan = '';
+      $talkSpan = '<span id="talk_input"><input id="checkbox_talk" type="checkbox" name="talk"'.($this->talk ? ' checked' : '').$talkInputExtra.'/>include Talk</span>';
       $subChecked = ($this->sub ? ' checked' : '');
       $supChecked = ($this->sup ? ' checked' : '');
 	   $birthRangeSelect = StructuredData::addSelectToHtml(0, 'br', self::$DATE_RANGE_OPTIONS, $this->birthrange, '', false);
@@ -1853,7 +1888,8 @@ $hiddenFields
 </tr><tr id="place_row">
 <td align=right>Place: </td><td colspan=5><input id="input_p" class="input_long place_input" type="text" name="p" maxlength=130 value="$place" onfocus="select()"/></td>
 </tr><tr id="source_place_row">
-<td align=right></td><td colspan=5>&nbsp; Include sources for <input type="checkbox" name="sub"$subChecked/>subordinate places <input type="checkbox" name="sup"$supChecked/>superior places</td>
+<td align=right></td><td colspan=5>&nbsp; Include sources for <input id="checkbox_sub" type="checkbox" name="sub"$subChecked/>subordinate places 
+<input id="checkbox_sup" type="checkbox" name="sup"$supChecked/>superior places</td>
 </tr><tr id="birth_row">
 <td align=right>Birth/Chr date: </td><td colspan=2><input id="input_bd" class="input_short" type="text" name="bd" size=14 maxlength=25 value="$birthdate" onfocus="select()"/> &nbsp;$birthRangeSelect</td>
 <td align=right>Place: </td><td colspan=2><input id="input_bp" class="input_wider place_input" type="text" name="bp" maxlength=130 value="$birthplace" onfocus="select()"/></td>

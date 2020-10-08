@@ -34,20 +34,22 @@ class SpecialTrees {
    var $gedcomId;
    
    // option lists added Aug 2020 by Janet Bjorndahl
+   // This list is a shorter version of SearchForm::$NAMESPACE_OPTIONS_ID (SpecialSearch.php). It excludes namespaces that cannot be added to trees.
+   // This list should be kept in sync (relative order and labels) with SearchForm::$NAMESPACE_OPTIONS_ID
 	 public static $EXPLORE_NAMESPACE_OPTIONS = array( 
-		'All pages' => '',
-		'People' => NS_PERSON,
-		'Families' => NS_FAMILY,
-		'Articles' => '0',
-		'Images' => NS_IMAGE,
-		'MySources' => NS_MYSOURCE,
-		'Sources' => NS_SOURCE,
-    'Transcripts' => NS_TRANSCRIPT,
-		'Repositories' => NS_REPOSITORY,
-		'Places' => NS_PLACE,
-		'User pages' => NS_USER,
-		'Surnames' => NS_SURNAME,
-		'Given names' => NS_GIVEN_NAME,
+		'All' => '',
+		'Person' => NS_PERSON,
+		'Family' => NS_FAMILY,
+		'Article' => '0',
+		'Image' => NS_IMAGE,
+		'Place' => NS_PLACE,
+		'MySource' => NS_MYSOURCE,
+		'Source' => NS_SOURCE,
+    'Transcript' => NS_TRANSCRIPT,
+		'Repository' => NS_REPOSITORY,
+		'User' => NS_USER,
+		'Surname' => NS_SURNAME,
+		'Givenname' => NS_GIVEN_NAME,
 	 );
 
    public static $EXPLORE_ROWS_OPTIONS = array('10','15','20','30','40','50','100','200');
@@ -489,7 +491,7 @@ END
             // Allow user to explore a tree only if the tree has at least one page, because exploring starts with displaying a page (added Aug 2020 by Janet Bjorndahl)     
 		        if ($familyTree['count'] > 0) { 
               $explore = $skin->makeKnownLinkObj($this->getExploreFirstTitle($wgUser->getName(), $familyTree['name']), 'explore', 
-                wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
+                wfArrayToCGI(array('mode' => 'explore', 'user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
               $ret .= " (&nbsp;$explore&nbsp;)";
               }
             $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td><td>$delete</td></tr>";

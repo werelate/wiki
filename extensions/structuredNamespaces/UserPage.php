@@ -287,7 +287,7 @@ class UserPage extends StructuredData {
                    . ' ([http://'.$wrHostName.'/fte/index.php?userName='. urlencode($this->userName) . '&treeName=' . urlencode($familyTree['name']) . " launch FTE])";
             if ( $familyTree['count'] > 0 ) { // Add explore link, but only for trees with at least one page (added Sep 2020 by Janet Bjorndahl)
               $firstTitle = SpecialTrees::getExploreFirstTitle($this->userName, $familyTree['name']);
-              $values[$n] .= ' ([http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&user=' . $this->userName. '&tree=' . $familyTree['name'] 
+              $values[$n] .= ' ([http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . $this->userName. '&tree=' . $familyTree['name'] 
                       . '&liststart=0&listrows=20 explore])';
             }
             $values[$n++] .= "</span><dd>people: {$familyTree['count']}</dl>";

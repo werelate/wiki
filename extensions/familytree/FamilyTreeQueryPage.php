@@ -8,28 +8,6 @@ require_once("$IP/includes/QueryPage.php");
  */
 class FamilyTreeQueryPage extends QueryPage {
 
-	public static $NAMESPACE_OPTIONS = array(
-		'All' => '',
-		'Article' => '0',
-		'Portal' => NS_PORTAL,
-		'Person' => NS_PERSON,
-		'Family' => NS_FAMILY,
-		'Image' => NS_IMAGE,
-		'MySource' => NS_MYSOURCE,
-      'Source' => NS_SOURCE,
-      'Transcript' => NS_TRANSCRIPT,
-		'Repository' => NS_REPOSITORY,
-		'Place' => NS_PLACE,
-		'User' => NS_USER,
-		'Category' => NS_CATEGORY,
-		'Surname' => NS_SURNAME,
-		'Givenname' => NS_GIVEN_NAME,
-		'Help' => NS_HELP,
-		'WeRelate' => NS_PROJECT,
-		'Template' => NS_TEMPLATE,
-		'MediaWiki' => NS_MEDIAWIKI
-	);
-
 	protected $userName;
 	protected $treeName;
 	protected $allTrees;
@@ -94,7 +72,7 @@ class FamilyTreeQueryPage extends QueryPage {
 		$out .= '<label for="user">User name:</label> <input type="text" name="user" size="15" value="'.htmlspecialchars($this->userName).'" />';
 		$out .= '&nbsp; <label for="tree">Tree name:</label>'. StructuredData::addSelectToHtml(0, 'tree', $this->allTrees, $this->treeName, '', true);
 		if ($this->selectNamespace()) {
-		   $namespaceselect = StructuredData::addSelectToHtml(0, 'namespace', self::$NAMESPACE_OPTIONS, $this->namespace, '', false);
+		   $namespaceselect = StructuredData::addSelectToHtml(0, 'namespace', SearchForm::$NAMESPACE_OPTIONS_ID, $this->namespace, '', false);
 			$out .= "&nbsp; <label for='namespace'> " . wfMsgHtml('namespace') . "</label> {$namespaceselect} {$submitbutton}";
 		}
 		$out .= '</form></div><br>';
