@@ -126,8 +126,8 @@ class ESINHandler extends StructuredData {
           ESINHandler::isNonLivingValue($burDesc)) {
          return false;
       }
-      $birthYear = StructuredData::getYear($birthDate);
-      $chrYear = StructuredData::getYear($chrDate);
+      $birthYear = DateHandler::getEffectiveYear($birthDate);       // changed to new DateHandler function Oct 2020 by Janet Bjorndahl
+      $chrYear = DateHandler::getEffectiveYear($chrDate);
       return ($birthYear && (int)date("Y") - (int)$birthYear < 110) || (!$birthYear && $chrYear && (int)date("Y") - (int)$chrYear < 110);
    }
 
