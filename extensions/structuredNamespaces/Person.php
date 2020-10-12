@@ -370,8 +370,8 @@ class Person extends StructuredData {
          $link = "[[Person:$title|$fullname]]";
          $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
    //      $birthKey = StructuredData::getDateKey($birthDate, true);
-         $beginYear = StructuredData::getYear($birthDate, true);
-         $endYear = StructuredData::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
+         $beginYear = DateHandler::getYear($birthDate, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl 
+         $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
          if ($beginYear || $endYear) {
             $yearrange = "<span class=\"wr-infobox-yearrange\">$beginYear - $endYear</span>";
          }
