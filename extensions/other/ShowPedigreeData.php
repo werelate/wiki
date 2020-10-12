@@ -200,7 +200,7 @@ class PedigreeData {
 			foreach ($xml->event_fact as $event_fact) {
 				if ((string)$event_fact['type'] == $type) {
 					$eventDate = (string)$event_fact['date'];
-					$eventYear = substr(StructuredData::getDateKey($date), 0, 4);
+					$eventYear = substr(DateHandler::getDateKey($date), 0, 4);      // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 					$place = (string)$event_fact['place'];
 					$pos = mb_strpos($place, '|');
 					if ($pos !== false) {
@@ -240,7 +240,7 @@ class PedigreeData {
 		$events = array();
 		foreach ($xml->event_fact as $event_fact) {
 			$eventPlace = $this->cleanPlace((string)$event_fact['place']);
-			$eventDate = StructuredData::getDateKey((string)$event_fact['date']);
+			$eventDate = DateHandler::getDateKey((string)$event_fact['date']);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 			if ($eventPlace) {
 				$events[] = $eventDate.'|'.$eventPlace;
 			}
@@ -251,7 +251,7 @@ class PedigreeData {
 			if ($family && $family['xml']) {
 				foreach ($family['xml']->event_fact as $event_fact) {
 					$eventPlace = $this->cleanPlace((string)$event_fact['place']);
-					$eventDate = StructuredData::getDateKey((string)$event_fact['date']);
+					$eventDate = DateHandler::getDateKey((string)$event_fact['date']);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 					if ($eventPlace) {
 						$events[] = $eventDate.'|'.$eventPlace;
 					}

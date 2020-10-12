@@ -277,7 +277,7 @@ class MergeForm {
    		$type = (string)$o['type'];
 	   	$stdType = MergeForm::getStdType($type);
    		$date = (string)$o['date'];
-   		$stdDate = (string)StructuredData::getDateKey($date);
+   		$stdDate = (string)DateHandler::getDateKey($date);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
    		$place = (string)$o['place'];
    		$stdPlace = StructuredData::getPlaceKey($place);
    		$desc = (string)$o['desc'];

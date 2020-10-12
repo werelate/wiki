@@ -603,7 +603,7 @@ class SearchForm {
 	
 	private function getRange($date, $range) {
 		if ($range) {
-			$year = substr(StructuredData::getDateKey($date), 0, 4);
+			$year = substr(DateHandler::getDateKey($date), 0, 4);          // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 			if ($year && $range <= 5) {
 				return '['.($year - $range) . ' TO ' . ($year + $range) . ']';
 			}
