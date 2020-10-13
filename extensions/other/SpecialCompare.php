@@ -180,7 +180,7 @@ class CompareForm {
 					$stdValue .= '|' . $sdxValue;
 				}
 				else if (strpos($label, 'date') !== false) {
-					$stdValue = StructuredData::getDateKey($value);
+					$stdValue = DateHandler::getDateKey($value);       // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 				}
 				else if (strpos($label, 'place') !== false) {
 					$stdValue = StructuredData::getPlaceKey($value);

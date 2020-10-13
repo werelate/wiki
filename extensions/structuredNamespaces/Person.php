@@ -293,7 +293,7 @@ class Person extends StructuredData {
       $hdPlace = '';
       if ($date) {
          $hdDate = '<meta itemprop="startDate" content="'.
-                   htmlspecialchars(StructuredData::getIsoDate(StructuredData::getDateKey($date))).'"/>';
+                   htmlspecialchars(DateHandler::getIsoDate(DateHandler::getDateKey($date))).'"/>';  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
       }
       if ($place) {
          $pos = mb_strpos($place, '|');
@@ -369,7 +369,7 @@ class Person extends StructuredData {
          if (!$fullname) $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
          $link = "[[Person:$title|$fullname]]";
          $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
-   //      $birthKey = StructuredData::getDateKey($birthDate, true);
+   //      $birthKey = DateHandler::getDateKey($birthDate, true);
          $beginYear = DateHandler::getYear($birthDate, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl 
          $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
          if ($beginYear || $endYear) {
@@ -464,7 +464,7 @@ class Person extends StructuredData {
                foreach ($familyXml->event_fact as $eventFact) {
                   if ((string)$eventFact['type'] == 'Marriage') {
                      $marriageDate = (string)$eventFact['date'];
-                     $marriageKey = StructuredData::getDateKey($marriageDate, true);
+                     $marriageKey = DateHandler::getDateKey($marriageDate, true);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                      $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span></div>";
                   }
                   if (!$isParentsSiblings) {
@@ -840,12 +840,12 @@ END;
 
             $firstName = (string)@$this->xml->name['given'];
             $lastNames = mb_split(' ', (string)@$this->xml->name['surname']);
-            $dateKey = StructuredData::getDateKey($birthDate);
+            $dateKey = DateHandler::getDateKey($birthDate);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
             $birthDay = intval(substr($dateKey, 6, 2));
             $birthMonth = intval(substr($dateKey, 4, 2));
             $birthYear = intval(substr($dateKey, 0, 4));
             $birthPlace = trim($birthPlace);
-            $dateKey = StructuredData::getDateKey($deathDate);
+            $dateKey = DateHandler::getDateKey($deathDate);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
             $deathDay = intval(substr($dateKey, 6, 2));
             $deathMonth = intval(substr($dateKey, 4, 2));
             $deathYear = intval(substr($dateKey, 0, 4));

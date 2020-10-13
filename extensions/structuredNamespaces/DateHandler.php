@@ -128,6 +128,130 @@ abstract class DateHandler {
     }
     return true;
   }
+
+   /**
+    * Return a date as yyyy-mm-dd
+    * @param $date in yyyymmdd format, from getDateKey with getNumericKey=false
+    * @return string
+    */
+   public static function getIsoDate($date) {
+      if (strlen($date) >= 4) {
+         $result = substr($date, 0, 4);
+         if (strlen($date) >= 6) {
+            $result .= '-'.substr($date, 4, 2);
+            if (strlen($date) == 8) {
+               $result .= '-'.substr($date, 6, 2);
+            }
+         }
+      }
+      else {
+         $result = $date;
+      }
+      return $result;
+   }
+
+   /**
+    * Return the date as yyyymmdd for sorting or for other purposes requiring this format
+    * @param string $date
+    * @param boolean getNumericKey:
+    *    if true, returns a numeric key that has 00 placeholders for missing month/day data and is adjusted based on bef/aft/bet/from/to modifiers
+    *    if false, returns a string that ignores missing month/day data and is NOT adjusted for date modifiers
+    * If the date is a date range, the start date is used.
+    */
+  public static function getDateKey($date, $getNumericKey=false) {
+    $pd = array();
+    $fields = array();
+    $result = '';
+    
+    $pd=self::parseDate($date);
+    
+    // Use start date if a date range (only date if not). If no year, nothing to return.
+    if ( isset($pd['effyear'][1]) ) {
+      $i = 1;
+    } 
+    else {
+      if ( isset($pd['effyear'][0]) ) {
+        $i = 0;
+      }
+      else {
+        return $result;
+      }
+    }
+    
+    if ( isset($pd['month'][$i]) ) {
+      $monthNum = self::getMonthNumber($pd['month'][$i]);
+    }
+    
+    // Note that when returning a string, BC dates are not handled since the context might not be able to handle them. An empty string is returned instead.
+    if ( !$getNumericKey ) {
+      if ( isset($pd['suffix'][$i]) && $pd['suffix'][$i] === 'BC' ) {
+        return $result;
+      }
+      $result = str_pad($pd['effyear'][$i],4,'0',STR_PAD_LEFT) . 
+                (isset($pd['month'][$i]) ? 
+                  str_pad($monthNum,2,'0',STR_PAD_LEFT) . (isset($pd['day'][$i]) ? str_pad($pd['day'][$i],2,'0',STR_PAD_LEFT) : '' ) :
+                  '' );
+      return $result;
+    }
+    
+    // The remainder of the code is for numeric keys.
+    
+    if ( isset($pd['suffix'][$i]) && $pd['suffix'][$i] === 'BC' ) {
+      $intYear = $pd['effyear'][$i] * (-1);
+    }
+    else {
+      $intYear = (int)$pd['effyear'][$i];
+    }
+    
+    // Handle situation where year, month and day are all present.
+    if ( isset($pd['month'][$i]) && isset($pd['day'][$i]) ) {
+      $jd = gregoriantojd($monthNum, $pd['day'][$i], $intYear);
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the day
+        $jd -= 1;
+      }
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the day 
+        $jd += 1;
+      }
+      // TO DO - handle reversing days and months if negative year (BC) - figure out how to handle negative years elsewhere - doesn't work now
+      preg_match_all('#-?\d+#', jdtogregorian($jd), $fields, PREG_SET_ORDER);
+      $result = $fields[2][0] . str_pad($fields[0][0],2,'0',STR_PAD_LEFT) . str_pad ($fields[1][0],2,'0',STR_PAD_LEFT);
+      return (int)$result;
+    }
+    
+    // Handle situation where only year and month are present.
+    if ( isset($pd['month'][$i]) ) {
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the month
+        if ( $monthNum == 1 ) {
+          $pd['effyear'][$i] -= 1;
+          $monthNum = 12;
+        }
+        else {
+          $monthNum -= 1;
+        }
+      } 
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the month
+        if ( $monthNum == 12 ) {
+          $pd['effyear'][$i] += 1;
+          $monthNum = 1;
+        }
+        else {
+          $monthNum += 1;
+        }
+      } 
+      $result = $pd['effyear'][$i] . str_pad($monthNum,2,'0',STR_PAD_LEFT) . '00';
+      return (int)$result;
+    }
+    
+    // Handle situation where only year is present.
+    if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the year
+      $pd['effyear'][$i] -= 1;
+    } 
+    if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the year
+      $pd['effyear'][$i] += 1;
+    } 
+    $result = $pd['effyear'][$i] . '0000';
+    return (int)$result;
+  }
   
   // This function returns the year of a date. If the date has a range and modifiers are to be included, it returns the year range.
   // Otherwise, it returns just the last year of the range. 
@@ -165,7 +289,8 @@ abstract class DateHandler {
     
   // This function parses the input date and returns results in an array, along with a possible error message.
   // Modifier, day, month, year, suffix (e.g., BC) and effective year are returned in sub-arrays. If there are 2 dates (bet/and or from/to), 
-  // [0] is the second date and [1] is the first date. The results may also include a single parenthetical text portion. 
+  // [0] is the second date and [1] is the first date (because the parsing works from the end to the beginning of the date).
+  // The results may also include a single parenthetical text portion. 
   private static function parseDate($originalDate) {
     $parsedDate = array();
     $saveOriginal = false;
@@ -226,7 +351,7 @@ abstract class DateHandler {
       $fields = array();              // reinitialize fields (used again below)
     }
     
-    // If date includes a dash, replace with "to" or "and" depending on whether the string already has "from" or "bet".
+    // If date includes a dash, replace with "to" or "and" depending on whether the string already has "from/est" or "bet".
     // If it has neither, treat as bet/and (applicable to all types of events).
     if ( strpos($date, '-') ) {
       if ( strpos($date, 'from' ) !== false || strpos($date, 'est' ) !== false ) {
@@ -428,7 +553,7 @@ abstract class DateHandler {
   }
   
   private static function getMonthNumber($m) {
-    return @array_search(strtolower($m), self::$MONTHS);
+    return @array_search(strtolower($m), self::$MONTHS)+1;
   }
 
   private static function getModifier($q) {
