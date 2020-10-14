@@ -196,7 +196,7 @@ class ESINHandler extends StructuredData {
             $date = ESINHandler::getChildDate($childRow,'chrdate');
          }
          if ($date) {
-            $k = DateHandler::getDateKey($date, true);   // changed to DateHandler function Oct 2020 by Janet Bjorndahl
+            $k = StructuredData::getDateKey($date, true);   // changed back to StructuredData function Oct 2020 by Janet Bjorndahl (DateHandler function doesn't seem to work for this)
             if ($k) {
                $key = $k;
                $prevKey = $key;
