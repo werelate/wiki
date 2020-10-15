@@ -150,7 +150,8 @@ class ESINHandler extends StructuredData {
 	public static function getChildDate($child, $attr) {
 	   $start = mb_strpos($child, $attr . '="');
 	   if ($start !== false) {
-	      $end = mb_strpos($child, '"', $start + strlen($attr . '="'));
+        $start += strlen($attr . '="');                // adjustment added Oct 2020 by Janet Bjorndahl (to return only the date without the label)
+	      $end = mb_strpos($child, '"', $start);
 	      return mb_substr($child, $start, $end - $start);
 	   }
 	   return '';
@@ -196,7 +197,7 @@ class ESINHandler extends StructuredData {
             $date = ESINHandler::getChildDate($childRow,'chrdate');
          }
          if ($date) {
-            $k = StructuredData::getDateKey($date, true);   // changed back to StructuredData function Oct 2020 by Janet Bjorndahl (DateHandler function doesn't seem to work for this)
+            $k = DateHandler::getDateKey($date, true);   // changed to DateHandler function Oct 2020 by Janet Bjorndahl 
             if ($k) {
                $key = $k;
                $prevKey = $key;
