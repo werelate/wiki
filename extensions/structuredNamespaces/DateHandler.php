@@ -206,10 +206,10 @@ abstract class DateHandler {
     // Handle situation where year, month and day are all present.
     if ( isset($pd['month'][$i]) && isset($pd['day'][$i]) ) {
       $jd = gregoriantojd($monthNum, $pd['day'][$i], $intYear);
-      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the day
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/i", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the day
         $jd -= 1;
       }
-      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the day 
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/i", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the day 
         $jd += 1;
       }
       // TO DO - handle reversing days and months if negative year (BC) - figure out how to handle negative years elsewhere - doesn't work now
@@ -220,7 +220,7 @@ abstract class DateHandler {
     
     // Handle situation where only year and month are present.
     if ( isset($pd['month'][$i]) ) {
-      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the month
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/i", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the month
         if ( $monthNum == 1 ) {
           $pd['effyear'][$i] -= 1;
           $monthNum = 12;
@@ -229,7 +229,7 @@ abstract class DateHandler {
           $monthNum -= 1;
         }
       } 
-      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the month
+      if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/i", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the month
         if ( $monthNum == 12 ) {
           $pd['effyear'][$i] += 1;
           $monthNum = 1;
@@ -243,10 +243,10 @@ abstract class DateHandler {
     }
     
     // Handle situation where only year is present.
-    if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the year
+    if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/i", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the year
       $pd['effyear'][$i] -= 1;
     } 
-    if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the year
+    if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/i", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the year
       $pd['effyear'][$i] += 1;
     } 
     $result = $pd['effyear'][$i] . '0000';
