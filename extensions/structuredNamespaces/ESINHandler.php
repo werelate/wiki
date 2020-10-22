@@ -43,10 +43,24 @@ class ESINHandler extends StructuredData {
 		'Primary' => '3'
 	);
 
+  // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl
   private static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
       'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Census', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
       'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Obituary', 'Ordination', 'Probate', 'Stilborn', 'Will',
       'Estate Inventory', 'Estate Settlement'); 
+      
+  // Event type arrays added (to support event sorting) Oct 2020 by Janet Bjorndahl 
+  private static $PERSON_EVENT_TYPES = array('Birth'=>'0010', 'Alt Birth'=>'0020', 'Christening'=>'0030',  'Alt Christening'=>'0040', 
+      'During Life With Date'=>'0050', 'During Life Without Date'=>'0219', 'Death'=>'0220', 'Alt Death'=>'0230',
+      'Obituary'=>'0240', 'Funeral'=>'0250', 'Cremation'=>'0260', 'Burial'=>'0270', 'Alt Burial'=>'0280',
+      'Estate Inventory'=>'0290', 'Probate'=>'0300', 'Estate Settlement'=>'0310',
+      'Ancestral File Number'=>'1010', 'Caste'=>'1020', 'Cause of Death'=>'1030', 'Citizenship'=>'1040',
+      'DNA'=>'1050', 'Namesake'=>'1060', 'Nationality'=>'1070', 'Other'=>'1080', 'Physical Description'=>'1090',
+      'Reference Number'=>'1100', 'Religion'=>'1110', 'Soc Sec No'=>'1120', 'Title (nobility)'=>'1130');
+  private static $FAMILY_EVENT_TYPES = array('Engagement'=>'0060', 'Marriage Banns'=>'0070', 'Marriage Bond'=>'0080', 'Marriage Contract'=>'0090',
+      'Marriage License'=>'0100', 'Marriage Notice'=>'0110', 'Marriage Settlement'=>'0120', 'Marriage'=>'0130',
+      'Alt Marriage'=>'0140', 'Census'=>'0150', 'Residence'=>'0160', 'Other'=>'0170', 'Separation'=>'0180',
+      'Divorce Filing'=>'0190', 'Divorce'=>'0200', 'Annulment'=>'0210', 'Other Family'=>'0211');
   
    private $parseLevel;
    private $childrenText;
@@ -427,59 +441,262 @@ END;
 </tr>
 END;
    }
+  
+  // sortEvents rewritten Oct 2020 by Janet Bjorndahl                  
+  private function sortEvents($xml, $marriageEvents=null) {
+    $sortp=array();
+    $sortf=array();
+    $sorta=array();
+    $sortedEvents=array();
+    $familyDate = false;
 
-   private function getSortKey($eventFact, &$prevKey) {
-      $date = (string)$eventFact['date'];
-      $type = (string)$eventFact['type'];
-      $key = '';
-      if (!$date) {
-         if ($type == 'Death') {
-            $key = 29999998;
-         }
-         else if ($type == 'Burial') {
-            $key = 29999999;
-         }
+    /* Goal:
+     *   Sort events and facts by date.
+     *   When the date includes a modifier (e.g., Bef, Aft), adjust the date by one unit (day, month or year, depending on the level of detail in the date). 
+     *   Treat dates as the same date when one or more is incomplete (e.g., only the year) and they match on as much information as exists.
+     *   Person events (certain event_types) without a date are placed immediately before the death event.
+     *   Person facts (certain event_types) without a date are placed after all events.
+     *   Marriage events without a date are grouped by marriage. 
+     *   When two or more events have the same sort key, keep them in logical order (e.g., death before burial), or alphabetical order when there is no logical order.
+     * Sort strategy: 
+     *   Overall strategy is to sort first by type and then by date, using a sort that preserves relative order when 2 events have equivalent sort keys.
+     *   This ensures the goal of having events in logical order when they have equivalent dates (e.g., will=5 Sep 1875, death=1875).
+     *   Marriage events are sorted by marriage number and type, and sort year is assigned when date is missing. 
+     *     Both of these are required to ensure grouping by marriage.   
+     */
+      
+    // Sort family events with dates
+    if ( isset($marriageEvents) ) {
+      $i=0;
+      $marriageNum=0;
+      $marriageTo='';
+      foreach ($marriageEvents as $eventFact) {
+        if ( $marriageNum === 0 || substr($eventFact['desc'], strpos($eventFact['desc'],'[')) != $marriageTo ) {
+          $marriageNum++;
+          $marriageTo = substr($eventFact['desc'], strpos($eventFact['desc'],'['));
+        }
+        if ( isset($eventFact['date']) && $dateKey = DateHandler::getDateKey((string)$eventFact['date'], true) ) {
+          $sortf[$i]['data'] = $eventFact;
+          $sortf[$i]['num'] = $marriageNum;                                   
+          if ( $typekey = @self::$FAMILY_EVENT_TYPES[(string)$eventFact['type']] ) {
+            $sortf[$i]['typekey'] = $typekey;
+          }
+          else {
+            $sortf[$i]['typekey'] = self::$FAMILY_EVENT_TYPES['Other Family'] . $eventFact['type'];
+          }
+          $sortf[$i]['datekey'] = str_pad($dateKey,8,'0',STR_PAD_LEFT);
+          $sortf[$i]['year'] = substr($sortf[$i]['datekey'],0,4);
+          $sortf[$i]['month'] = substr($sortf[$i]['datekey'],0,6);
+          $sortf[$i]['keytype'] = ( substr($sortf[$i]['datekey'],6,2) !== '00' ? 'day' : 
+                                   (substr($sortf[$i]['datekey'],4,2) !== '00' ? 'month' : 'year') );
+          $i++;        
+        }
+      }
+      if ( $i > 0 ) {
+        $familyDate = true;
+        $sortf = $this->sortEventKeys($sortf, 'numtypekey');
+        $sortf = $this->sortEventKeys($sortf, 'datekey');
+      }
+    }
+      
+    // Sort person events with dates (separately from family events)
+    if ( isset($xml->event_fact) ) {
+      $i=0;
+      foreach ($xml->event_fact as $eventFact) {
+        if ( isset($eventFact['date']) && $dateKey = DateHandler::getDateKey((string)$eventFact['date'], true) ) {
+          $sortp[$i]['data'] = $eventFact;
+          if ( $typekey = @self::$PERSON_EVENT_TYPES[(string)$eventFact['type']] ) {
+            $sortp[$i]['typekey'] = $typekey;
+          }
+          else {
+            $sortp[$i]['typekey'] = self::$PERSON_EVENT_TYPES['During Life With Date'] . $eventFact['type'];
+          }
+          $sortp[$i]['datekey'] = str_pad($dateKey,8,'0',STR_PAD_LEFT);
+          $sortp[$i]['year'] = substr($sortp[$i]['datekey'],0,4);
+          $sortp[$i]['month'] = substr($sortp[$i]['datekey'],0,6);
+          $sortp[$i]['keytype'] = ( substr($sortp[$i]['datekey'],6,2) !== '00' ? 'day' : 
+                                   (substr($sortp[$i]['datekey'],4,2) !== '00' ? 'month' : 'year') );
+          
+          // If no family events have a date, track birth and death (or proxy) date keys for setting a default sort year for family events
+          if ( !$familyDate ) {
+            if ( !isset($birthKey) && ($eventFact['type'] == "Birth" || $eventFact['type'] == "Christening" || $eventFact['type'] == "Baptism") ) {
+              $birthKey = $dateKey;
+            }
+            if ( !isset($deathKey) && ($sortp[$i]['typekey'] >= self::$PERSON_EVENT_TYPES["Death"]) ) {
+              $deathKey = $dateKey;
+            }
+          }
+                                              
+          $i++;        
+        }
+      }
+      if ( $i > 0 ) {
+        $sortp = $this->sortEventKeys($sortp, 'typekey');
+        $sortp = $this->sortEventKeys($sortp, 'datekey');
+        
+        // If no family events have a date, set a default sort year for family events
+        // Assume 20 years after birth/proxy (but before death/proxy), or 1 year after first person event if no birth/proxy or death/proxy date
+        if ( !$familyDate ) {
+          if ( isset($birthKey) ) {
+            $marriageKey = $birthKey + 200000;
+          }
+          if ( isset($deathKey) ) {
+            if ( !isset($marriageKey) || $marriageKey >= $deathKey ) {
+              $marriageKey = $deathKey - 10000;
+            }
+          }
+          if ( !isset($marriageKey) ) {
+            $marriageKey = $sortp[0]['datekey'] + 10000;
+          }
+          $marriageYear = substr(str_pad($marriageKey, 8, '0', STR_PAD_LEFT),0,4);
+        }
+      }
+    }
+    
+    // Add family events without dates to the family array, setting a sort year for each. 
+    // The sort year prevents events from one family overlapping events from another family, when the next sort-by-date occurs.
+    if ( isset($marriageEvents) ) {
+      $start = sizeof($sortf);
+      $i = $start;
+      $marriageNum=0;
+      $marriageTo='';
+      foreach ($marriageEvents as $eventFact) {
+        if ( $marriageNum === 0 || substr($eventFact['desc'], strpos($eventFact['desc'],'[')) != $marriageTo ) {
+          $marriageNum++;
+          $marriageTo = substr($eventFact['desc'], strpos($eventFact['desc'],'['));
+        }
+        if ( !isset($eventFact['date']) || !($dateKey = DateHandler::getDateKey((string)$eventFact['date'], true)) ) {
+          $sortf[$i]['data'] = $eventFact;
+          $sortf[$i]['num'] = $marriageNum;                                   
+          if ( $typekey = @self::$FAMILY_EVENT_TYPES[(string)$eventFact['type']] ) {
+            $sortf[$i]['typekey'] = $typekey;
+          }
+          else {
+            $sortf[$i]['typekey'] = self::$FAMILY_EVENT_TYPES['Other Family'] . $eventFact['type'];
+          }
+          // If at least one family event has a date, set date key (year) relative to the family date keys available.
+          // Adjust by one year for each different family, as required.
+          if ( $familyDate ) {
+            $j=0;
+            // In order to get the best date key, look at least as far as the next event in the same family or the next family before accepting
+            // a date key. If a date key (year) is not found by that point, keep looking (until the end of the events previously sorted by date key).
+            while ( $j < $start && (!isset($sortf[$i]['year']) || ($sortf[$j-1]['num'] < $sortf[$i]['num']) ||
+                     ($sortf[$j-1]['num'] == $sortf[$i]['num'] && $sortf[$j-1]['typekey'] < $sortf[$i]['typekey'])) ) {
+              if ( isset($sortf[$j]['year']) ) {
+                $sortf[$i]['year'] = str_pad($sortf[$j]['year'] + $sortf[$i]['num'] - $sortf[$j]['num'], 4, '0' ,STR_PAD_LEFT);
+                $sortf[$i]['keytype'] = 'year';
+              }
+              $j++;
+            }
+          }
+          // If no family events had a date but at least one person event had a date, set all family events to the same default sort year - they will sort by family number and type
+          else {
+            if ( isset($marriageYear) ) {
+              $sortf[$i]['year'] = $marriageYear;
+              $sortf[$i]['keytype'] = 'year';
+            }
+          }
+          $i++;        
+        }
+      }
+      // Incorporate the additional family events (if any) into the previously sorted family events, inserting them where they belong based on family number and event type 
+      if ( $i > $start ) {
+        $sortf = $this->sortEventKeys($sortf, 'numtypekey', $start);
+      }
+    }
+    
+    // Combine the person and family events and sort first by type and then date. Relative order achieved in previous sorts will be preserved when dates are equivalent.
+    $sorta = array_merge($sortp, $sortf);
+    $sorta = $this->sortEventKeys($sorta, 'typekey'); 
+    $sorta = $this->sortEventKeys($sorta, 'datekey'); 
+
+    // Add person events without dates, inserting them where they belong based on event type
+    if ( isset($xml->event_fact) ) {
+      $start = sizeof($sorta);
+      $i = $start;
+      foreach ($xml->event_fact as $eventFact) {
+        if ( !isset($eventFact['date']) || !($dateKey = DateHandler::getDateKey((string)$eventFact['date'], true)) ) {
+          $sorta[$i]['data'] = $eventFact;
+          if ( $typekey = @self::$PERSON_EVENT_TYPES[(string)$eventFact['type']] ) {
+            $sorta[$i]['typekey'] = $typekey;
+          }
+          else {
+            $sorta[$i]['typekey'] = self::$PERSON_EVENT_TYPES['During Life Without Date'] . $eventFact['type'];
+          }
+          $i++;        
+        }
+      }
+      if ( $i > $start ) {
+        $sorta = $this->sortEventKeys($sorta, 'typekey', $start);
+      }
+    }
+    foreach ($sorta as $sort) {
+      $sortedEvents[] = $sort['data'];
+    }
+    return $sortedEvents;
+  }
+ 
+  // "Insert sort" - this preserves the original order of items with equivalent keys
+  private function sortEventKeys($sort, $key, $start=1) {
+    $temp = array();
+    
+    if ($key == 'typekey') {
+      $i = $start;
+      while ( $i < sizeof($sort) ) {
+        $temp = $sort[$i];
+        $j = $i-1;
+        while ( $j >= 0 and $sort[$j]['typekey'] > $temp['typekey'] ) {
+          $sort[$j+1] = $sort[$j];
+          $j--;
+        }
+        $sort[$j+1] = $temp;
+        $i++;
+      }
+    }
+    if ($key == 'numtypekey') {
+      $i = $start;
+      while ( $i < sizeof($sort) ) {
+        $temp = $sort[$i];
+        $j = $i-1;
+        while ( $j >= 0 and ($sort[$j]['typekey'] > $temp['typekey'] || $sort[$j]['num'] > $temp['num']) ) {
+          $sort[$j+1] = $sort[$j];
+          $j--;
+        }
+        $sort[$j+1] = $temp;
+        $i++;
+      }
+    }
+    if ($key == 'datekey') {
+      $i = $start;
+      while ( $i < sizeof($sort) ) {
+        $temp = $sort[$i];
+        $j = $i-1;
+        while ( $j >= 0 and $this->compareDates($sort[$j], $temp ) ) {
+          $sort[$j+1] = $sort[$j];
+          $j--;
+        }
+        $sort[$j+1] = $temp;
+        $i++;
+      }
+    }
+    return $sort;  
+  }
+  
+  // Compare dates at the lowest level (day, month or year) in common between the 2 dates
+  private function compareDates($s1, $s2) {
+    if ( $s1['keytype'] === 'day' && $s2['keytype'] === 'day' ) {
+      return ($s1['datekey'] > $s2['datekey']);
+    }
+    else {
+      if ( ($s1['keytype'] === 'month' || $s1['keytype'] === 'day') && ($s2['keytype'] === 'month' || $s2['keytype'] === 'day') ) {  
+        return ($s1['month'] > $s2['month']);
       }
       else {
-         $k = DateHandler::getDateKey($date, true);   // changed to DateHandler function Oct 2020 by Janet Bjorndahl
-         if ($k) {
-            $key = $k;
-            $prevKey = $key;
-         }
+        return ($s1['year'] > $s2['year']);
       }
-      if (!$key) $key = $prevKey; // if no date, assume same as previous
-      return $key;
-   }
-
-   private function sortEvents($xml, $marriageEvents=null) {
-      $sort = array();
-      $prevKey = 0;
-      $pos = 0;
-      $birthKey = 0;
-      if (isset($xml->event_fact)) {
-         foreach ($xml->event_fact as $eventFact) {
-            $pos++;
-            $key = $this->getSortKey($eventFact, $prevKey);
-            $type = (string)$eventFact['type'];
-            if ($type == 'Birth' || $type == 'Christening' || $type == 'Baptism') {
-               if ($key > $birthKey) $birthKey = $key;
-            }
-            // maxint for sorting in php 5.2.3 appears to be 2B > 30M*50
-            $sort[$key*50+$pos] = $eventFact;
-         }
-      }
-      if (isset($marriageEvents)) {
-         $prevKey = $birthKey + 200000; // if marriage date unknown, assume 20 years after birth
-         foreach ($marriageEvents as $eventFact) {
-            $pos++;
-            $key = $this->getSortKey($eventFact, $prevKey);
-            $sort[$key*50+$pos] = $eventFact;
-         }
-      }
-      ksort($sort, SORT_NUMERIC);
-      return $sort;
-   }
-
+    }
+  }
+  
    private function getCites($text) {
       $citations = array();
       $cites = preg_split('/[;,]/', $text, -1, PREG_SPLIT_NO_EMPTY);
