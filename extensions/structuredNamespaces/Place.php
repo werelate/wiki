@@ -1197,6 +1197,14 @@ END;
 
       // $priority includes $numSpaces from parent places, which it shouldn't
 		$parents = Place::placeAbbrevsGetParents($locatedIn);
+    if ( count($parents) === 0 ) {
+      $numSpaces = substr_count($prefName, ' ');
+      Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, null, $titleString, $wlh + $numSpaces, $latitude, $longitude);
+	   	foreach ($altNames as $altName) {
+        $numSpaces = substr_count($altName, ' ');
+		    Place::placeAbbrevsInsertAbbrevs($altName, $prefName, null, $titleString, $wlh + $numSpaces + 14, $latitude, $longitude);
+		   }
+    }
 		foreach ($parents as $parentName => $priority) {
          $numSpaces = substr_count($prefName, ' ');
    		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 10, $latitude, $longitude);
