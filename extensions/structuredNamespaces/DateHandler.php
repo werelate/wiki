@@ -295,6 +295,7 @@ abstract class DateHandler {
     $parsedDate = array();
     $saveOriginal = false;
     $fields = array();
+    $parts = array();
 
     // If the date ends with text in parentheses (GEDCOM standard), remove the parenthetical portion and return it separately
     if ( ($begin = strpos($originalDate, '(')) !== false && strrpos($originalDate, ')') == strlen($originalDate)-1 ) {
@@ -307,11 +308,11 @@ abstract class DateHandler {
       }
     }
     
-    // lower case; remove leading and trailing whitespace, and reduce internal strings of whitespace to one space each
-    // original date (minus any text portion removed above) is retained in case it needs to be returned in the text portion
+    // Prepare: lower case; remove leading and trailing whitespace, and reduce internal strings of whitespace to one space each
+    // Original date (minus any text portion removed above) is retained in case it needs to be returned in the text portion
     $date = mb_strtolower(trim(preg_replace('!\s+!', ' ', $originalDate)));
     
-    // special cases
+    // Special cases
     switch ( $date ) {
       case "":
         return $parsedDate;
@@ -330,25 +331,52 @@ abstract class DateHandler {
         $parsedDate['text'] = "(young)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
         return $parsedDate;;
     }
-    
-    // Check to see if it is an ambiguous date (dd/mm/yyyy or mm/dd/yyyy) and if so, try to resolve 
-    if ( preg_match('#\d{1,2}[-./ ]+\d{1,2}[-./ ]+\d{2,4}#', $date) ) {
-      preg_match_all('#\d+#', $date, $fields, PREG_SET_ORDER);
-      if ( $fields[0][0] > 12 ) {
-        $date = $fields[0][0] . ' ' . self::$MONTHS[$fields[1][0]-1] . ' ' . $fields[2][0];
-      } 
-      else {
-        if ( $fields[1][0] > 12 ) {
-          $date = $fields[1][0] . ' ' . self::$MONTHS[$fields[0][0]-1] . ' ' . $fields[2][0];
-        }
-        else {
-          $parsedDate['year'][0] = $fields[2][0];
-          $parsedDate['effyear'][0] = $fields[2][0];
-          $parsedDate['message'] = 'Ambiguous date';
-          return $parsedDate;
+
+    // Convert valid numeric dates to GEDCOM format (dd mmm yyyy) before continuing with parsing. 
+    // This is somewhat inefficient because of having to reparse these dates, but it was the easiest way to add this code, and these dates are not common.
+     
+    // Replace any (valid) embedded date already in yyyy-mm-dd format with the GEDCOM equivalent.
+    // Start with the last embedded date, because any replacement of an earlier one can affect the offset (position of the embedded date within the string).
+    if ( preg_match_all('#\d{3,4}[-./]\d{1,2}[-./]\d{1,2}#', $date, $fields, PREG_OFFSET_CAPTURE) > 0 ) {
+      for ( $i=count($fields[0])-1; $i>=0 ; $i-- ) {
+        preg_match_all('#\d+#', $fields[0][$i][0], $parts);
+        if ( @self::$MONTHS[$parts[0][1]-1] ) {
+          $embeddedDate = $parts[0][2] . " " . self::$MONTHS[$parts[0][1]-1] . " " . $parts[0][0];
+          $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
         }
       }
-      $fields = array();              // reinitialize fields (used again below)
+    $fields = array();              // reinitialize fields and parts (used again below)
+    $parts = array();
+    } 
+
+    // Check for one or more embedded dates in mm-dd-yyyy or dd-mm-yyyy format. 
+    // If a date is ambiguous, return an error message. Otherwise, if valid, replace with the GEDCOM equivalent.
+    // Start with the last embedded date, because any replacement of an earlier one can affect the offset (position of the embedded date within the string).
+    if ( preg_match_all('#\d{1,2}[-./]\d{1,2}[-./]\d{3,4}#', $date, $fields, PREG_OFFSET_CAPTURE) > 0 ) {
+      for ( $i=count($fields[0])-1; $i>=0 ; $i-- ) {
+        preg_match_all('#\d+#', $fields[0][$i][0], $parts);
+        if ( $parts[0][0] > 12 ) {
+          if ( @self::$MONTHS[$parts[0][1]-1] ) {
+            $embeddedDate = $parts[0][0] . ' ' . self::$MONTHS[$parts[0][1]-1] . ' ' . $parts[0][2];
+            $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
+          }
+        }
+        else {
+          if ( $parts[0][1] > 12 ) {
+            if ( @self::$MONTHS[$parts[0][0]-1] ) {
+              $embeddedDate = $parts[0][1] . ' ' . self::$MONTHS[$parts[0][0]-1] . ' ' . $parts[0][2];
+              $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
+            }
+          }
+          else {
+            $parsedDate['year'][0] = $parts[0][2];        // Even if the date is ambiguous, the year can be returned for functions that require it
+            $parsedDate['effyear'][0] = $parts[0][2];     // Not worried whether this is the first or second date since it is very rare to have a range with numeric dates
+            $parsedDate['message'] = 'Ambiguous date';
+            return $parsedDate;
+          }
+        }
+      }
+    $fields = array();              // reinitialize fields (used again below)
     }
     
     // If date includes a dash, replace with "to" or "and" depending on whether the string already has "from/est" or "bet".
