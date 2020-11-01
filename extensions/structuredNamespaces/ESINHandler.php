@@ -1070,12 +1070,15 @@ END;
     $dateStatus = '';
     $formatedDate = '';
     $languageDate = '';
+    $prevDate = '';
+    
 		if (isset($eventFact)) {
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
       if (ESINHandler::isAmbiguousDate($date)) {
          $dateStyle = ' style="background-color:#fdd;"';
       }
+      // If the date passes date editing but is not in standard format, replace it with the properly formated version 
       $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT));        // added Oct 2020 by Janet Bjorndahl
       if ( $dateStatus === true ) {
         if ( mb_strtolower($formatedDate) == mb_strtolower($date) || trim(mb_strtolower($date)) == 'unknown' ) {
@@ -1083,8 +1086,14 @@ END;
           $formatedDate = '';
           $languageDate = '';
         }
-        if (mb_strtolower($languageDate) == mb_strtolower($date) ) {
-          $languageDate = '';
+        else {
+          if (mb_strtolower($languageDate) == mb_strtolower($date) ) {
+            $languageDate = '';
+          }
+          else {       
+            $prevDate = $date;
+            $date = $formatedDate;
+          }
         }
       }
          
@@ -1134,7 +1143,8 @@ END;
       }
 //      $result .= "</tr><tr><td colspan=\"2\"></td>";   this statement commented out Oct 2020 by Janet Bjorndahl (replaced by 3 below) - TEMPORARY CHANGE
       $result .= "</tr><tr><td colspan=\"2\">" ;
-      $result .= ( $dateStatus === true && $languageDate ? "suggested: $languageDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); 
+//      $result .= ( $dateStatus === true && $languageDate ? "suggested: $languageDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); 
+      $result .= ( $dateStatus === true && $prevDate ? "<b>was</b>: $prevDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); // replaced above Nov 2020
       $result .= "</td>";  
       if ($efNum == 0) {
 //         if ($typeString == 'Birth') {
