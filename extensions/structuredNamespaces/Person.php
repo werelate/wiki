@@ -1028,6 +1028,9 @@ END;
 		$titleSuffix = '';
 		$sources = '';
 		$notes = '';
+    $givenStyle = '';
+    $surnameStyle = '';
+    
 		if (isset($name)) {
 			$typeString = htmlspecialchars((string)$name['type']);
 			$given = htmlspecialchars((string)$name['given']);
@@ -1037,6 +1040,12 @@ END;
 			$sources = htmlspecialchars((string)$name['sources']);
 			$notes = htmlspecialchars((string)$name['notes']);
 		}
+    if (StructuredData::isUnknownNameValue($given)) {                      // added Nov 2020 by Janet Bjorndahl
+      $givenStyle = ' style="background-color:#fdd;"';
+    }
+    if (StructuredData::isUnknownNameValue($surname)) {                    // added Nov 2020 by Janet Bjorndahl
+      $surnameStyle = ' style="background-color:#fdd;"';
+    }
 		$result = '<tr>';
 		if ($nameNum == 0) {
 			$result .= "<td><span style=\"display:$display\">Preferred name</span></td>";
@@ -1050,8 +1059,8 @@ END;
 			$result .= '</select></td>';
 		}
       $result .= "<td><input class=\"n_presuf\" tabindex=\"1\" type=\"text\" name=\"title_prefix$nameNum\" value=\"$titlePrefix\"/></td>";
-      $result .= "<td><input id=\"given$nameNum\" class=\"n_given\" tabindex=\"1\" type=\"text\" name=\"given$nameNum\" value=\"$given\"/></td>";
-      $result .= "<td><input id=\"surname$nameNum\" class=\"n_surname\" tabindex=\"1\" type=\"text\" name=\"surname$nameNum\" value=\"$surname\"/></td>";
+      $result .= "<td><input id=\"given$nameNum\" class=\"n_given\" tabindex=\"1\" type=\"text\" name=\"given$nameNum\" value=\"$given\"$givenStyle/></td>";            // style added Nov 2020
+      $result .= "<td><input id=\"surname$nameNum\" class=\"n_surname\" tabindex=\"1\" type=\"text\" name=\"surname$nameNum\" value=\"$surname\"$surnameStyle/></td>";  // style added Nov 2020
 		$result .= "<td><input class=\"n_presuf\" tabindex=\"1\" type=\"text\" name=\"title_suffix$nameNum\" value=\"$titleSuffix\"/></td>";
 		$rowNum = $nameNum+1;
 		$result .= "<td class=\"n_plus\"><a title='Add a source for this name' href=\"#sourcesSection\" onClick=\"addRef('name_input',$rowNum,6,newSource());\">+</a></td>";
@@ -1321,6 +1330,9 @@ END;
 	   else if (!$this->isGedcomPage && !StructuredData::titleStringHasId($this->titleString)) {
 	      $result .= "<p><font color=red>The page title does not have an ID; please create a page with an ID using <a href='/wiki/Special:AddPage/Person'>Add page</a></font></p>";
 	   }
+     if (StructuredData::hasUnknownNameValues($this->xml)) {
+	   		$result .= "<p><font color=red>WeRelate standard is for unknown names to be blank. Please remove text that implies unknown name.</font></p>";
+     }       
 	   if ($exists && !$genderString) {
 	   	$result .= "<p><font color=red>You must select a gender</font></p>";
 	   	$genderStyle = $invalidStyle;
@@ -1521,19 +1533,20 @@ END;
 		 if (!StructuredData::titleStringHasId($this->titleString)) {
 		 	return false;
 		 }
-       if (ESINHandler::hasAmbiguousDates($this->xml)) {
-          return false;
-       }
-       if (!StructuredData::isRedirect($textbox1)) {
-   		$parentFamilies = StructuredData::getTitlesAsArray($this->xml->child_of_family);
-   		$spouseFamilies = StructuredData::getTitlesAsArray($this->xml->spouse_of_family);
-   		return (!ESINHandler::isLiving($this->xml)
+     if (ESINHandler::hasAmbiguousDates($this->xml)) {
+        return false;
+     }
+     if (!StructuredData::isRedirect($textbox1)) {
+   	 	 $parentFamilies = StructuredData::getTitlesAsArray($this->xml->child_of_family);
+   		 $spouseFamilies = StructuredData::getTitlesAsArray($this->xml->spouse_of_family);
+   		 return (!ESINHandler::isLiving($this->xml)
    		         && strlen((string)$this->xml->gender) > 0
    		         && !StructuredData::titlesOverlap($parentFamilies, $spouseFamilies)
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($parentFamilies))
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($spouseFamilies))
-                  && ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_FAMILY, $parentFamilies))
-                  && ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_FAMILY, $spouseFamilies))
+               && !StructuredData::hasUnknownNameValues($this->xml)                                // added Nov 2020 by Janet Bjorndahl
+               && ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_FAMILY, $parentFamilies))
+               && ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_FAMILY, $spouseFamilies))
          );
        }
        return true;
