@@ -463,7 +463,7 @@ class Person extends StructuredData {
             if (isset($familyXml->event_fact)) {
                foreach ($familyXml->event_fact as $eventFact) {
                   if ((string)$eventFact['type'] == 'Marriage') {
-                     $marriageDate = (string)$eventFact['date'];
+                     $marriageDate = DateHandler::formatDate((string)$eventFact['date']);    // formatDate call added Nov 2020 by Janet Bjorndahl
                      $marriageKey = DateHandler::getDateKey($marriageDate, true);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                      $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span></div>";
                   }
@@ -661,24 +661,24 @@ END;
             foreach ($this->xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Birth') {
                   $birthFound = true;
-                  $birthDate = (string)$eventFact['date'];
+                  $birthDate = DateHandler::formatDate((string)$eventFact['date']);        // formatDate call added Nov 2020 by Janet Bjorndahl
                   $birthPlace = (string)$eventFact['place'];
                   $birthSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Christening' || $eventFact['type'] == 'Baptism') {
                   $chrFound = true;
-                  $chrDate = (string)$eventFact['date'];
+                  $chrDate = DateHandler::formatDate((string)$eventFact['date']);          // formatDate call added Nov 2020 by Janet Bjorndahl
                   $chrPlace = (string)$eventFact['place'];
                }
                else if ($eventFact['type'] == 'Death') {
                   $deathFound = true;
-                  $deathDate = (string)$eventFact['date'];
+                  $deathDate = DateHandler::formatDate((string)$eventFact['date']);        // formatDate call added Nov 2020 by Janet Bjorndahl
                   $deathPlace = (string)$eventFact['place'];
                   $deathSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Burial') {
                   $burFound = true;
-                  $burDate = (string)$eventFact['date'];
+                  $burDate = DateHandler::formatDate((string)$eventFact['date']);          // formatDate call added Nov 2020 by Janet Bjorndahl
                   $burPlace = (string)$eventFact['place'];
                }
             }
@@ -1330,7 +1330,7 @@ END;
 	   else if (!$this->isGedcomPage && !StructuredData::titleStringHasId($this->titleString)) {
 	      $result .= "<p><font color=red>The page title does not have an ID; please create a page with an ID using <a href='/wiki/Special:AddPage/Person'>Add page</a></font></p>";
 	   }
-     if (StructuredData::hasUnknownNameValues($this->xml)) {
+     if (StructuredData::hasUnknownNameValues($this->xml)) {                                         // added Nov 2020 by Janet Bjorndahl
 	   		$result .= "<p><font color=red>WeRelate standard is for unknown names to be blank. Please remove text that implies unknown name.</font></p>";
      }       
 	   if ($exists && !$genderString) {
@@ -1348,9 +1348,12 @@ END;
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($spouseOfFamilies) || !StructuredData::titlesExist(NS_FAMILY, $spouseOfFamilies))) {
    		$result .= "<p><font color=red>Spouse family page not found; please remove it, save this page, then add a new one</font></p>";
 	   }
-      if (ESINHandler::hasAmbiguousDates($this->xml)) {
-         $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
-      }
+     if (ESINHandler::hasAmbiguousDates($this->xml)) {
+       $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
+     }
+     if (ESINHandler::hasReformatedDates($this->xml)) {                                              // added Nov 2020 by Janet Bjorndahl
+       $result .= "<p><font color=red>One or more dates was changed to WeRelate standard. Please compare to original value to ensure no loss of meaning. If the standard date is OK, no further action is required - you may save the page.</font></p>";
+     }
 
 		// add name input table
 		$rows = '';
@@ -1545,6 +1548,7 @@ END;
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($parentFamilies))
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($spouseFamilies))
                && !StructuredData::hasUnknownNameValues($this->xml)                                // added Nov 2020 by Janet Bjorndahl
+               && !ESINHandler::hasReformatedDates($this->xml)                                     // added Nov 2020 by Janet Bjorndahl
                && ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_FAMILY, $parentFamilies))
                && ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_FAMILY, $spouseFamilies))
          );

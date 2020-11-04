@@ -160,6 +160,23 @@ class ESINHandler extends StructuredData {
       }
       return false;
    }
+  
+  // Created Nov 2020 by Janet Bjorndahl
+  public static function hasReformatedDates($xml) {
+    $formatedDate = $languageDate = '';
+    if (isset($xml->event_fact)) {
+      foreach ($xml->event_fact as $ef) {
+        $date = (string)$ef['date'];
+        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array((string)$ef['type'], ESINHandler::$DISCRETE_EVENT));        
+        if ( $dateStatus === true ) {                                                                                                         
+          if ( mb_strtolower($formatedDate) != mb_strtolower($date) && mb_strtolower($languageDate) != mb_strtolower($date) && trim(mb_strtolower($date)) != 'unknown' ) {
+            return true;
+          }
+        }
+      }
+    }
+  return false;
+  }
 
 	public static function getChildDate($child, $attr) {
 	   $start = mb_strpos($child, $attr . '="');
@@ -235,22 +252,22 @@ class ESINHandler extends StructuredData {
       $birthDate = $birthPlace = $deathDate = $deathPlace = '';
       if ((string)$p['birthdate'] || (string)$p['birthplace']) {
          $birthLabel = 'b. ';
-         $birthDate = (string)$p['birthdate'];
+         $birthDate = DateHandler::formatDate((string)$p['birthdate']);        // formating call added Nov 2020 by Janet Bjorndahl
          $birthPlace = (string)$p['birthplace'];
       }
       else if ((string)$p['chrdate'] || (string)$p['chrplace']) {
          $birthLabel = 'chr. ';
-         $birthDate = (string)$p['chrdate'];
+         $birthDate = DateHandler::formatDate((string)$p['chrdate']);          // formating call added Nov 2020 by Janet Bjorndahl
          $birthPlace = (string)$p['chrplace'];
       }
       if ((string)$p['deathdate'] || (string)$p['deathplace']) {
          $deathLabel = 'd. ';
-         $deathDate = (string)$p['deathdate'];
+         $deathDate = DateHandler::formatDate((string)$p['deathdate']);        // formating call added Nov 2020 by Janet Bjorndahl
          $deathPlace = (string)$p['deathplace'];
       }
       else if ((string)$p['burialdate'] || (string)$p['burialplace']) {
          $deathLabel = 'bur. ';
-         $deathDate = (string)$p['burialdate'];
+         $deathDate = DateHandler::formatDate((string)$p['burialdate']);       // formating call added Nov 2020 by Janet Bjorndahl
          $deathPlace = (string)$p['burialplace'];
       }
       if ($birthPlace) $birthPlace = '[[Place:' . StructuredData::addBarToTitle($birthPlace) . ']]';
@@ -715,6 +732,7 @@ END;
 //      $notes = StructuredData::formatAsLinks((string)@$eventFact['notes']);
 //      $images = StructuredData::formatAsLinks((string)@$eventFact['images']);
       $type = (string)$eventFact['type'];
+      $date = DateHandler::formatDate((string)$eventFact['date']);                             // added Nov 2020 by Janet Bjorndahl
       $place = (string)$eventFact['place'];
       if ($place) {
          $place = '[[Place:' . StructuredData::addBarToTitle($place) . ']]';
@@ -723,7 +741,7 @@ END;
       return <<<END
 <tr>
    <td class="wr-infotable-type $firstChildClass"><span class="wr-infotable-type">$type</span>$refs</td>
-   <td class="wr-infotable-date $firstChildClass"><span class="wr-infotable-date">{$eventFact['date']}</span></td>
+   <td class="wr-infotable-date $firstChildClass"><span class="wr-infotable-date">$date</span></td>
    <td class="wr-infotable-placedesc $firstChildClass"><span class="wr-infotable-place">$place</span><span class="wr-infotable-desc">$desc</span></td>
 </tr>
 END;
@@ -1075,26 +1093,17 @@ END;
 		if (isset($eventFact)) {
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
-      if (ESINHandler::isAmbiguousDate($date)) {
-         $dateStyle = ' style="background-color:#fdd;"';
-      }
       // If the date passes date editing but is not in standard format, replace it with the properly formated version 
       $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT));        // added Oct 2020 by Janet Bjorndahl
-      if ( $dateStatus === true ) {
-        if ( mb_strtolower($formatedDate) == mb_strtolower($date) || trim(mb_strtolower($date)) == 'unknown' ) {
-          $date = $formatedDate;
-          $formatedDate = '';
-          $languageDate = '';
+      if ( $dateStatus === true ) {                                                                                                         // changed Nov 2020 by Janet Bjorndahl
+        if ( mb_strtolower($formatedDate) != mb_strtolower($date) && mb_strtolower($languageDate) != mb_strtolower($date) && trim(mb_strtolower($date)) != 'unknown' ) {
+          $prevDate = $date;
+          $dateStyle = ' style="background-color:#ffff99;"';
         }
-        else {
-          if (mb_strtolower($languageDate) == mb_strtolower($date) ) {
-            $languageDate = '';
-          }
-          else {       
-            $prevDate = $date;
-            $date = $formatedDate;
-          }
-        }
+        $date = $languageDate;
+      }
+      if (ESINHandler::isAmbiguousDate($date)) {
+         $dateStyle = ' style="background-color:#fdd;"';
       }
          
 			$place = htmlspecialchars((string)$eventFact['place']);
@@ -1445,8 +1454,19 @@ END;
 	}
 
 	protected function fromEvent($request, $type, $num, $correctedPlaceTitles) {
+    $formatedDate='';
+    $languageDate='';
 		$result = '';
+   
 		$date = $request->getVal("date$num");
+    // Format the date. If the only change is a change in case or if the date was 'unknown', then replace the date with the formated date. Added Nov 2020 by Janet Bjorndahl
+    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($type, ESINHandler::$DISCRETE_EVENT));
+    if ( $dateStatus === true ) {
+      if ( mb_strtolower($formatedDate) == mb_strtolower($date) || mb_strtolower($languageDate) == mb_strtolower($date) || trim(mb_strtolower($date)) == 'unknown' ) {
+        $date = $formatedDate;
+      }
+    }
+
 		$place = $request->getVal("place$num");
 		$correctedPlace = @$correctedPlaceTitles[$place];
 		if ($correctedPlace) {
