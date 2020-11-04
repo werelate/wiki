@@ -1,5 +1,6 @@
 <?php
 
+// Created Oct 2020 (and modified Nov 2020) by Janet Bjorndahl
 abstract class DateHandler {
 
   private static $GEDCOM_MONTHS = array('jan'=>'Jan','feb'=>'Feb','mar'=>'Mar','apr'=>'Apr','may'=>'May','jun'=>'Jun',
@@ -33,6 +34,26 @@ abstract class DateHandler {
                                            'before'=>'Bef','after'=>'Aft','frm'=>'From','btw'=>'Bet','between'=>'Bet','interpreted'=>'Int',
                                            'say'=>'Est');
                                            // will add other languages at user request, if they provide the full words and abbreviations
+
+  public static function formatDate($date) {
+    $formatedDate = $languageDate = '';
+    if ( self::editDate($date, $formatedDate, $languageDate) === true ) {
+      return $languageDate;
+    }
+    else {
+      return $date;
+    }
+  }
+
+  public static function formatDateEnglish($date) {
+    $formatedDate = $languageDate = '';
+    if ( self::editDate($date, $formatedDate, $languageDate) === true ) {
+      return $formatedDate;
+    }
+    else {
+      return $date;
+    }
+  }
 
   public static function editDate($date, &$formatedDate, &$languageDate, $discreteEvent=false) {
     $parsedDate = array();
