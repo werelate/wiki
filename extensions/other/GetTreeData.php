@@ -161,7 +161,7 @@ class TreeData {
             foreach ($xml->spouse_of_family as $f) {
                $family = $this->getFamilyData((string)$f['title'], 'right', $numDescLevels-1, 0);
                if ($family) {
-                  $key = StructuredData::getDateKey(@$family['data']['marriagedate'], true);
+                  $key = DateHandler::getDateKey(@$family['data']['marriagedate'], true);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                   if ($key) {
                      $prevKey = $key;
                   }
@@ -195,6 +195,7 @@ class TreeData {
 
          // populate data
          list($marriageYear, $marriageDate, $marriagePlace, $eventTypeIndex) = $this->getEventData($xml, array('Marriage'));
+         $marriageDate = DateHandler::formatDate($marriageDate);              // added Nov 2020 by Janet Bjorndahl
          $thumbURL = $this->getPrimaryImage($xml, false);
          $data = array();
          $data['url'] = $family->getTitle()->getFullURL();
@@ -231,7 +232,7 @@ class TreeData {
          $prevKey = 0;
          foreach ($xml->child as $p) {
             $person = $this->getPersonSummary($p);
-            $key = StructuredData::getDateKey($person['birthdate'], true);
+            $key = DateHandler::getDateKey($person['birthdate'], true);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
             if ($key) {
                $prevKey = $key;
             }
@@ -308,8 +309,8 @@ class TreeData {
       }
       $fullname = StructuredData::getFullname($member);
       $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
-      $beginYear = StructuredData::getYear($birthDate, true);
-      $endYear = StructuredData::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
+      $beginYear = DateHandler::getYear($birthDate, true);       // changed to DateHandler function Oct 2020 by Janet Bjorndahl
+      $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
       if ($beginYear || $endYear) {
          $yearrange = "$beginYear - $endYear";
       }
@@ -323,7 +324,7 @@ class TreeData {
 			foreach ($xml->event_fact as $event_fact) {
 				if ((string)$event_fact['type'] == $type) {
 					$eventDate = (string)$event_fact['date'];
-					$eventYear = substr(StructuredData::getDateKey($eventDate), 0, 4);
+					$eventYear = substr(DateHandler::getDateKey($eventDate), 0, 4);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                $eventPlace = '';
 //               $eventPlaceUrl = '';
                $place = (string)$event_fact['place'];

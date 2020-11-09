@@ -518,11 +518,33 @@ abstract class StructuredData {
 	}
 
    // name should be in title case
-   private static function isUnknownName($name) {
-      return !$name || $name == 'Unknown' || $name == 'Unk' ||
-             $name == 'N.N.' || $name == 'N.N' || $name == 'Nn' || $name == 'Nn.' || $name == 'N N' ||
-             $name == 'Fnu' || $name == 'Lnu' || $name == 'Father' || $name == 'Mother' || $name == '?';
-   }
+  private static function isUnknownName($name) {
+    $charsMeaningUnknown = array('?','_','-');
+    return !$name || $name == 'Unknown' || $name == 'Unk' ||
+            $name == 'N.N.' || $name == 'N.N' || $name == 'Nn' || $name == 'Nn.' || $name == 'N N' ||
+            $name == 'Fnu' || $name == 'Lnu' || $name == 'Father' || $name == 'Mother' ||
+            trim(str_replace($charsMeaningUnknown,'',$name)) == '';                                              // this condition added Nov 2020 by Janet Bjorndahl
+  }
+   
+  public static function isUnknownNameValue($name) {                                                             // function added Nov 2020 by Janet Bjorndahl
+    return self::isUnknownName($name) && trim($name) != '';
+  }
+  
+  public static function hasUnknownNameValues($xml) {                                                            // function added Nov 2020 by Janet Bjorndahl
+    if (isset($xml->name)) {
+      if (self::isUnknownNameValue($xml->name['given']) || self::isUnknownNameValue($xml->name['surname'])) {
+        return true;
+      }
+    }
+    if (isset($xml->alt_name)) {
+      foreach ($xml->alt_name as $name) {
+        if (self::isUnknownNameValue($name['given']) || self::isUnknownNameValue($name['surname'])) {
+          return true;
+        }
+      }
+    }
+  return false;
+  }
 
 	public static function constructName($gn, $sn) {
 	   $gn = StructuredData::standardizeNameCase(trim(preg_replace('/[. ].*$/', '', $gn)), true);
@@ -760,13 +782,24 @@ abstract class StructuredData {
 	 *
 	 * @param xml/object $name
 	 */
-	public static function getFullname($name, $addSlashes = false) {
+	public static function getFullname($name, $addSlashes = false) {        // changed to replace blanks with underscores Nov 2020 by Janet Bjorndahl
+    $prefix = (string)@$name['title_prefix'];
+    $given = (string)@$name['given'];
+    $surname = (string)@$name['surname'];
 		$suffix = (string)@$name['title_suffix'];
 		if ($suffix) {
 			$suffix = ', ' . $suffix;
 		}
-		$fullname = trim((string)@$name['title_prefix'] . ' ' . (string)@$name['given'] . ' ' . 
-								($addSlashes ? '/' : '') . (string)@$name['surname'] . ($addSlashes ? '/' : '') . $suffix);
+   // Replace blanks in given name or surname with underscores - but only if there is other data (and thus we don't want to return the page title instead).
+    if ( !$given && ($surname || $prefix || $suffix ) ) {
+      $given = '_____';
+    }
+    if ( !$surname && ($given || $prefix || $suffix ) ) {
+      $surname = '_____';
+    }
+		$fullname = trim($prefix . ' ' . $given . ' ' . ($addSlashes ? '/' : '') . $surname . ($addSlashes ? '/' : '') . $suffix);
+//		$fullname = trim((string)@$name['title_prefix'] . ' ' . (string)@$name['given'] . ' ' . 
+//								($addSlashes ? '/' : '') . (string)@$name['surname'] . ($addSlashes ? '/' : '') . $suffix);
 		return $fullname ? $fullname : (string)@$name['title'];
 	}
 	

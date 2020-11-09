@@ -268,7 +268,7 @@ class JSONPedigree {
 	}
 
 	private function cleanDate($str){
-		return StructuredData::getDateKey($str);
+		return DateHandler::getDateKey($str);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 
 //		if($str == 'UNKNOWN')
 //			return '';

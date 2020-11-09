@@ -567,7 +567,7 @@ class ShowPedigree {
 				$placeTitle = $stdPlace['title'];
 				$color = ShowPedigree::$COLORS[$familyNumber];
 				$type = substr($type, 0, 1); // we only need first character
-				$dateKey = (string)StructuredData::getDateKey($date, true);
+				$dateKey = (string)DateHandler::getDateKey($date, true);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 				$result .= '<p n="'.StructuredData::escapeXml($name)
 							  .'" u="'.StructuredData::escapeXml($url)
 							  .'" p="'.StructuredData::escapeXml($placeTitle)
@@ -589,7 +589,7 @@ class ShowPedigree {
 			$stdPlace = @$this->stdPlaces[$place];
 			if ($stdPlace) {
 				$date = @$pf["{$type}date"];
-				$dateKey = (string)StructuredData::getDateKey($date, true);
+				$dateKey = (string)DateHandler::getDateKey($date, true);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 				if (!$dateKey) {
 					// set to previous dateKey + 1
 					$cnt = count($endpoints);
@@ -649,8 +649,8 @@ class ShowPedigree {
 			}
 
 			// calculate which spouse dies first
-			$husbandDeath = StructuredData::getDateKey(@$family['husband']['deathdate'], true);
-			$wifeDeath = StructuredData::getDateKey(@$family['wife']['deathdate'], true);
+			$husbandDeath = DateHandler::getDateKey(@$family['husband']['deathdate'], true);      // changed to DateHandler function Oct 2020 by Janet Bjorndahl
+			$wifeDeath = DateHandler::getDateKey(@$family['wife']['deathdate'], true);            // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 			if ($husbandDeath && $wifeDeath) {
 				if ($husbandDeath < $wifeDeath) {
 					$firstDeathTag = 'husband';
