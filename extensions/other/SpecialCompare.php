@@ -36,7 +36,7 @@ function wfSpecialCompare( $par=NULL, $specialPage ) {
 		$results = $compareForm->getCompareForm();
 	}
 	else {
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/compare.7.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/compare.8.js\"></script>");
 		$isGedcom = $compareForm->isGedcom();
 		$sideText = '<p>'.($isGedcom ? 'Matching GEDCOM families' : 'Merge').' is a two-step process.  In this compare step, check the boxes above the matching pages.</p>'.
 						($compareForm->getNamespace() == 'Family' ? '<p>To match children, choose the child number to match with.</p>' : '').

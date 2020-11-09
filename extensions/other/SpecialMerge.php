@@ -97,7 +97,7 @@ function wfSpecialMerge( $par=NULL, $specialPage ) {
 		}
 	}
 	else {
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/merge.10.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/merge.11.js\"></script>");
 //		$mergeText = $isGedcom ? 'update' : 'merge';
 //		$mergeButton = $isGedcom ? 'Update' : 'Merge';
 //		$sideText = '<h3>Instructions</h3><p>' .

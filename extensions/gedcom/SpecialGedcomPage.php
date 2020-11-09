@@ -186,7 +186,7 @@ END;
 function loadGedcomPage(id){
 	try {
 	   if (parent && parent.review) {
-	      var swf=(navigator.appName.indexOf("Microsoft")!=-1) ? parent.review.window["gedcom"] : parent.review.document["gedcom"];
+	      var swf=!parent.review.window && !parent.review.document ? parent.review : (navigator.appName.indexOf("Microsoft")!=-1) ? parent.review.window["gedcom"] : parent.review.document["gedcom"];
 	      if (swf && swf.loadGedcomId) swf.loadGedcomId(id);
 	   }
 	} catch (e) {}
@@ -366,7 +366,7 @@ END
 $(document).ready(function(){
 	try {
 	   if (parent && parent.review) {
-	      var swf=(navigator.appName.indexOf("Microsoft")!=-1) ? parent.review.window["gedcom"] : parent.review.document["gedcom"];
+	      var swf=!parent.review.window && !parent.review.document ? parent.review : (navigator.appName.indexOf("Microsoft")!=-1) ? parent.review.window["gedcom"] : parent.review.document["gedcom"];
 	      if (swf && swf.pageUpdated) swf.pageUpdated("$gedcomkey");
 	   }
 	} catch (e) {}
