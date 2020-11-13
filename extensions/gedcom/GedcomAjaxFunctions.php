@@ -314,7 +314,7 @@ function wfUpdateGedcomFlag($args) {
 	else {
 		$attr = '';
 	}
-	$keys = explode("\n", $args['key']);
+	$keys = explode(strpos($args['key'], '/') !== false ? '/' : "\n", $args['key']);
 	$result = '';
 
 	if (!$wgUser->isLoggedIn()) {
@@ -361,9 +361,9 @@ function wfUpdateGedcomMatches($args) {
 	$status = GE_SUCCESS;
    $args = AjaxUtil::getArgs($args);
 	$gedcomId = (int)$args['gedcom_id'];
-	$merged = explode("\n", $args['merged']);
-	$keys = explode("\n", $args['key']);
-	$matches = explode("\n", $args['match']);
+	$merged = explode(strpos($args['merged'], '/') !== false ? '/' : "\n", $args['merged']);
+	$keys = explode(strpos($args['key'], '/') !== false ? '/' : "\n", $args['key']);
+	$matches = explode(strpos($args['match'], '/') !== false ? '/' : "\n", $args['match']);
 	$result = '';
 
 	if (!$wgUser->isLoggedIn()) {
@@ -395,8 +395,8 @@ function wfUpdateGedcomPotentialMatches($args) {
 	$status = GE_SUCCESS;
    $args = AjaxUtil::getArgs($args);
 	$gedcomId = (int)$args['gedcom_id'];
-	$keys = explode("\n", $args['key']);
-	$matches = explode("\n", $args['matches']);
+	$keys = explode(strpos($args['key'], '/') !== false ? '/' : "\n", $args['key']);
+	$matches = explode(strpos($args['matches'], '/') !== false ? '/' : "\n", $args['matches']);
 	$result = '';
 
 	if (!$wgUser->isLoggedIn()) {
