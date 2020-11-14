@@ -795,6 +795,23 @@ webengage.init("aa1323db");
 <?php
         }
 ?>
+<?php
+        if (false && !$this->loggedin && !$mainPage) {
+?>
+<!-- Start of Survicate (www.survicate.com) code -->
+                <script type="text/javascript">
+                  (function (w) {
+                              var s = document.createElement('script');
+                                  s.src = 'https://survey.survicate.com/workspaces/fb51e58a3ee96a16df89a23f9ac22f12/web_surveys.js';
+                                  s.async = true;
+                                      var e = document.getElementsByTagName('script')[0];
+                                      e.parentNode.insertBefore(s, e);
+                                        })(window);
+                  </script>
+<!-- End of Survicate code -->
+<?php
+        }
+?>
 </body></html>
 <?php
 	wfRestoreWarnings();
