@@ -438,9 +438,8 @@ END;
 			$title = htmlspecialchars($this->titleText);
 	   	if (strlen($this->namespace) == 0) {
 				$hiddenField = '';
-        // namespace selector replaced to exclude Talk pages Sep 2020 (Janet Bjorndahl)
-			  $namespaceselect = "<tr><td align=\"right\"><label for='namespace'> " . wfMsgHtml('namespace') . "</label></td><td align=\"left\">";
-        $namespaceselect .= StructuredData::addSelectToHtml(0, 'namespace', array_slice(SearchForm::$NAMESPACE_OPTIONS_ID,1), $this->namespace, '', false) . "</td></tr>";
+        // namespace selector was replaced Sep 2020 to exclude Talk pages and then reverted Nov 2020 to include Talk pages, to allow creation of Talk sub-pages (Janet Bjorndahl)
+        $namespaceselect = "<tr><td align=\"right\">Namespace:</td><td align=\"left\">" . HTMLnamespaceselector('', null) . "</tr>";
 	   	}
 			else {
 				$hiddenField = "<input type=\"hidden\" name=\"namespace\" value=\"{$this->namespace}\"/>";
