@@ -700,7 +700,11 @@ END;
   }
   
   // Compare dates at the lowest level (day, month or year) in common between the 2 dates
+  // If either date is missing (keytype not defined), return false so that the relative order of the two events is not switched. (This change added Dec 2020 by Janet Bjorndahl)
   private function compareDates($s1, $s2) {
+    if ( !isset($s1['keytype']) || !isset($s2['keytype']) ) {
+      return false;
+    }
     if ( $s1['keytype'] === 'day' && $s2['keytype'] === 'day' ) {
       return ($s1['datekey'] > $s2['datekey']);
     }
