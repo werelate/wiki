@@ -385,7 +385,12 @@ class TreeData {
      */
    private function getUserTreesForPage($ns, $titleText, $maxTrees=10, &$treeLabel, &$treeString) {
      global $wgUser;
-     
+
+    // In case session variable has been lost due to session inactivity, reinitialize it (added Dec 2020 by Janet Bjorndahl).     
+     if ( !isset($_SESSION['isExploreContext']) ) {
+       $_SESSION['isExploreContext'] = false;
+     }
+
      $treeLabel = '';
      $dbr =& wfGetDB( DB_SLAVE );
      $dbTitle = str_replace(' ', '_', Sanitizer::decodeCharReferences($titleText));

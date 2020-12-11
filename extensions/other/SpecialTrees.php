@@ -105,6 +105,9 @@ class SpecialTrees {
       	   case 'download':
       	      $this->download();
       	      break;
+           case 'explore':            // added Dec 2020 by Janet Bjorndahl 
+              $this->exploreTree();
+              break;
       	   default:
       	      $this->show();
       	      break;
@@ -355,6 +358,36 @@ class SpecialTrees {
    	else {
    		$this->downloadFile($file, "{$this->name}.ged");
    	}
+   }
+   
+   // Function exploreTree added Dec 2020 by Janet Bjorndahl
+   // Handle a request to explore a tree from a User's talk page (GEDCOM import message)
+   private function exploreTree() {
+     global $wrHostName, $wgOut;
+
+     // Can only explore a tree with at least one page - check count of pages in the tree
+     $dbr =& wfGetDB(DB_SLAVE);
+     $dbr->ignoreErrors(true);
+     $sql = 'SELECT ft_tree_id, ft_name, (SELECT count(*) FROM familytree_page WHERE fp_tree_id = ft_tree_id) AS cnt' .
+             ' FROM familytree WHERE ft_user = '. $dbr->addQuotes($this->user) . ' AND ft_name = ' . $dbr->addQuotes($this->name);
+     $rows = $dbr->query($sql, 'exploreTree');
+     $errno = $dbr->lastErrno();
+     if ( $errno > 0 ) {
+        $this->show();
+        return;
+     }
+     $row = $dbr->fetchObject($rows);
+     if ( !$row || $row->cnt == 0 ) {
+        $this->show();
+        if ($this->name) {
+          $wgOut->setSubtitle("<font size=\"2\" color=\"red\"> Tree " . $this->name . " is empty. If you just imported a GEDCOM, please try again later.</font>");
+        }
+        return;
+     }
+     $dbr->freeResult($rows);
+
+     $firstTitle = $this->getExploreFirstTitle($this->user, $this->name);
+     $wgOut->redirect('http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . $this->user. '&tree=' . $this->name . '&liststart=0&listrows=20');
    }
    
    private function showInputForm($title, $field, $submitName, $submitValue) {
