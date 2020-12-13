@@ -1255,30 +1255,64 @@ class User {
 // WERELATE: added
 		if (!$res && ($action == 'delete' || $action == 'undelete') && $this->isLoggedIn() && $title != null) {
 		   if (in_array($title->getNamespace(), array(NS_MYSOURCE, NS_MYSOURCE_TALK, NS_USER, NS_USER_TALK))) {
-            $res = preg_match('/^'.preg_quote($this->getName(), '/').'(\/|$)/', $title->getText());
+          $res = preg_match('/^'.preg_quote($this->getName(), '/').'(\/|$)/', $title->getText());
 		   }
 		   else if (in_array($title->getNamespace(), array(NS_PERSON, NS_PERSON_TALK, NS_FAMILY, NS_FAMILY_TALK, NS_IMAGE, NS_IMAGE_TALK))) {
-        		$dbr =& wfGetDB(DB_SLAVE);
+        	$dbr =& wfGetDB(DB_SLAVE);
 		      if ($action == 'delete') {
+            // Check watchlist for this page and selected related pages. (Checks for related pages added Dec 2020 by Janet Bjorndahl)
+            // As of 7 Dec 2020, restrictions are:
+            //   Cannot delete a person page if it is spouse of a family page someone else is watching.
+            //   Cannot delete a family page if someone else is watching any of the children. 
+            // Note that the SQL syntax uses OR rather than IN because using IN causes the SQL optimizer to use an inefficient index.    
+         		$pages = "(wl_namespace = " . $title->getNamespace() . " AND wl_title = " . $dbr->addQuotes($title->getDBkey()) . ")";
+            if ( $title->getNamespace() == NS_PERSON ) {
+              $xml = null;
+		          $revision = Revision::loadFromTitle($dbr, $title); // use load instead of new to avoid accessing DB_MASTER
+		          if ($revision) {
+			          $xml = StructuredData::getXml('person', $revision->getText());
+		          }
+			        if ($xml) {
+				        foreach ($xml->spouse_of_family as $spouseFamily) {
+         		      $pages .= " OR (wl_namespace = 110 AND wl_title = " . $dbr->addQuotes(str_replace(' ','_',$spouseFamily['title'])) . ")";
+				        }
+              }
+            }          
+            if ( $title->getNamespace() == NS_FAMILY ) {
+              $xml = null;
+		          $revision = Revision::loadFromTitle($dbr, $title); // use load instead of new to avoid accessing DB_MASTER
+		          if ($revision) {
+			          $xml = StructuredData::getXml('family', $revision->getText());
+		          }
+			        if ($xml) {
+						    foreach ($xml->child as $child) {
+         		      $pages .= " OR (wl_namespace = 108 AND wl_title = " . $dbr->addQuotes(str_replace(' ','_',$child['title'])) . ")";
+				        }
+              }
+            }
+   		      $sql = 'SELECT count(*) FROM watchlist WHERE (' . $pages . ') AND wl_user<>' . $dbr->addQuotes($this->getID());
+// error_log($sql);                  
+            /* Previous sql statement            
    		      $sql = 'SELECT count(*) FROM watchlist WHERE wl_namespace=' . $dbr->addQuotes($title->getNamespace()) .
    		             ' AND wl_title=' . $dbr->addQuotes($title->getDBkey()) . ' AND wl_user<>' . $dbr->addQuotes($this->getID());
-               $rows = $dbr->query($sql);
-               if ($rows !== false) {
+            */      
+            $rows = $dbr->query($sql);
+            if ($rows !== false) {
          		   $row = $dbr->fetchRow($rows);
          		   $res = ($row !== false) && $row[0] == 0;
          		   $dbr->freeResult($rows);
-               }
+            }
 		      }
 		      else { // undelete
    		      $sql = 'SELECT count(*) FROM logging WHERE log_namespace=' . $dbr->addQuotes($title->getNamespace()) .
    		             ' AND log_title=' . $dbr->addQuotes($title->getDBkey()) . ' AND log_user=' . $dbr->addQuotes($this->getID()) .
    		             ' AND log_type="delete"';
-               $rows = $dbr->query($sql);
-               if ($rows !== false) {
+            $rows = $dbr->query($sql);
+            if ($rows !== false) {
          		   $row = $dbr->fetchRow($rows);
          		   $res = ($row !== false) && $row[0] > 0;
          		   $dbr->freeResult($rows);
-               }
+            }
 		      }
 		   }
 		}
