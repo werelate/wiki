@@ -1290,8 +1290,8 @@ class User {
 				        }
               }
             }
-   		      $sql = 'SELECT count(*) FROM watchlist WHERE (' . $pages . ') AND wl_user<>' . $dbr->addQuotes($this->getID());
-// error_log($sql);                  
+   		      $sql = 'SELECT count(*) FROM watchlist USE INDEX (namespace_title) WHERE (' . $pages . ') AND wl_user<>' . $dbr->addQuotes($this->getID());
+            // error_log($sql);                  
             /* Previous sql statement            
    		      $sql = 'SELECT count(*) FROM watchlist WHERE wl_namespace=' . $dbr->addQuotes($title->getNamespace()) .
    		             ' AND wl_title=' . $dbr->addQuotes($title->getDBkey()) . ' AND wl_user<>' . $dbr->addQuotes($this->getID());
