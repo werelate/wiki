@@ -225,9 +225,9 @@ END;
 		$familyTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName(), true, $dbr);  // changed Sep 2020 by Janet Bjorndahl
       foreach($familyTrees as $familyTree) {
       	$ret .= '<li>' . htmlspecialchars($familyTree['name']) . ' (&nbsp;' .
-					$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'view', 'k='.urlencode('+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')) .
-					'&nbsp;) (&nbsp;' .
-					'<a href="/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($familyTree['name']) . '">launch FTE</a>&nbsp;)';
+					$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'search', 'k='.urlencode('+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')) .  // link renamed Dec 2020
+					'&nbsp;)';
+//					'<a href="/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($familyTree['name']) . '">launch FTE</a>&nbsp;)';   removed Dec 2020
         // Allow user to explore a tree only if the tree has at least one page, because exploring starts with displaying a page (added Sep 2020 by Janet Bjorndahl)     
         if ($familyTree['count'] > 0) { 
           $explore = $skin->makeKnownLinkObj(SpecialTrees::getExploreFirstTitle($wgUser->getName(), $familyTree['name']), 'explore', 

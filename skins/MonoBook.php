@@ -324,8 +324,7 @@ END;
             'userprofile' => ($wgUser->isLoggedIn() ? 'User:' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
             'talkpage' => ($wgUser->isLoggedIn() ? 'User_talk:' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
             'trees' => 'Special:Trees',
-            'showduplicates' => ($wgUser->isLoggedIn() ? 'Special:ShowDuplicates/' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
-            '-launchfte' => $wrProtocol.'://www.werelate.org/fte'
+            'showduplicates' => ($wgUser->isLoggedIn() ? 'Special:ShowDuplicates/' . urlencode($wgUser->getName()) : 'Special:Userlogin')  // Launch FTE removed Dec 2020 
         ),
         'admin' => array(
             'recentchanges' => 'Special:Recentchanges',
