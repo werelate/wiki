@@ -177,15 +177,23 @@ class SpecialTrees {
    private function emailTree() {
    	global $wrHostName, $wrProtocol, $wgLang, $wgUser, $IP;
 
+    // Link is to explore function that replaced FTE (changed Dec 2020 Janet Bjorndahl)
+    $firstTitle = SpecialTrees::getExploreFirstTitle($wgUser->getName(), $this->name);
+   	$exploreLink = $wrProtocol.'://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . $wgUser->getName() . '&tree='
+                      . str_replace(' ','+',$this->name) . '&liststart=0&listrows=20';
+   	// Added link to allow recipient to copy the tree (Dec 2020 by Janet Bjorndahl)
+    $copyLink = $wrProtocol.'://'.$wrHostName.'/w/index.php?title=Special:CopyTree&user=' . $wgUser->getname() . '&name='
+                      . str_replace(' ','+',$this->name);
+
+/*    
    	$link = $wrProtocol.'://'.$wrHostName.'/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($this->name);
    	$primaryPage = $this->getPrimaryPage();
    	if ($primaryPage) {
    		$link .= '&page='.urlencode($primaryPage->getPrefixedText());
    	}
-   	
+*/   	
    	$subject = wfMsg('sharetreesubject');
-   	$text = wfMsg('sharetreetext', $link);
-
+   	$text = wfMsg('sharetreetext', $exploreLink, $copyLink);
    	$request = new FauxRequest(array('returnto' => $wgLang->specialPage('Trees'), 'wpSubject' => $subject, 'wpText' => $text));
 		require_once("$IP/extensions/other/SpecialEmail.php");
 		$form = new EmailForm($request);
@@ -500,7 +508,11 @@ END
    	$skin =& $wgUser->getSkin();
 
       $ret = '<div id="familytree-table"><table width="99%" cellpadding="5" cellspacing="0" border="0">'.
+              '<tr><td><b>Name</b></td><td><b>Pages</b></td><td><b>Imported GEDCOMs</b></td><td><b>Export a GEDCOM</b></td><td><b>Rename / Merge tree</b></td><td><b>Related pages not in tree</b></td><td><b>Other watchers</b></td><td><b>E-mail (share)</b></td><td><b>Deletion impact</b></td></tr>';   // Delete tree removed Dec 2020 by Janet Bjorndahl
+/*
+      $ret = '<div id="familytree-table"><table width="99%" cellpadding="5" cellspacing="0" border="0">'.
               '<tr><td><b>Name</b></td><td><b>Pages</b></td><td><b>Imported GEDCOMs</b></td><td><b>Export a GEDCOM</b></td><td><b>Rename / Merge tree</b></td><td><b>Related pages not in tree</b></td><td><b>Other watchers</b></td><td><b>E-mail (share)</b></td><td><b>Deletion impact</b></td><td><b>Delete</b></td></tr>';
+*/
 		$db =& wfGetDB( DB_MASTER ); // make sure we show just-added or renamed trees
 		$familyTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName(), true, $db);
       if (!is_null($familyTrees)) {
@@ -510,24 +522,32 @@ END
             				'', '', '', ' title="Export a GEDCOM file of the pages in this tree"');
             $rename = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'rename&nbsp;/&nbsp;merge', wfArrayToCGI(array('action'=> 'renameTree', 'name' => $familyTree['name'])),
             				'', '', '', ' title="Rename this tree"');
-            $email = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'e-mail', wfArrayToCGI(array('action' => 'emailTree', 'name' => $familyTree['name'])));
+            if ($familyTree['count'] > 0) {  // email link only if tree has at least one page, because the recipient can explore only if at least 1 page (changed Dec 2020 by Janet Bjorndahl)
+              $email = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'e-mail', wfArrayToCGI(array('action' => 'emailTree', 'name' => $familyTree['name'])));
+            }
+            else {
+              $email ='';
+            }
             $relatedPages = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'TreeRelated'), 'related pages', wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'])));
             $countWatchers = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'TreeCountWatchers'), 'watchers', wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'])));
             $deletionImpact = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'TreeDeletionImpact'), 'impact', wfArrayToCGI(array('user' => $wgUser->getName(), 'tree' => $familyTree['name'])));
             $delete = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'delete', wfArrayToCGI(array('action' => 'deleteTree', 'name' => $familyTree['name'])));
-            $search = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'view', wfArrayToCGI(array('k' => '+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')));
+            $search = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Search'), 'search', wfArrayToCGI(array('k' => '+Tree:"'.$wgUser->getName().'/'.$familyTree['name'].'"')));
             
-            $fte = '<a href="/fte/index.php?'.wfArrayToCGI(array('userName' => $wgUser->getName(), 'treeName' => $familyTree['name'])).'">launch&nbsp;FTE</a>';
+//            $fte = '<a href="/fte/index.php?'.wfArrayToCGI(array('userName' => $wgUser->getName(), 'treeName' => $familyTree['name'])).'">launch&nbsp;FTE</a>';  removed Dec 2020
             $ret .= '<tr><td>' . htmlspecialchars($familyTree['name']) . ' <span class="plainlinks">'
-              . " (&nbsp;$search&nbsp;)"
-              . " (&nbsp;$fte&nbsp;)";
+              . " (&nbsp;$search&nbsp;)";
+//              . " (&nbsp;$fte&nbsp;)";   removed Dec 2020
             // Allow user to explore a tree only if the tree has at least one page, because exploring starts with displaying a page (added Aug 2020 by Janet Bjorndahl)     
 		        if ($familyTree['count'] > 0) { 
               $explore = $skin->makeKnownLinkObj($this->getExploreFirstTitle($wgUser->getName(), $familyTree['name']), 'explore', 
                 wfArrayToCGI(array('mode' => 'explore', 'user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
               $ret .= " (&nbsp;$explore&nbsp;)";
               }
+            $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td></tr>";   // delete tree link removed Dec 2020 by Janet Bjorndahl
+/*            
             $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td><td>$delete</td></tr>";
+*/            
          }
       }
 

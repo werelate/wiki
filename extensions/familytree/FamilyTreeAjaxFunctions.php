@@ -196,7 +196,7 @@ function wfCopyFamilyTree($args) {
 	global $wgAjaxCachePolicy, $wgUser;
 
    // set cache policy
-	$wgAjaxCachePolicy->setPolicy(0);
+	//$wgAjaxCachePolicy->setPolicy(0);   // commented out Dec 2020 by Janet Bjorndahl (failed when calling from new Copy Tree wiki page)
 
 	// validate input arguments
    $status = FTE_SUCCESS;

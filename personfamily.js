@@ -217,7 +217,7 @@ function newSource() {
         +'<option value="" value="0" selected="selected">Citation only</option><option value="104">Source</option><option value="112">MySource</option></select>'
         +'</span>'
         +'<span class="s_label">Title</span>'
-        +'<input id="'+srcId+'input" class="s_title" tabindex="1" type="text" name="source_title'+srcNum+'" value=""/>'
+        +'<input id="'+srcId+'input" class="s_title" tabindex="1" type="text" name="source_title'+srcNum+'" oninput="changeSourcePasteLink('+srcNum+')" value=""/>' // oninput added Dec 2020
         +'&nbsp;<span class="s_findall" style="font-size: 90%"><a id="'+srcId+'choose" style="visibility:hidden" href="javascript:void(0);" onClick="choose(0,\''+srcId+'input\'); return preventDefaultAction(event);">find/add&nbsp;&raquo;</a></span>';
     row=tbl.insertRow(rowNum+2);
 	cell=row.insertCell(0); cell.align="right"; cell.innerHTML='Record&nbsp;name';
@@ -269,7 +269,7 @@ function removeSource(srcNum) {
 	}
 }
 
-/* copySource and pasteSource added Sep 2020 by Janet Bjorndahl
+/* copySource and pasteSource added Sep 2020 by Janet Bjorndahl; changeSourcePasteLink extracted as a separate function Dec 2020 by Janet Bjorndahl
  * Javascript used to interact with the screen, and PHP used to persist the source data across multiple windows/tabs
  */
 function copySource(srcNum) {
@@ -292,6 +292,12 @@ function copySource(srcNum) {
   }  
   else {
     $.getJSON('/w/index.php?action=ajax&rs=wfStoreSource&source="'+sourceJSON+'"');
+        
+    // Show brief "copied" message. Added Dec 2020 by Janet Bjorndahl
+    var row=tbl.rows[rowNum];
+    var save=row.cells[1].innerHTML;
+    row.cells[1].innerHTML += '<span class="attn">&nbsp;copied</span>';
+    setTimeout(function() {row.cells[1].innerHTML=save; }, 1000);
   }  
 }   
 
@@ -315,12 +321,22 @@ function pasteSource(srcNum) {
   	  var row=tbl.rows[rowNum+4];
 		  $(row.cells[1]).find('textarea').val(source.text);
    
-      // redisplay the first line with "copy" instead of "paste"   
-  	  var row=tbl.rows[rowNum];
+      // redisplay the first line with "copy" instead of "paste"
+      changeSourcePasteLink(srcNum);
+      
+      // make "find/add" visible if the pasted source is a Source or MySource - added Dec 2020 by Janet Bjorndahl   
       var srcId='S'+(srcNum+1);
-      row.cells[1].innerHTML=srcId+'<input type="hidden" name="source_id'+srcNum+'" value="'+srcId+'"/>&nbsp;&nbsp;&nbsp;<a title="Copy this source" href="javascript:void(0);" onClick="copySource('+(srcNum+1)+'); return preventDefaultAction(event);">copy</a>&nbsp;|&nbsp;<a title="Remove this source" href="javascript:void(0);" onClick="removeSource('+(srcNum+1)+'); return preventDefaultAction(event);">remove</a>';
+      changeSourceNamespace(srcNum, srcId);
     }
   })
+}
+
+function changeSourcePasteLink(srcNum) {
+	var tbl=document.getElementById('source_input');
+  var rowNum=(srcNum)*5;
+  var row=tbl.rows[rowNum];
+  var srcId='S'+(srcNum+1);
+  row.cells[1].innerHTML=srcId+'<input type="hidden" name="source_id'+srcNum+'" value="'+srcId+'"/>&nbsp;&nbsp;&nbsp;<a title="Copy this source" href="javascript:void(0);" onClick="copySource('+(srcNum+1)+'); return preventDefaultAction(event);">copy</a>&nbsp;|&nbsp;<a title="Remove this source" href="javascript:void(0);" onClick="removeSource('+(srcNum+1)+'); return preventDefaultAction(event);">remove</a>';
 }
 
 function addImage() {
@@ -503,6 +519,12 @@ function addPage(name, gender, given, surname) {
 
 function choose(ns, id) {
 	var choose=choose_internal(ns,id, '', '', '');
+ 
+  // If user selected a source or mysource, redisplay the first line with "copy" instead of "paste" - added Dec 2020 by Janet Bjorndahl
+  if ( ns == 104 || ns == 112 ) { 
+    var srcNum = id.replace('input','').replace('S','') - 1; // extract the number from the field id and subtract 1 to get srcNum
+    changeSourcePasteLink(srcNum);
+  }
 }
 
 function uploadImage(id) {
@@ -511,7 +533,7 @@ function uploadImage(id) {
 }
 
 function changeSourceNamespace(srcNum,id) {
-	var ns = $('#source_namespace'+srcNum).val();
+  var ns = $('#source_namespace'+srcNum).val();
 	if (ns == 104 || ns == 112) {
 		var nsText = (ns == 104 ? 'Source' : 'MySource');
 		$('#'+id+'input').autocompleteRemove().autocomplete({ defaultNs:nsText, userid:userId});
