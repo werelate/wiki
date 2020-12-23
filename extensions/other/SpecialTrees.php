@@ -13,7 +13,7 @@ $wgExtensionFunctions[] = "wfSpecialTreesSetup";
 
 function wfSpecialTreesSetup() {
 	global $wgMessageCache, $wgSpecialPages;
-	$wgMessageCache->addMessages( array( "trees" => "Manage Trees" ) );
+//	$wgMessageCache->addMessages( array( "trees" => "Manage Trees" ) );   // commented out Dec 2020 by Janet Bjorndahl (changed to mytrees and added to Messages.php)
 	$wgSpecialPages['Trees'] = array('SpecialPage','Trees');
 }
 
@@ -425,11 +425,11 @@ END
    private function show($msg='') {
    	global $wgUser, $wgOut;
 
-		$wgOut->setPageTitle( 'Manage Trees' );
+		$wgOut->setPageTitle( 'Manage My Trees' );        // renamed Dec 2020 by Janet Bjorndahl
 		$wgOut->setRobotpolicy( 'noindex,nofollow' );
 		$wgOut->setArticleRelated( false );
 
-		$wgOut->addHTML("<h2>Manage Trees</h2>");
+		$wgOut->addHTML("<h2>My Trees</h2>");             // renamed Dec 2020 by Janet Bjorndahl
 		if ($msg) {
 			$msg = htmlspecialchars($msg);
 			$wgOut->addHTML( "<p><font size=\"+1\" color=\"red\">$msg</font></p>\n");
@@ -457,7 +457,7 @@ END
       	         $status = 'Import: '.date("d M Y",wfTimestamp(TS_UNIX,$row->fg_status_date));
       	         break;
       	      case FG_STATUS_PHASE2:
-      	      	$status = '<a href="/gedcom/index.php?gedcomId='.$row->fg_id.'" rel="nofollow">Waiting for review</a>';
+      	      	$status = '<a href="/gedcom-review/?gedcomId='.$row->fg_id.'" rel="nofollow">Waiting for review</a>';    // changed to new reviewer Dec 2020 by Janet Bjorndahl
       	      	break;
       	   }
   	         $gedcoms[] = $filename . ($status ? '<br>&nbsp;&nbsp;&nbsp;' . $status : '') . ($download ? '<br>&nbsp;&nbsp;&nbsp;' . $download : '');
@@ -552,7 +552,7 @@ END
       }
 
       $ret .= '</table></div>';
-      $ret .= '<p>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'Create a new family tree', wfArrayToCGI(array('action' => 'newTree')));
+      $ret .= '<p>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'Create a new tree', wfArrayToCGI(array('action' => 'newTree')));   // link renamed Dec 2020 JB
       return $ret;
    }
 }

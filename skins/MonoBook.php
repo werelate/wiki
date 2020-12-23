@@ -323,7 +323,7 @@ END;
             'watchlist' => ($wgUser->isLoggedIn() ? 'Special:Watchlist/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
             'userprofile' => ($wgUser->isLoggedIn() ? 'User:' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
             'talkpage' => ($wgUser->isLoggedIn() ? 'User_talk:' . urlencode($wgUser->getName()) : 'Special:Userlogin'), 
-            'trees' => 'Special:Trees',
+            'mytrees' => 'Special:Trees',   // changed to mytrees Dec 2020 by Janet Bjorndahl
             'showduplicates' => ($wgUser->isLoggedIn() ? 'Special:ShowDuplicates/' . urlencode($wgUser->getName()) : 'Special:Userlogin')  // Launch FTE removed Dec 2020 
         ),
         'admin' => array(
