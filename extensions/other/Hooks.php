@@ -532,7 +532,7 @@ function wrDoContentActions($action, $article) {
 		if ($action == 'treeUpdateConfirm') {
 			$wgOut->addHTML('<font color="red">Please check the box next to the tree(s) you want to add the pages to.</font>');
 		}
-		$wgOut->addWikiText('==Trees==');
+		$wgOut->addWikiText('==My Trees==');                     // renamed to My Trees Dec 2020 by Janet Bjorndahl
 		$wgOut->addWikiText(wfMsg('treeupdatetext'));
 			// TODO show form
 		$action = $article->getTitle()->escapeLocalURL( 'action=treeUpdateConfirm' );
