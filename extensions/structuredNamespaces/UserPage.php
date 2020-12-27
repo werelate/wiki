@@ -284,7 +284,7 @@ class UserPage extends StructuredData {
             }
             $values[$n++] .= "</span><dd>pages: {$familyTree['count']}</dl>";     // renamed from people to pages Dec 2020 by Janet Bjorndahl
           }
-          $familyTrees = $this->getLV('Family Trees', $values);
+          $familyTrees = $this->getLV('My Trees', $values);    // changed from Family Trees to My Trees Dec 2020 by Janet Bjorndahl
 
           $values = array();
           foreach ($personalResearchPages as $personalResearchPage) {

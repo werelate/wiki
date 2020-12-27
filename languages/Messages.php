@@ -2073,6 +2073,7 @@ Please confirm that really want to recreate this page.',
 'logs' => 'Logs',
 'myrelate' => 'My Relate',
 'mysource' => 'MySource',
+'mytrees' => 'My Trees',    // added Dec 2020 by Janet Bjorndahl
 'nominate' => 'Nominate',
 'otherpage' => 'Other Page',
 'people' => 'People',

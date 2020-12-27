@@ -221,7 +221,7 @@ END;
      	}
 		$dbr->freeResult($rows);
      	
-   	$ret = '<div class="myrelate-header">Tree(s)</div><ul>';
+   	$ret = '<div class="myrelate-header">My Trees</div><ul>';                     // changed to My Trees Dec 2020 by Janet Bjorndahl
 		$familyTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName(), true, $dbr);  // changed Sep 2020 by Janet Bjorndahl
       foreach($familyTrees as $familyTree) {
       	$ret .= '<li>' . htmlspecialchars($familyTree['name']) . ' (&nbsp;' .
@@ -241,7 +241,7 @@ END;
 						$ret .= '<ul>';
 					}
 					$found = true;
-					$ret .= '<li>'.htmlspecialchars($gedcom['fg_gedcom_filename']).' <a href="/gedcom/index.php?gedcomId='.$gedcom['fg_id'].'" rel="nofollow">Waiting for review</a></li>';
+					$ret .= '<li>'.htmlspecialchars($gedcom['fg_gedcom_filename']).' <a href="/gedcom-review/?gedcomId='.$gedcom['fg_id'].'" rel="nofollow">Waiting for review</a></li>'; // link Dec 2020
 
 				}
 			}
@@ -251,7 +251,7 @@ END;
 			$ret .= '</li>';
       }
       $tip = 'Create, rename, delete, and email trees';
-		$ret .= '</ul>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'Manage trees', '', '', '', '', " title=\"$tip\"");
+		$ret .= '</ul>'.$skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'Manage my trees', '', '', '', '', " title=\"$tip\"");  // renamed to Manage my trees Dec 2020 JB
 
       return $ret;
    }

@@ -182,7 +182,7 @@ class GedcomImport {
       $wgOut->addHTML( "<h2>You have a GEDCOM already in process</h2>\n" .
            "<p>Before importing a new GEDCOM you need to wait for your earlier GEDCOM to finish importing</p>\n" );
       if ($gedcomStatus == GedcomsPage::$USER_REVIEW) {
-         $msg = "<a href=\"/gedcom/index.php?gedcomId=$gedcomId\" rel=\"nofollow\"><b>Click here</b></a> to review (or delete) your earlier GEDCOM";
+         $msg = "<a href=\"/gedcom-review/?gedcomId=$gedcomId\" rel=\"nofollow\"><b>Click here</b></a> to review (or delete) your earlier GEDCOM";  // link changed Dec 2020 by Janet Bjorndahl
       }
       else if ($gedcomStatus == GedcomsPage::$ADMIN_REVIEW) {
          $msg = "Please be patient; an Administrator should review your earlier GEDCOM and finalize the import within the next 24 hours";
