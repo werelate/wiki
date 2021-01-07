@@ -91,7 +91,7 @@ class GedcomsPage extends QueryPage {
 		if (($result->fg_status >= FG_STATUS_READY && $result->fg_status <= FG_STATUS_ADMIN_REVIEW) ||
           $result->fg_status == FG_STATUS_HOLD) {
 			$filename = '<a href="https://www.werelate.org/gedcom-review/?gedcomId='.$result->fg_id.'" rel="nofollow">'.htmlspecialchars($result->fg_gedcom_filename).'</a>';
-			$filename .= ' (or <a href="http://www.werelate.org/gedcom/index.php?gedcomId='.$result->fg_id.'" rel="nofollow">Flash</a>)';
+//			$filename .= ' (or <a href="http://www.werelate.org/gedcom/index.php?gedcomId='.$result->fg_id.'" rel="nofollow">Flash</a>)';   commented out Jan 2021 by Janet Bjorndahl
 		}
 		else {
 			$filename = htmlspecialchars($result->fg_gedcom_filename);
