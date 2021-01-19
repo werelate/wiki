@@ -349,7 +349,8 @@ END;
       'watercooler' => 'WeRelate_talk:Watercooler',
       'suggestions'=>'WeRelate:Suggestions'
   );
-  $moreActions = array('protect', 'unprotect','delete', 'share','pedigree', 'match', 'compare-parents', 'compare-spouses', 'compare-husbands', 'compare-wives');
+  // 'requestdelete' added Jan 2021 by Janet Bjorndahl
+  $moreActions = array('protect', 'unprotect','delete', 'requestdelete', 'share','pedigree', 'match', 'compare-parents', 'compare-spouses', 'compare-husbands', 'compare-wives');
   ?>
 <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->

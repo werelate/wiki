@@ -326,7 +326,7 @@ require_once("$IP/extensions/familytree/SpecialShowFamilyTree.php");
 require_once("$IP/extensions/familytree/SpecialTreeRelated.php");
 require_once("$IP/extensions/familytree/SpecialTreeDeletionImpact.php");
 require_once("$IP/extensions/familytree/SpecialTreeCountWatchers.php");
-require_once("$IP/extensions/familytree/SpecialCopyTree.php");
+require_once("$IP/extensions/familytree/SpecialCopyTree.php");   // added Dec 2020 by Janet Bjorndahl
 require_once("$IP/extensions/gedcom/GedcomAjaxFunctions.php");
 require_once("$IP/extensions/gedcom/SpecialGedcomPage.php");
 require_once("$IP/extensions/gedcom/SpecialGedcoms.php");
@@ -343,6 +343,7 @@ require_once("$IP/extensions/other/SpecialAddSubpage.php");
 require_once("$IP/extensions/other/SpecialSearch.php");
 require_once("$IP/extensions/other/SpecialImportGedcom.php");
 require_once("$IP/extensions/other/SpecialNetwork.php");
+require_once("$IP/extensions/other/SpecialRequestDelete.php");  // added Jan 2021 by Janet Bjorndahl
 require_once("$IP/extensions/other/SpecialEmail.php");
 require_once("$IP/extensions/other/SpecialUnsubscribe.php");
 require_once("$IP/extensions/other/SpecialCompare.php");
