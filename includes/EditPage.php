@@ -1216,9 +1216,9 @@ $treecheckboxeshtml = FamilyTreeUtil::generateTreeCheckboxes($wgUser, $this->mTi
 // WERELATE - added handling of delete request by prepending template to text box (Jan 2021 by Janet Bjorndahl)
 // Note that this will NOT be recognized as a change that causes a warning if the user leaves the page without saving.
     global $wgRequest;
-    $deleteReason = '<nowiki>' . $wgRequest->getVal('deletereason') . '</nowiki>';
+    $deleteReason = $wgRequest->getVal('deletereason');
     if ( $deleteReason && stripos($this->textbox1, '{{speedy delete') === FALSE ) {  // don't add again when doing a preview
-      $this->textbox1 = '{{Speedy Delete|' . $deleteReason . '|' . date("j M Y") . '}}' . (($this->textbox1) ? '<br>' : '') . $this->textbox1;
+      $this->textbox1 = '{{Speedy Delete|<nowiki>' . $deleteReason . '</nowiki>|' . date("j M Y") . '}}' . (($this->textbox1) ? '<br>' : '') . $this->textbox1;
     }
 
 		$wgOut->addHTML( <<<END
