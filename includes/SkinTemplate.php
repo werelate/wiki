@@ -715,7 +715,7 @@ class SkinTemplate extends Skin {
 					}
 				}
 // WERELATE: added title parm to isAllowed
-				if($wgUser->isAllowed('delete', $this->mTitle)){
+        if($wgUser->isAllowed('delete', $this->mTitle)){
 					$content_actions['delete'] = array(
 						'class' => ($action == 'delete') ? 'selected' : false,
 						'text' => wfMsg('delete'),
@@ -723,6 +723,19 @@ class SkinTemplate extends Skin {
 						'href' => $this->mTitle->getLocalUrl( 'action=delete' )
 					);
 				}
+        else {
+   // WERELATE: if user is not allowed to delete the page but can edit it, add an action to request delete of the page  (added Jan 2021 by Janet Bjorndahl)
+		      if ( $this->mTitle->userCanEdit() ) {
+            $t = Title::makeTitle( NS_SPECIAL, 'RequestDelete' );
+		        $content_actions['requestdelete'] = array(
+			        'class' => false,
+			        'text' => wfMsg('requestdelete'),
+			        'title' => wfMsg('requestdeletetip'),
+			        'href' => $t->getLocalUrl( 'pagetitle='.$this->mTitle->getPrefixedURL()),
+  		      );
+          }
+        }
+        
 				if ( $this->mTitle->userCanMove()) {
 					$moveTitle = Title::makeTitle( NS_SPECIAL, 'Movepage' );
 					$content_actions['move'] = array(
