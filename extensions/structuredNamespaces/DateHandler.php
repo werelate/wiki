@@ -365,16 +365,16 @@ abstract class DateHandler {
         return $parsedDate;
       case "in infancy":
         $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
       case "infant":
         $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
       case "young":
         $parsedDate['text'] = "(young)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
       case "died young":
         $parsedDate['text'] = "(young)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
     }
 
     // Convert valid numeric dates to GEDCOM format (dd mmm yyyy) before continuing with parsing. 
