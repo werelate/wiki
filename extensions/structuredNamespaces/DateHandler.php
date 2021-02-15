@@ -34,6 +34,8 @@ abstract class DateHandler {
                                            'before'=>'Bef','after'=>'Aft','frm'=>'From','btw'=>'Bet','between'=>'Bet','interpreted'=>'Int',
                                            'say'=>'Est');
                                            // will add other languages at user request, if they provide the full words and abbreviations
+                                           
+  private static $ORDINAL_SUFFIXES = array('st', 'nd', 'rd', 'th');            // added Feb 2021 by Janet Bjorndahl                               
 
   public static function formatDate($date) {
     $formatedDate = $languageDate = '';
@@ -128,7 +130,7 @@ abstract class DateHandler {
 //        if ( substr($languageModifier,0,4) == '&lt;' || substr($languageModifier,0,1) == '<' ) {  // modifier not found in user's preferred language - use English
 //          $languageModifier = $parsedDate['modifier'][$i];
 //        }                      
-      }
+        }
         if ( isset($parsedDate['month'][$i]) ) {
           $languageMonth = wfMsg(strtolower($parsedDate['month'][$i]));
           if ( substr($languageMonth,0,4) == '&lt;' || substr($languageMonth,0,1) == '<' ) {  // month not found in user's preferred language - use English
@@ -143,6 +145,25 @@ abstract class DateHandler {
                          (isset($parsedDate['suffix'][$i]) ? ' ' . $parsedDate['suffix'][$i] : '');
       }
     }
+    
+    // Check for invalid date range (added Feb 2021 by Janet Bjorndahl)
+    if ( isset($parsedDate['year'][1]) ) {
+      if ( isset($parsedDate['month'][0]) ) {
+        $secondMonthNum = self::getMonthNumber($parsedDate['month'][0]);
+      }
+      if ( isset($parsedDate['month'][1]) ) {
+        $firstMonthNum = self::getMonthNumber($parsedDate['month'][1]);
+      }
+      if ( $parsedDate['year'][1] > $parsedDate['year'][0] ||
+           ($parsedDate['year'][1] == $parsedDate['year'][0] && (!isset($firstMonthNum) || !isset($secondMonthNum) || $firstMonthNum > $secondMonthNum)) ||
+           ($parsedDate['year'][1] == $parsedDate['year'][0] && $firstMonthNum == $secondMonthNum && 
+               (!isset($parsedDate['day'][1]) || !isset($parsedDate['day'][0]) || $parsedDate['day'][1] >= $parsedDate['day'][0])) ) {
+        $formatedDate = '';
+        $languageDate = '';
+        return 'Invalid date range';
+      }  
+    }
+
     if ( isset($parsedDate['text']) ) {
       $formatedDate .= ($formatedDate == '' ? $parsedDate['text'] : ' ' . $parsedDate['text']);
       $languageDate .= ($languageDate == '' ? $parsedDate['text'] : ' ' . $parsedDate['text']);
@@ -286,6 +307,9 @@ abstract class DateHandler {
         return $parsedDate['year'][1];
       }
       else {
+        if ( isset($parsedDate['modifier'][0]) && !isset($parsedDate['year'][1]) && $parsedDate['modifier'][0] === 'to' ) {
+          $parsedDate['modifier'][0] = 'To';                           // "to" can be used on its own - if so, capitalize (added Feb 2021)
+        }
         return ($includeModifiers && isset($parsedDate['modifier'][1]) ? $parsedDate['modifier'][1] . " " : "") .
                 ($includeModifiers && isset($parsedDate['year'][1]) ? $parsedDate['year'][1] . " " : "") .
                 ($includeModifiers && isset($parsedDate['modifier'][0]) ? ($parsedDate['modifier'][0] == 'and' ? "&" : $parsedDate['modifier'][0]) . " " : "") .
@@ -341,16 +365,16 @@ abstract class DateHandler {
         return $parsedDate;
       case "in infancy":
         $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
       case "infant":
         $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
       case "young":
         $parsedDate['text'] = "(young)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
       case "died young":
         $parsedDate['text'] = "(young)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
-        return $parsedDate;;
+        return $parsedDate;
     }
 
     // Convert valid numeric dates to GEDCOM format (dd mmm yyyy) before continuing with parsing. 
@@ -443,6 +467,10 @@ abstract class DateHandler {
       }
       else {
         if ( $findSplitYear ) {                                  // if waiting for the first part of a split year, treat this field as the first part
+          if ( !is_numeric($field) ) {                           // if field is not numeric, return error (added Feb 2021 by Janet Bjorndahl)
+            $parsedDate['message'] = 'Incomplete split year';    // (year and effective year have already been captured - the value after the /)
+            return $parsedDate;
+          }            
           $splitYearEdit = self::editSplitYear($field, $parsedDate['year'][$dateIndex]);     // $parsedDate['year'][$dateIndex] is updated if no error
           if ( $splitYearEdit !== true ) {
             $parsedDate['message'] = $splitYearEdit;
@@ -461,8 +489,8 @@ abstract class DateHandler {
             // If the field is numeric, have to determine whether to treat is as the day or the year.
             if ( is_numeric($field) ) {
               $num = $field + 0;                                 // force conversion to number - this strips leading zeros
-              if ( $num === 0 ) {                                // a value of 0 is not valid for anything other than the second part of a split year
-                $possibleSplitYear = true;                       // keep track of it
+              if ( $num === 0 && !isset($parsedDate['year'][$dateIndex]) ) {  // modified Feb 2021 by Janet Bjorndahl
+                $possibleSplitYear = true;                       // a value of 0 is not valid for anything other than the second part of a split year: keep track of it
               }
               else {
                 if ( self::isDay($num) ) {                       // if this field could be a day, it could also be a year. Need some logic to determine how to treat it.
@@ -483,7 +511,8 @@ abstract class DateHandler {
                   else {             
                     if ( $dateIndex===1 && !isset($parsedDate['year'][1]) && isset($parsedDate['year'][0]) ) {   
                       if ( isset($parsedDate['day'][0]) && $num < $parsedDate['day'][0] ) { 
-                        $parsedDate['year'][1] = $parsedDate['year'][0];
+                        $parsedDate['year'][1] = $parsedDate['year'][0];                        
+                        $parsedDate['effyear'][1] = $parsedDate['effyear'][0];         // added Feb 2021 by Janet Bjorndahl (so it is set even if an error is found later)
                         $parsedDate['month'][1] = $parsedDate['month'][0];
                         $parsedDate['day'][1] = "$num";
                         $saveOriginal = true;
@@ -495,26 +524,28 @@ abstract class DateHandler {
                         }
                       }
                     }
-                    // If neither month nor year is captured, and it is not the special case above, treat it as the year      
+                    // If neither month nor year is captured, and it is not the special case above, treat it as the year (to be updated later if this is a split year)      
                     else {
                       $parsedDate['year'][$dateIndex] = "$num";             
+                      $parsedDate['effyear'][$dateIndex] = "$num";     // added Feb 2021 by Janet Bjorndahl (so it is set even if an error is found later)           
                     }
                   }    
                 }
                 // Numeric field that is not a valid day is the year (or an error)
                 else {
-                  if ( self::isYear($num) ) {
-                    if ( isset($parsedDate['year'][$dateIndex]) ) {    // error if year already has a value
-                      $parsedDate['message'] = 'Invalid day number';
+                  if ( isset($parsedDate['year'][$dateIndex]) ) {    // error if year already has a value
+                    $parsedDate['message'] = 'Invalid day number';
+                    return $parsedDate;
+                  }
+                  else {
+                    if ( self::isYear($num) ) {
+                      $parsedDate['year'][$dateIndex] = "$num";             
+                      $parsedDate['effyear'][$dateIndex] = "$num";     // added Feb 2021 by Janet Bjorndahl (so it is set even if an error is found later)            
+                    }
+                    else {                                               // error if a number is neither a valid day nor a valid year
+                      $parsedDate['message'] = 'Invalid year number';  
                       return $parsedDate;
                     }
-                    else {
-                      $parsedDate['year'][$dateIndex] = "$num";             
-                    }
-                  }
-                  else {                                               // error if a number is neither a valid day nor a valid year
-                    $parsedDate['message'] = 'Invalid year number';  
-                    return $parsedDate;
                   }
                 }
               }
@@ -539,13 +570,17 @@ abstract class DateHandler {
                     $parsedDate['text'] = "(?)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
                   }
                   else {
-                    if ( strpos($field,'wft') !== false ) {              // error if unrecognizable field
-                      $parsedDate['message'] = 'WFT estimates not accepted';
+                    if ( in_array($field, self::$ORDINAL_SUFFIXES) ) {     // ignore 'st', 'nd', 'rd', 'th' (added Feb 2021 by Janet Bjorndahl)
                     }
-                    else {  
-                      $parsedDate['message'] = 'Unrecognized text';
+                    else {
+                      if ( strpos($field,'wft') !== false ) {              // error if unrecognizable field
+                        $parsedDate['message'] = 'WFT estimates not accepted';
+                      }
+                      else {  
+                        $parsedDate['message'] = 'Unrecognized text';
+                      }
+                    return $parsedDate;
                     }
-                  return $parsedDate;
                   }
                 }
               }
@@ -553,6 +588,11 @@ abstract class DateHandler {
           }  
         }
       }
+    }
+    
+    // If still waiting for first part of split year, message.  Added Feb 2021 by Janet Bjorndahl
+    if ( $findSplitYear ) {
+      $parsedDate['message'] = 'Incomplete split year';
     }
     
     // If using bet/and or from/to and the first date [1] is missing the year (but has the month), pick it up from the second date [0]
@@ -563,6 +603,7 @@ abstract class DateHandler {
         if ( self::getMonthNumber($parsedDate['month'][1]) < self::getMonthNumber($parsedDate['month'][0]) ) {   
         $saveOriginal = true;
         $parsedDate['year'][1] = $parsedDate['year'][0];
+        $parsedDate['effyear'][1] = $parsedDate['effyear'][0];           // added Feb 2021 by Janet Bjorndahl (refactored where effyear is set)
         }
       }
     }
@@ -570,14 +611,7 @@ abstract class DateHandler {
     if ( $saveOriginal ) {
       $parsedDate['text'] = "($originalDate)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
     }
-    
-    // Set effective years not already set by split-year processing
-    for ($i=0; $i<2; $i++) {
-      if ( isset($parsedDate['year'][$i]) && !isset($parsedDate['effyear'][$i]) ) {
-        $parsedDate['effyear'][$i] = $parsedDate['year'][$i];
-      }
-    }
-    
+
   return $parsedDate;
   }
 
