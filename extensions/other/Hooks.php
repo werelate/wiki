@@ -603,7 +603,6 @@ function wrValidateUser($user, &$errorMsg, $email) {
 "163.com",
 "bali-traveller.com",
 "bestwrinklecreamnow.com",
-"bk.ru",
 "brainboostingsupplements.org",
 "bursa303.win",
 "buygsalist.com",
