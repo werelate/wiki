@@ -43,11 +43,11 @@ class ESINHandler extends StructuredData {
 		'Primary' => '3'
 	);
 
-  // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl
+  // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl ('Census', 'Obituary', 'Estate Settlement' removed Mar 2021 by Janet Bjorndahl)
   private static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
-      'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Census', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
-      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Obituary', 'Ordination', 'Probate', 'Stilborn', 'Will',
-      'Estate Inventory', 'Estate Settlement'); 
+      'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
+      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Ordination', 'Probate', 'Stillborn', 'Will',
+      'Estate Inventory'); 
       
   // Event type arrays added (to support event sorting) Oct 2020 by Janet Bjorndahl 
   private static $PERSON_EVENT_TYPES = array('Birth'=>'0010', 'Alt Birth'=>'0020', 'Christening'=>'0030',  'Alt Christening'=>'0040', 
@@ -161,17 +161,15 @@ class ESINHandler extends StructuredData {
       return false;
    }
   
-  // Created Nov 2020 by Janet Bjorndahl
+  // Created Nov 2020 by Janet Bjorndahl; changed Mar 2021 to return true only if significant reformating
   public static function hasReformatedDates($xml) {
     $formatedDate = $languageDate = '';
     if (isset($xml->event_fact)) {
       foreach ($xml->event_fact as $ef) {
         $date = (string)$ef['date'];
-        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array((string)$ef['type'], ESINHandler::$DISCRETE_EVENT));        
-        if ( $dateStatus === true ) {                                                                                                         
-          if ( mb_strtolower($formatedDate) != mb_strtolower($date) && mb_strtolower($languageDate) != mb_strtolower($date) && trim(mb_strtolower($date)) != 'unknown' ) {
-            return true;
-          }
+        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array((string)$ef['type'], ESINHandler::$DISCRETE_EVENT), true);        
+        if ( $dateStatus === 'Significant reformat' ) {                                                                                                         
+          return true;
         }
       }
     }
@@ -1097,13 +1095,15 @@ END;
 		if (isset($eventFact)) {
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
-      // If the date passes date editing but is not in standard format, replace it with the properly formated version 
-      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT));        // added Oct 2020 by Janet Bjorndahl
-      if ( $dateStatus === true ) {                                                                                                         // changed Nov 2020 by Janet Bjorndahl
-        if ( mb_strtolower($formatedDate) != mb_strtolower($date) && mb_strtolower($languageDate) != mb_strtolower($date) && trim(mb_strtolower($date)) != 'unknown' ) {
+      // If the date passes date editing but is not in standard format, replace it with the properly formated version
+      // added Oct 2020; changed Mar 2021 by Janet Bjorndahl 
+      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT), true);
+      if ( $dateStatus === 'Significant reformat' ) {              // Display in yellow with prev date below if parser had to do a significant reformat
           $prevDate = $date;
           $dateStyle = ' style="background-color:#ffff99;"';
-        }
+          $dateStatus = true;                                      // Set datestatus to true (successful edit) for remaining code
+      }
+      if ( $dateStatus === true ) {
         $date = $languageDate;
       }
       if (ESINHandler::isAmbiguousDate($date)) {
@@ -1155,10 +1155,10 @@ END;
          $result .= "<td></td>";
       }
 //      $result .= "</tr><tr><td colspan=\"2\"></td>";   this statement commented out Oct 2020 by Janet Bjorndahl (replaced by 3 below) - TEMPORARY CHANGE
-      $result .= "</tr><tr><td colspan=\"2\">" ;
-//      $result .= ( $dateStatus === true && $languageDate ? "suggested: $languageDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); 
-      $result .= ( $dateStatus === true && $prevDate ? "<b>was</b>: $prevDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); // replaced above Nov 2020
-      $result .= "</td>";  
+      $result .= "</tr><tr><td colspan=\"2\"><output>" ;   // output tag added (to support removeEventFact) Mar 2021 by Janet Bjorndahl
+      $result .= ( $dateStatus === true && $prevDate ? "<b>was</b>: $prevDate" : 
+                 ( ($dateStatus === true || $dateStatus === '') ? '' : "<font color=darkred>$dateStatus</font>") ); // changed Mar 2021
+      $result .= "</output></td>";  
       if ($efNum == 0) {
 //         if ($typeString == 'Birth') {
 //            $sourceTip = '<b>Sources'.$tm->addMsgTip('EventFactSourceIDs').'&nbsp; Images'.$tm->addMsgTip('EventFactImageIDs').'&nbsp; Notes'.$tm->addMsgTip('EventFactNoteIDs').'&nbsp; &raquo; &nbsp; &nbsp;</b>';
@@ -1463,12 +1463,10 @@ END;
 		$result = '';
    
 		$date = $request->getVal("date$num");
-    // Format the date. If the only change is a change in case or if the date was 'unknown', then replace the date with the formated date. Added Nov 2020 by Janet Bjorndahl
-    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($type, ESINHandler::$DISCRETE_EVENT));
+    // Format the date. If successful and no significant reformating was required, replace the date with the formated date. Added Nov 2020; Changed Mar 2021 by Janet Bjorndahl
+    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($type, ESINHandler::$DISCRETE_EVENT), true);
     if ( $dateStatus === true ) {
-      if ( mb_strtolower($formatedDate) == mb_strtolower($date) || mb_strtolower($languageDate) == mb_strtolower($date) || trim(mb_strtolower($date)) == 'unknown' ) {
-        $date = $formatedDate;
-      }
+      $date = $formatedDate;
     }
 
 		$place = $request->getVal("place$num");
