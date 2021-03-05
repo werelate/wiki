@@ -29,11 +29,15 @@ abstract class DateHandler {
                                         
   private static $MONTHS = array('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec');                                        
 
+  // Expanded Mar 2021 by Janet Bjorndahl
   private static $GEDCOM_MODIFIERS = array('abt'=>'Abt','cal'=>'Cal','est'=>'Est','bef'=>'Bef','aft'=>'Aft','from'=>'From','to'=>'to','bet'=>'Bet','and'=>'and','int'=>'Int',
-                                           'about'=>'Abt','calculated'=>'Cal','calc'=>'Cal','calcd'=>'Cal','estd'=>'Est','estimated'=>'Est','c'=>'Est','ca'=>'Est','circa'=>'Est',
-                                           'before'=>'Bef','after'=>'Aft','frm'=>'From','btw'=>'Bet','between'=>'Bet','interpreted'=>'Int',
-                                           'say'=>'Est');
-                                           // will add other languages at user request, if they provide the full words and abbreviations
+                                           'about'=>'Abt','approx'=>'Abt','approximately'=>'Abt','calculated'=>'Cal','calc'=>'Cal','calcd'=>'Cal',
+                                           'estd'=>'Est','estimated'=>'Est','c'=>'Est','ca'=>'Est','circa'=>'Est','cir'=>'Est','say'=>'Est',
+                                           'before'=>'Bef','bfr'=>'Bef','by'=>'Bef','after'=>'Aft','frm'=>'From','until'=>'to','btw'=>'Bet','between'=>'Bet','&'=>'and','interpreted'=>'Int',
+                                           // additional for other languages (as found in the data); more could be added on request
+                                           'vers'=>'Abt','omstreeks'=>'Abt','omstr'=>'Abt','omkring'=>'Abt','omk'=>'Abt',
+                                           'ansl'=>'Est','anslat'=>'Est','voor'=>'Bef','vóór'=>'Bef','før'=>'Bef','avant'=>'Bef',
+                                           'na'=>'Aft','ett'=>'Aft','etter'=>'Aft','van'=>'From','tot'=>'to');
                                            
   private static $ORDINAL_SUFFIXES = array('st', 'nd', 'rd', 'th');            // added Feb 2021 by Janet Bjorndahl                               
 
@@ -57,7 +61,7 @@ abstract class DateHandler {
     }
   }
 
-  public static function editDate($date, &$formatedDate, &$languageDate, $discreteEvent=false) {
+  public static function editDate($date, &$formatedDate, &$languageDate, $discreteEvent=false, $reformatDetails=false) {    // reformatDetails added Mar 2021 by Janet Bjorndahl
     $parsedDate = array();
     $formatedDate = '';
     $languageDate = '';
@@ -73,8 +77,10 @@ abstract class DateHandler {
       return 'Too many parts';                                         // error if more than 2 modifiers/dates
     }
 
-    if ( isset($parsedDate['modifier'][1]) ) {                         // error if a pair of modifiers is not Bet/and or From/to
-      if ( ! (($parsedDate['modifier'][1] === 'Bet' && $parsedDate['modifier'][0] === 'and') || ($parsedDate['modifier'][1] === 'From' && $parsedDate['modifier'][0] === 'to')) ) {
+    // Error if a pair of modifiers or a pair of dates does not use modifiers Bet/and or From/to (enhanced Mar 2021 by Janet Bjorndahl)
+    if ( isset($parsedDate['modifier'][1]) || isset($parsedDate['year'][1]) ) {   
+      if ( !isset($parsedDate['modifier'][1]) ||  
+           ! (($parsedDate['modifier'][1] === 'Bet' && $parsedDate['modifier'][0] === 'and') || ($parsedDate['modifier'][1] === 'From' && $parsedDate['modifier'][0] === 'to')) ) {
         return 'Invalid combination of modifiers';  
       }
       if ( $discreteEvent && $parsedDate['modifier'][1] == 'From' ) {  // if this is a discrete event, change From/to (misused) to Bet/and
@@ -112,7 +118,7 @@ abstract class DateHandler {
         }
         // error if split year for a month after Mar
         if ( strpos($parsedDate['year'][$i],'/') && isset($parsedDate['month'][$i]) && 
-             $parsedDate['month'][$i] !== 'Jan' && $parsedDate['month'][$i] !== 'Feb' & $parsedDate['month'][$i] !== 'Mar' ) {
+             $parsedDate['month'][$i] !== 'Jan' && $parsedDate['month'][$i] !== 'Feb' && $parsedDate['month'][$i] !== 'Mar' ) {
           $formatedDate = '';
           $languageDate = '';
           return 'Split year valid only for Jan-Mar';
@@ -131,6 +137,7 @@ abstract class DateHandler {
 //          $languageModifier = $parsedDate['modifier'][$i];
 //        }                      
         }
+
         if ( isset($parsedDate['month'][$i]) ) {
           $languageMonth = wfMsg(strtolower($parsedDate['month'][$i]));
           if ( substr($languageMonth,0,4) == '&lt;' || substr($languageMonth,0,1) == '<' ) {  // month not found in user's preferred language - use English
@@ -146,17 +153,17 @@ abstract class DateHandler {
       }
     }
     
-    // Check for invalid date range (added Feb 2021 by Janet Bjorndahl)
-    if ( isset($parsedDate['year'][1]) ) {
+    // Check for invalid date range (added Feb 2021 by Janet Bjorndahl, switched to effyear Mar 2021 by Janet Bjorndahl)
+    if ( isset($parsedDate['effyear'][1]) ) {
       if ( isset($parsedDate['month'][0]) ) {
         $secondMonthNum = self::getMonthNumber($parsedDate['month'][0]);
       }
       if ( isset($parsedDate['month'][1]) ) {
         $firstMonthNum = self::getMonthNumber($parsedDate['month'][1]);
       }
-      if ( $parsedDate['year'][1] > $parsedDate['year'][0] ||
-           ($parsedDate['year'][1] == $parsedDate['year'][0] && (!isset($firstMonthNum) || !isset($secondMonthNum) || $firstMonthNum > $secondMonthNum)) ||
-           ($parsedDate['year'][1] == $parsedDate['year'][0] && $firstMonthNum == $secondMonthNum && 
+      if ( $parsedDate['effyear'][1] > $parsedDate['effyear'][0] ||
+           ($parsedDate['effyear'][1] == $parsedDate['effyear'][0] && (!isset($firstMonthNum) || !isset($secondMonthNum) || $firstMonthNum > $secondMonthNum)) ||
+           ($parsedDate['effyear'][1] == $parsedDate['effyear'][0] && $firstMonthNum == $secondMonthNum && 
                (!isset($parsedDate['day'][1]) || !isset($parsedDate['day'][0]) || $parsedDate['day'][1] >= $parsedDate['day'][0])) ) {
         $formatedDate = '';
         $languageDate = '';
@@ -167,6 +174,11 @@ abstract class DateHandler {
     if ( isset($parsedDate['text']) ) {
       $formatedDate .= ($formatedDate == '' ? $parsedDate['text'] : ' ' . $parsedDate['text']);
       $languageDate .= ($languageDate == '' ? $parsedDate['text'] : ' ' . $parsedDate['text']);
+    }
+
+    // If reformating details requested and there are any, return that information (added Mar 2021 by Janet Bjorndahl)
+    if ( $reformatDetails && isset($parsedDate['reformat']) ) {
+      return $parsedDate['reformat'];
     }
     return true;
   }
@@ -357,16 +369,38 @@ abstract class DateHandler {
     // Original date (minus any text portion removed above) is retained in case it needs to be returned in the text portion
     $date = mb_strtolower(trim(preg_replace('!\s+!', ' ', $originalDate)));
     
-    // Special cases
+    // Special cases (several added Mar 2021 by Janet Bjorndahl)
     switch ( $date ) {
       case "":
         return $parsedDate;
-      case "unknown":                    // unknown will result in a blank date (or parenthetical portion if there is one)
+      case "unknown":                    // unknown (or variation) will result in a blank date (or parenthetical portion if there is one)
+        return $parsedDate;
+      case "date unknown":
+        return $parsedDate;
+      case "unk":
+        return $parsedDate;
+      case "unknow":
+        return $parsedDate;
+      case "not known":
+        return $parsedDate;
+      case "unbekannt":
+        return $parsedDate;
+      case "unbek.":
+        return $parsedDate;
+      case "onbekend":
+        return $parsedDate;
+      case "inconnue":
         return $parsedDate;
       case "in infancy":
         $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
         return $parsedDate;
+      case "died in infancy":
+        $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
+        return $parsedDate;
       case "infant":
+        $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
+        return $parsedDate;
+      case "infancy":
         $parsedDate['text'] = "(in infancy)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
         return $parsedDate;
       case "young":
@@ -388,6 +422,7 @@ abstract class DateHandler {
         if ( @self::$MONTHS[$parts[0][1]-1] ) {
           $embeddedDate = $parts[0][2] . " " . self::$MONTHS[$parts[0][1]-1] . " " . $parts[0][0];
           $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
+          $parsedDate['reformat'] = 'Significant reformat';          // added Mar 2021 by Janet Bjorndahl
         }
       }
     $fields = array();              // reinitialize fields and parts (used again below)
@@ -397,21 +432,20 @@ abstract class DateHandler {
     // Check for one or more embedded dates in mm-dd-yyyy or dd-mm-yyyy format. 
     // If a date is ambiguous, return an error message. Otherwise, if valid, replace with the GEDCOM equivalent.
     // Start with the last embedded date, because any replacement of an earlier one can affect the offset (position of the embedded date within the string).
+    // Some refactoring Mar 2021 by Janet Bjorndahl.
     if ( preg_match_all('#\d{1,2}[-./]\d{1,2}[-./]\d{3,4}#', $date, $fields, PREG_OFFSET_CAPTURE) > 0 ) {
       for ( $i=count($fields[0])-1; $i>=0 ; $i-- ) {
         preg_match_all('#\d+#', $fields[0][$i][0], $parts);
-        if ( $parts[0][0] > 12 ) {
-          if ( @self::$MONTHS[$parts[0][1]-1] ) {
-            $embeddedDate = $parts[0][0] . ' ' . self::$MONTHS[$parts[0][1]-1] . ' ' . $parts[0][2];
-            $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
-          }
+        if ( !self::isNumMonth($parts[0][0]) && self::isNumMonth($parts[0][1]) ) {
+          $embeddedDate = $parts[0][0] . ' ' . self::$MONTHS[$parts[0][1]-1] . ' ' . $parts[0][2];
+          $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
+          $parsedDate['reformat'] = 'Significant reformat';          // added Mar 2021 by Janet Bjorndahl
         }
         else {
-          if ( $parts[0][1] > 12 ) {
-            if ( @self::$MONTHS[$parts[0][0]-1] ) {
-              $embeddedDate = $parts[0][1] . ' ' . self::$MONTHS[$parts[0][0]-1] . ' ' . $parts[0][2];
-              $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
-            }
+          if ( !self::isNumMonth($parts[0][1]) && self::isNumMonth($parts[0][0]) ) {
+            $embeddedDate = $parts[0][1] . ' ' . self::$MONTHS[$parts[0][0]-1] . ' ' . $parts[0][2];
+            $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
+            $parsedDate['reformat'] = 'Significant reformat';        // added Mar 2021 by Janet Bjorndahl
           }
           else {
             $parsedDate['year'][0] = $parts[0][2];        // Even if the date is ambiguous, the year can be returned for functions that require it
@@ -436,15 +470,19 @@ abstract class DateHandler {
           $date = 'bet ' . $date;
         }
       }
+      $parsedDate['reformat'] = 'Significant reformat';          // added Mar 2021 by Janet Bjorndahl
     }
         
     // replace b.c. with bc unless it is at the beginning of the string (when the user might have been intending "before circa")
     $dateFirstChar = substr($date, 0, 1);
     $dateRest = substr($date,1);
-    $date = $dateFirstChar . str_replace("b.c." , "bc", $dateRest);
+    if ( strpos($dateRest,"b.c.") !== false ) { 
+      $date = $dateFirstChar . str_replace("b.c." , "bc", $dateRest);
+      $parsedDate['reformat'] = 'Significant reformat';          // added Mar 2021 by Janet Bjorndahl
+    }
     
-    // this should match 0-9+ or / or ? or alphabetic(including accented)+
-    preg_match_all('/(\d+|[^0-9\s`~!@#%^&*()_+\-={}|:\'<>;,"\[\]\.\\\\]+)/', $date, $fields, PREG_SET_ORDER);
+    // this should match 0-9+ or / or ? or & or alphabetic(including accented)+ (& removed from the regex Mar 2021 by Janet Bjorndahl)
+    preg_match_all('/(\d+|[^0-9\s`~!@#%^*()_+\-={}|:\'<>;,"\[\]\.\\\\]+)/', $date, $fields, PREG_SET_ORDER);
     
     // start at the last field so that first numeric encountered is treated as the year
     $findSplitYear = false;
@@ -455,6 +493,12 @@ abstract class DateHandler {
       if ( $field === '/' ) {
         if ( !isset($parsedDate['year'][$dateIndex]) && !$possibleSplitYear ) {   // error if second part of the split year not already captured
           $parsedDate['message'] = 'Incomplete split year';
+          return $parsedDate;
+        }
+        // error if split year, month or day already captured for this date (could indicate an either/or date with "/" meaning "or") - added Mar 2021 by Janet Bjorndahl
+        if ( (isset($parsedDate['year'][$dateIndex]) && strpos($parsedDate['year'][$dateIndex],'/')!==false) || 
+              isset($parsedDate['month'][$dateIndex]) || isset($parsedDate['day'][$dateIndex]) ) {
+          $parsedDate['message'] = "Invalid date format";
           return $parsedDate;
         }
         else {
@@ -508,13 +552,16 @@ abstract class DateHandler {
                   // However, in the case of bet/and or from/to, the first date can pick up the year and month from the second date (e.g.,
                   // ("Bet 10 and 15 Oct 1823" becomes "Bet 10 Oct 1823 and 15 Oct 1823") as long as this results in a valid date range.
                   // If this is applicable, treat this field as the day.
+                  // UNLESS it is possible that this field is the second part of a split year - if the field before this one is "/", treat this as the year.
                   else {             
-                    if ( $dateIndex===1 && !isset($parsedDate['year'][1]) && isset($parsedDate['year'][0]) ) {   
+                    if ( !($i>0 && $fields[$i-1][1]=='/') &&                           // check for possible split year situation added Mar 2021 by Janet Bjorndahl
+                          $dateIndex===1 && !isset($parsedDate['year'][1]) && isset($parsedDate['year'][0]) ) {   
                       if ( isset($parsedDate['day'][0]) && $num < $parsedDate['day'][0] ) { 
                         $parsedDate['year'][1] = $parsedDate['year'][0];                        
                         $parsedDate['effyear'][1] = $parsedDate['effyear'][0];         // added Feb 2021 by Janet Bjorndahl (so it is set even if an error is found later)
                         $parsedDate['month'][1] = $parsedDate['month'][0];
                         $parsedDate['day'][1] = "$num";
+                        $parsedDate['reformat'] = 'Significant reformat';              // added Mar 2021 by Janet Bjorndahl
                         $saveOriginal = true;
                       }
                       else {
@@ -604,6 +651,7 @@ abstract class DateHandler {
         $saveOriginal = true;
         $parsedDate['year'][1] = $parsedDate['year'][0];
         $parsedDate['effyear'][1] = $parsedDate['effyear'][0];           // added Feb 2021 by Janet Bjorndahl (refactored where effyear is set)
+        $parsedDate['reformat'] = 'Significant reformat';                // added Mar 2021 by Janet Bjorndahl
         }
       }
     }
@@ -612,11 +660,21 @@ abstract class DateHandler {
       $parsedDate['text'] = "($originalDate)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
     }
 
+    // If there is a pair of dates with "to" between them but no "From" before the first date, add the "From" (added Mar 2021 by Janet Bjorndahl)
+    if ( isset($parsedDate['year'][1]) && !isset($parsedDate['modifier'][1]) && $parsedDate['modifier'][0] == 'to' ) {
+      $parsedDate['modifier'][1] = 'From';
+      $parsedDate['reformat'] = 'Significant reformat';
+    }
+
   return $parsedDate;
   }
 
   private static function isDay($d) {
     return ($d >= 1 && $d <= 31);
+  }
+  
+  private static function isNumMonth($m) {
+    return ($m >= 1 && $m <= 12);
   }
 
   private static function isYear($y) {
@@ -627,8 +685,12 @@ abstract class DateHandler {
     return ( ($y2-$y1) < 300 );
   }
 
+  // Note: Double-dating applies when the year started March 25 (not necessarily corresponding to when the Julian calendar was in use.)
+  // In England, the civil year started March 25 from the 12th century to 1752. From the 7th century to the 12th century, it started Dec 25.
+  // We're allowing split year dates starting in 1000 because some other countries started the year in March before England did.
+  // Most other countries started using Jan 1 as the beginning of the year around 1600 (Italy started about 1750).
   private static function isDoubleDating($y) {
-    return ($y >= 1582 && $y <= 1923);
+    return ($y >= 1000 && $y <= 1752);            // year range changed Mar 2021 by Janet Bjorndahl
   }
   
   private static function getMonthAbbrev($m) {
