@@ -458,6 +458,18 @@ abstract class DateHandler {
     $fields = array();              // reinitialize fields (used again below)
     }
     
+    // If the date includes one or more split years expressed with uncertainty ([/d?] or [/dd?]), set a flag to save the original in the parenthetical text portion
+    // and remove the ? so that it is not also added separately to the text portion in code below. 
+    // The remaining code will ignore the brackets and format the split year correctly.                 Added Mar 2021 by Janet Bjorndahl
+    if ( preg_match_all('#\[/\d{1,2}\?\]#', $date, $fields, PREG_OFFSET_CAPTURE) > 0 ) {
+      $saveOriginal = true;
+      $parsedDate['reformat'] = 'Significant reformat';          
+      for ( $i=count($fields[0])-1; $i>=0; $i-- ) {
+        $date = substr($date,0,$fields[0][$i][1]) . str_replace("?","",$fields[0][$i][0]) . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
+      }
+    $fields = array();              // reinitialize fields (used again below)
+    }
+    
     // If date includes a dash, replace with "to" or "and" depending on whether the string already has "from/est" or "bet".
     // If it has neither, treat as bet/and (applicable to all types of events).
     if ( strpos($date, '-') ) {
