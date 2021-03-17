@@ -463,7 +463,7 @@ class Person extends StructuredData {
             if (isset($familyXml->event_fact)) {
                foreach ($familyXml->event_fact as $eventFact) {
                   if ((string)$eventFact['type'] == 'Marriage') {
-                     $marriageDate = DateHandler::formatDate((string)$eventFact['date']);    // formatDate call added Nov 2020 by Janet Bjorndahl
+                     $marriageDate = DateHandler::formatDate((string)$eventFact['date'], true);    // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                      $marriageKey = DateHandler::getDateKey($marriageDate, true);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                      $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span></div>";
                   }
@@ -661,24 +661,24 @@ END;
             foreach ($this->xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Birth') {
                   $birthFound = true;
-                  $birthDate = DateHandler::formatDate((string)$eventFact['date']);        // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $birthDate = DateHandler::formatDate((string)$eventFact['date'],true);        // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $birthPlace = (string)$eventFact['place'];
                   $birthSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Christening' || $eventFact['type'] == 'Baptism') {
                   $chrFound = true;
-                  $chrDate = DateHandler::formatDate((string)$eventFact['date']);          // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $chrDate = DateHandler::formatDate((string)$eventFact['date'],true);          // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $chrPlace = (string)$eventFact['place'];
                }
                else if ($eventFact['type'] == 'Death') {
                   $deathFound = true;
-                  $deathDate = DateHandler::formatDate((string)$eventFact['date']);        // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $deathDate = DateHandler::formatDate((string)$eventFact['date'],true);        // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $deathPlace = (string)$eventFact['place'];
                   $deathSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Burial') {
                   $burFound = true;
-                  $burDate = DateHandler::formatDate((string)$eventFact['date']);          // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $burDate = DateHandler::formatDate((string)$eventFact['date'],true);          // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $burPlace = (string)$eventFact['place'];
                }
             }

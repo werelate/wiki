@@ -195,7 +195,7 @@ class TreeData {
 
          // populate data
          list($marriageYear, $marriageDate, $marriagePlace, $eventTypeIndex) = $this->getEventData($xml, array('Marriage'));
-         $marriageDate = DateHandler::formatDate($marriageDate);              // added Nov 2020 by Janet Bjorndahl
+         $marriageDate = DateHandler::formatDate($marriageDate, true);              // added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
          $thumbURL = $this->getPrimaryImage($xml, false);
          $data = array();
          $data['url'] = $family->getTitle()->getFullURL();
