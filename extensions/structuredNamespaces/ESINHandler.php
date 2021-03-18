@@ -44,10 +44,11 @@ class ESINHandler extends StructuredData {
 	);
 
   // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl ('Census', 'Obituary', 'Estate Settlement' removed Mar 2021 by Janet Bjorndahl)
+  // ('Probate' removed and marriage events added Mar 2021 by Janet Bjorndahl)
   private static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
       'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
-      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Ordination', 'Probate', 'Stillborn', 'Will',
-      'Estate Inventory'); 
+      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Ordination', 'Stillborn', 'Will', 'Estate Inventory',
+      'Marriage', 'Alt Marriage', 'Marriage License', 'Marriage Bond', 'Marriage Contract', 'Divorce Filing', 'Divorce', 'Annulment'); 
       
   // Event type arrays added (to support event sorting) Oct 2020 by Janet Bjorndahl 
   private static $PERSON_EVENT_TYPES = array('Birth'=>'0010', 'Alt Birth'=>'0020', 'Christening'=>'0030',  'Alt Christening'=>'0040', 
@@ -250,22 +251,22 @@ class ESINHandler extends StructuredData {
       $birthDate = $birthPlace = $deathDate = $deathPlace = '';
       if ((string)$p['birthdate'] || (string)$p['birthplace']) {
          $birthLabel = 'b. ';
-         $birthDate = DateHandler::formatDate((string)$p['birthdate']);        // formating call added Nov 2020 by Janet Bjorndahl
+         $birthDate = DateHandler::formatDate((string)$p['birthdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $birthPlace = (string)$p['birthplace'];
       }
       else if ((string)$p['chrdate'] || (string)$p['chrplace']) {
          $birthLabel = 'chr. ';
-         $birthDate = DateHandler::formatDate((string)$p['chrdate']);          // formating call added Nov 2020 by Janet Bjorndahl
+         $birthDate = DateHandler::formatDate((string)$p['chrdate'],true);          // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $birthPlace = (string)$p['chrplace'];
       }
       if ((string)$p['deathdate'] || (string)$p['deathplace']) {
          $deathLabel = 'd. ';
-         $deathDate = DateHandler::formatDate((string)$p['deathdate']);        // formating call added Nov 2020 by Janet Bjorndahl
+         $deathDate = DateHandler::formatDate((string)$p['deathdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $deathPlace = (string)$p['deathplace'];
       }
       else if ((string)$p['burialdate'] || (string)$p['burialplace']) {
          $deathLabel = 'bur. ';
-         $deathDate = DateHandler::formatDate((string)$p['burialdate']);       // formating call added Nov 2020 by Janet Bjorndahl
+         $deathDate = DateHandler::formatDate((string)$p['burialdate'],true);       // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $deathPlace = (string)$p['burialplace'];
       }
       if ($birthPlace) $birthPlace = '[[Place:' . StructuredData::addBarToTitle($birthPlace) . ']]';
@@ -734,7 +735,7 @@ END;
 //      $notes = StructuredData::formatAsLinks((string)@$eventFact['notes']);
 //      $images = StructuredData::formatAsLinks((string)@$eventFact['images']);
       $type = (string)$eventFact['type'];
-      $date = DateHandler::formatDate((string)$eventFact['date']);                             // added Nov 2020 by Janet Bjorndahl
+      $date = DateHandler::formatDate((string)$eventFact['date'], in_array($type, ESINHandler::$DISCRETE_EVENT));         // added Nov 2020 by Janet Bjorndahl; discrete parm added Mar 2021 JB
       $place = (string)$eventFact['place'];
       if ($place) {
          $place = '[[Place:' . StructuredData::addBarToTitle($place) . ']]';

@@ -41,9 +41,9 @@ abstract class DateHandler {
                                            
   private static $ORDINAL_SUFFIXES = array('st', 'nd', 'rd', 'th');            // added Feb 2021 by Janet Bjorndahl                               
 
-  public static function formatDate($date) {
+  public static function formatDate($date, $discreteEvent=false) {             // added discreteEvent Mar 2021 by Janet Bjorndahl
     $formatedDate = $languageDate = '';
-    if ( self::editDate($date, $formatedDate, $languageDate) === true ) {
+    if ( self::editDate($date, $formatedDate, $languageDate, $discreteEvent) === true ) {
       return $languageDate;
     }
     else {
@@ -51,9 +51,9 @@ abstract class DateHandler {
     }
   }
 
-  public static function formatDateEnglish($date) {
+  public static function formatDateEnglish($date, $discreteEvent=false) {      // added discreteEvent Mar 2021 by Janet Bjorndahl
     $formatedDate = $languageDate = '';
-    if ( self::editDate($date, $formatedDate, $languageDate) === true ) {
+    if ( self::editDate($date, $formatedDate, $languageDate, $discreteEvent) === true ) {
       return $formatedDate;
     }
     else {
@@ -65,9 +65,8 @@ abstract class DateHandler {
     $parsedDate = array();
     $formatedDate = '';
     $languageDate = '';
-    
+
     $parsedDate=self::parseDate($date);
-    
     // Check for some overall errors and do a few fixes before dealing with each part of the parsed date
     if ( isset($parsedDate['message']) ) {                             // if parsing was unsuccessful, return the message
       return $parsedDate['message'];
@@ -175,7 +174,6 @@ abstract class DateHandler {
       $formatedDate .= ($formatedDate == '' ? $parsedDate['text'] : ' ' . $parsedDate['text']);
       $languageDate .= ($languageDate == '' ? $parsedDate['text'] : ' ' . $parsedDate['text']);
     }
-
     // If reformating details requested and there are any, return that information (added Mar 2021 by Janet Bjorndahl)
     if ( $reformatDetails && isset($parsedDate['reformat']) ) {
       return $parsedDate['reformat'];
@@ -470,16 +468,16 @@ abstract class DateHandler {
     $fields = array();              // reinitialize fields (used again below)
     }
     
-    // If date includes a dash, replace with "to" or "and" depending on whether the string already has "from/est" or "bet".
-    // If it has neither, treat as bet/and (applicable to all types of events).
+    // If date includes a dash, replace with "and" if it already has "bet", "btw" or "between".        Changed Mar 2021 by Janet Bjorndahl
+    // Otherwise, treat as from/to (editDate will correct to bet/and for discrete event types).
     if ( strpos($date, '-') ) {
-      if ( strpos($date, 'from' ) !== false || strpos($date, 'est' ) !== false ) {
-        $date = str_replace('-', ' to ', $date);
+      if ( strpos($date, 'bet') !== false || strpos($date, 'btw') !== false || strpos($date, 'between') !== false ) {
+        $date = str_replace('-', ' and ', $date);
       }
       else { 
-        $date = str_replace('-', ' and ', $date);
-        if ( strpos($date, 'bet' ) === false ) {
-          $date = 'bet ' . $date;
+        $date = str_replace('-', ' to ', $date);
+        if ( strpos($date, 'from') === false && strpos($date, 'frm') === false ) {
+          $date = 'from ' . $date;
         }
       }
       $parsedDate['reformat'] = 'Significant reformat';          // added Mar 2021 by Janet Bjorndahl
