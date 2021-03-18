@@ -479,6 +479,12 @@ class Person extends StructuredData {
                   }
                }
             }
+            // If there is a spouse but no family events, create a dummy event so that it shows up in the Facts and Events section.  Added Mar 2021 by Janet Bjorndahl
+            else {
+              $marriageEvents[] = array('type' => 'Marriage', 'date' => '',
+                        'place' => '', 'desc' => @Family::$EVENT_CONJUNCTIONS['Marriage'] . ' ' . join(' or ',$spouseLinks),
+                        'srcs' => '', 'no_citation_needed' => true);
+            }            
             foreach ($familyXml->child as $child) {
                $children .= $this->getFamilyMember($child, $childLabel, false, $spouseLinks);
             }

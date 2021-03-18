@@ -317,7 +317,8 @@ abstract class DateHandler {
         return $parsedDate['year'][1];
       }
       else {
-        if ( $discreteEvent && $parsedDate['modifier'][1] == 'From' ) {  // if this is a discrete event, change From/to (misused) to Bet/and (added Mar 2021 JB)
+        // If this is a discrete event, change From/to (misused) to Bet/and (added Mar 2021 JB)
+        if ( $discreteEvent && isset($parsedDate['modifier'][1]) && $parsedDate['modifier'][1] == 'From' ) {  
           $parsedDate['modifier'][1] = 'Bet';
           $parsedDate['modifier'][0] = 'and';
         }
