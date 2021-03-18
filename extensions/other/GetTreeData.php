@@ -195,7 +195,6 @@ class TreeData {
 
          // populate data
          list($marriageYear, $marriageDate, $marriagePlace, $eventTypeIndex) = $this->getEventData($xml, array('Marriage'));
-         $marriageDate = DateHandler::formatDate($marriageDate, true);              // added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
          $thumbURL = $this->getPrimaryImage($xml, false);
          $data = array();
          $data['url'] = $family->getTitle()->getFullURL();
@@ -324,6 +323,7 @@ class TreeData {
 			foreach ($xml->event_fact as $event_fact) {
 				if ((string)$event_fact['type'] == $type) {
 					$eventDate = (string)$event_fact['date'];
+          $eventDate = DateHandler::formatDate($eventDate, true);             // true for discrete event types; call added Mar 2021 by Janet Bjorndahl
 					$eventYear = substr(DateHandler::getDateKey($eventDate), 0, 4);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                $eventPlace = '';
 //               $eventPlaceUrl = '';
