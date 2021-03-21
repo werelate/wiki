@@ -231,6 +231,7 @@ class PedigreeData {
 			foreach ($xml->event_fact as $event_fact) {
 				if ((string)$event_fact['type'] == $type) {
 					$eventDate = (string)$event_fact['date'];
+          $eventDate = DateHandler::formatDate($eventDate, true);             // true for discrete event types; call added Mar 2021 by Janet Bjorndahl
 					$eventYear = substr(DateHandler::getDateKey($eventDate), 0, 4);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
 					list ($eventPlace, $eventPlaceText) = $this->getEventPlace($event_fact);
 					return array($type, $eventDate, $eventPlace, $eventPlaceText, $eventYear);
@@ -246,6 +247,7 @@ class PedigreeData {
 			$type = (string)$event_fact['type'];
 			if (!in_array($type, $ignoreEventTypes)) {
 				$eventDate = (string)$event_fact['date'];
+        $eventDate = DateHandler::formatDate($eventDate, in_array($type, ESINHandler::$DISCRETE_EVENT));             // added Mar 2021 by Janet Bjorndahl
 				list ($eventPlace, $eventPlaceText) = $this->getEventPlace($event_fact);
 				$result[] = 'Event:'.(count($this->otherEvents)+1);
 				$this->otherEvents[] = array('type' => $type, 'date' => $eventDate, 'place' => $eventPlace, 'placetext' => $eventPlaceText);

@@ -45,7 +45,7 @@ class ESINHandler extends StructuredData {
 
   // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl ('Census', 'Obituary', 'Estate Settlement' removed Mar 2021 by Janet Bjorndahl)
   // ('Probate' removed and marriage events added Mar 2021 by Janet Bjorndahl)
-  private static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
+  public static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
       'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
       'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Ordination', 'Stillborn', 'Will', 'Estate Inventory',
       'Marriage', 'Alt Marriage', 'Marriage License', 'Marriage Bond', 'Marriage Contract', 'Divorce Filing', 'Divorce', 'Annulment'); 
@@ -687,7 +687,10 @@ END;
       while ( $i < sizeof($sort) ) {
         $temp = $sort[$i];
         $j = $i-1;
-        while ( $j >= 0 and $this->compareDates($sort[$j], $temp ) ) {
+        // Reorder dates if the first is later than the second or if it has greater precision and the types are of the same order.
+        // The latter condition is required to ensure that all dates in the same month are eventually compared to each other. 
+        while ( $j >=0 and ($this->compareDates($sort[$j], $temp) === 'later' ||
+            ($this->compareDates($sort[$j], $temp) === 'greater precision'  && substr($sort[$j]['typekey'],0,4) === substr($temp['typekey'],0,4))) ) {
           $sort[$j+1] = $sort[$j];
           $j--;
         }
@@ -695,26 +698,67 @@ END;
         $i++;
       }
     }
-    return $sort;  
+    return $sort;
   }
   
   // Compare dates at the lowest level (day, month or year) in common between the 2 dates
-  // If either date is missing (keytype not defined), return false so that the relative order of the two events is not switched. (This change added Dec 2020 by Janet Bjorndahl)
+  // Returns:
+  //    equal - same date, same precision (or one or both dates are missing)
+  //    later - the first date is later than the second
+  //    earlier - the first date is earlier than the second
+  //    greater precision - the dates are equivalent, and the first has greater precision than the second
+  //    less precision - the dates are equivalent, and the first has less precision than the second
   private function compareDates($s1, $s2) {
     if ( !isset($s1['keytype']) || !isset($s2['keytype']) ) {
-      return false;
+      return 'equal';
     }
-    if ( $s1['keytype'] === 'day' && $s2['keytype'] === 'day' ) {
-      return ($s1['datekey'] > $s2['datekey']);
+    
+    // Compare years. If both dates have the same year, and one of them has only the year, compare precision.
+    if ( $s1['year'] > $s2['year'] ) {
+      return 'later';
     }
-    else {
-      if ( ($s1['keytype'] === 'month' || $s1['keytype'] === 'day') && ($s2['keytype'] === 'month' || $s2['keytype'] === 'day') ) {  
-        return ($s1['month'] > $s2['month']);
+    if ( $s1['year'] < $s2['year'] ) {
+      return 'earlier';
+    }
+    if ( $s1['keytype'] === 'year' ) {
+      if ( $s2['keytype'] === 'year' ) {
+        return 'equal';
       }
       else {
-        return ($s1['year'] > $s2['year']);
+        return 'less precision';
       }
     }
+    if ( $s2['keytype'] === 'year' ) {
+      return 'greater precision';
+    }
+    
+    // Neither is year only. Compare months. If both dates have the same month, and one of them has only the month, compare precision.
+    if ( $s1['month'] > $s2['month'] ) {
+      return 'later';
+    }
+    if ( $s1['month'] < $s2['month'] ) {
+      return 'earlier';
+    }
+    if ( $s1['keytype'] === 'month' ) {
+      if ( $s2['keytype'] === 'month' ) {
+        return 'equal';
+      }
+      else {
+        return 'less precision';
+      }
+    }
+    if ( $s2['keytype'] === 'month' ) {
+      return 'greater precision';
+    }
+    
+    // Both dates are precise to the day. Compare.
+    if ($s1['datekey'] > $s2['datekey']) {
+      return 'later';
+    }
+    if ($s1['datekey'] < $s2['datekey']) {
+      return 'earlier';
+    }
+    return 'equal';
   }
   
    private function getCites($text) {

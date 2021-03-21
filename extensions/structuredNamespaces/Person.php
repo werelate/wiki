@@ -370,8 +370,8 @@ class Person extends StructuredData {
          $link = "[[Person:$title|$fullname]]";
          $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
    //      $birthKey = DateHandler::getDateKey($birthDate, true);
-         $beginYear = DateHandler::getYear($birthDate, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl 
-         $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
+         $beginYear = DateHandler::getYear($birthDate, true, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB 
+         $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true, true);   // 3rd parm added Mar 2021 JB
          if ($beginYear || $endYear) {
             $yearrange = "<span class=\"wr-infobox-yearrange\">$beginYear - $endYear</span>";
          }
@@ -479,6 +479,12 @@ class Person extends StructuredData {
                   }
                }
             }
+            // If there is a spouse but no family events, create a dummy event so that it shows up in the Facts and Events section.  Added Mar 2021 by Janet Bjorndahl
+            else {
+              $marriageEvents[] = array('type' => 'Marriage', 'date' => '',
+                        'place' => '', 'desc' => @Family::$EVENT_CONJUNCTIONS['Marriage'] . ' ' . join(' or ',$spouseLinks),
+                        'srcs' => '', 'no_citation_needed' => true);
+            }            
             foreach ($familyXml->child as $child) {
                $children .= $this->getFamilyMember($child, $childLabel, false, $spouseLinks);
             }

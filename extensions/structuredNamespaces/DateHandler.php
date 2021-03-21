@@ -307,7 +307,7 @@ abstract class DateHandler {
   
   // This function returns the year of a date. If the date has a range and modifiers are to be included, it returns the year range.
   // Otherwise, it returns just the last year of the range. 
-	public static function getYear($date, $includeModifiers=false) {
+	public static function getYear($date, $includeModifiers=false, $discreteEvent=false) {      // discreteEvent added Mar 2021 by Janet Bjorndahl
     $parsedDate = array();
     
     $parsedDate=self::parseDate($date);
@@ -317,6 +317,11 @@ abstract class DateHandler {
         return $parsedDate['year'][1];
       }
       else {
+        // If this is a discrete event, change From/to (misused) to Bet/and (added Mar 2021 JB)
+        if ( $discreteEvent && isset($parsedDate['modifier'][1]) && $parsedDate['modifier'][1] == 'From' ) {  
+          $parsedDate['modifier'][1] = 'Bet';
+          $parsedDate['modifier'][0] = 'and';
+        }
         if ( isset($parsedDate['modifier'][0]) && !isset($parsedDate['year'][1]) && $parsedDate['modifier'][0] === 'to' ) {
           $parsedDate['modifier'][0] = 'To';                           // "to" can be used on its own - if so, capitalize (added Feb 2021)
         }
