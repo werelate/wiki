@@ -20,6 +20,11 @@ class GedcomExportJob extends Job {
 		$wgTitle = $this->title;  // FakeTitle (the default) generates errors when accessed, and sometimes I log wgTitle, so set it to something else
 		$wgUser = User::newFromName('WeRelate agent'); // set the user
 		$treeId = $this->params['tree_id'];
+		// Somehow this tree (from Goldenoldie) has gotten stuck in an endless export loop.
+		// I have no idea how, and I can't figure out any other way to stop it.
+		if ($treeId == 130133) {
+		    return true;
+		}
 		$treeName = $this->params['name'];
 		$treeUser = $this->params['user'];
 		$filename = "$wrGedcomExportDirectory/$treeId.ged";
