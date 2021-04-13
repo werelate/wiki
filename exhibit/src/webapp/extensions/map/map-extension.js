@@ -38,7 +38,7 @@ Exhibit.MapExtension = {
         } else if (Exhibit.MapExtension.params.gmapkey) {
             scriptURLs.push("https://maps.google.com/maps?file=api&v=2&key=" + Exhibit.MapExtension.params.gmapkey);
         } else if (!("GMap2" in window)) {
-            scriptURLs.push("https://maps.google.com/maps?file=api&v=2");
+            scriptURLs.push("https://maps.google.com/maps?file=api&v=2&key=AIzaSyC26HltfpTcFbvREl47-T6a7MPoIXvdOeI");
         }
     } else {
         scriptURLs.push("https://dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=5");
