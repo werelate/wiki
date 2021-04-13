@@ -370,8 +370,8 @@ class Person extends StructuredData {
          $link = "[[Person:$title|$fullname]]";
          $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
    //      $birthKey = DateHandler::getDateKey($birthDate, true);
-         $beginYear = DateHandler::getYear($birthDate, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl 
-         $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
+         $beginYear = DateHandler::getYear($birthDate, true, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB 
+         $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true, true);   // 3rd parm added Mar 2021 JB
          if ($beginYear || $endYear) {
             $yearrange = "<span class=\"wr-infobox-yearrange\">$beginYear - $endYear</span>";
          }
@@ -463,7 +463,7 @@ class Person extends StructuredData {
             if (isset($familyXml->event_fact)) {
                foreach ($familyXml->event_fact as $eventFact) {
                   if ((string)$eventFact['type'] == 'Marriage') {
-                     $marriageDate = DateHandler::formatDate((string)$eventFact['date']);    // formatDate call added Nov 2020 by Janet Bjorndahl
+                     $marriageDate = DateHandler::formatDate((string)$eventFact['date'], true);    // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                      $marriageKey = DateHandler::getDateKey($marriageDate, true);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                      $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span></div>";
                   }
@@ -479,6 +479,14 @@ class Person extends StructuredData {
                   }
                }
             }
+            // If there is a spouse but no family events, create a dummy event so that it shows up in the Facts and Events section.  Added Mar 2021 by Janet Bjorndahl
+            else {
+              if (!$isParentsSiblings) {
+                $marriageEvents[] = array('type' => 'Marriage', 'date' => '',
+                          'place' => '', 'desc' => @Family::$EVENT_CONJUNCTIONS['Marriage'] . ' ' . join(' or ',$spouseLinks),
+                          'srcs' => '', 'no_citation_needed' => true);
+              }
+            }            
             foreach ($familyXml->child as $child) {
                $children .= $this->getFamilyMember($child, $childLabel, false, $spouseLinks);
             }
@@ -661,24 +669,24 @@ END;
             foreach ($this->xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Birth') {
                   $birthFound = true;
-                  $birthDate = DateHandler::formatDate((string)$eventFact['date']);        // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $birthDate = DateHandler::formatDate((string)$eventFact['date'],true);        // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $birthPlace = (string)$eventFact['place'];
                   $birthSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Christening' || $eventFact['type'] == 'Baptism') {
                   $chrFound = true;
-                  $chrDate = DateHandler::formatDate((string)$eventFact['date']);          // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $chrDate = DateHandler::formatDate((string)$eventFact['date'],true);          // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $chrPlace = (string)$eventFact['place'];
                }
                else if ($eventFact['type'] == 'Death') {
                   $deathFound = true;
-                  $deathDate = DateHandler::formatDate((string)$eventFact['date']);        // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $deathDate = DateHandler::formatDate((string)$eventFact['date'],true);        // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $deathPlace = (string)$eventFact['place'];
                   $deathSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Burial') {
                   $burFound = true;
-                  $burDate = DateHandler::formatDate((string)$eventFact['date']);          // formatDate call added Nov 2020 by Janet Bjorndahl
+                  $burDate = DateHandler::formatDate((string)$eventFact['date'],true);          // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
                   $burPlace = (string)$eventFact['place'];
                }
             }
@@ -1294,7 +1302,7 @@ END;
 
 		// add javascript functions
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/jquery.tablednd_0_5.yui.1.js\"></script>");
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.37.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.38.js\"></script>");
 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
 		$tm = new TipManager();

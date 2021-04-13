@@ -343,7 +343,7 @@ END;
          if (isset($xml->event_fact)) {
             foreach ($xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Marriage') {
-                  $marriageDate = (string)@$eventFact['date'];
+                  $marriageDate = DateHandler::formatDate((string)@$eventFact['date'],true);    // formatDate call added Mar 2021 by Janet Bjorndahl
                   $marriagePlace = (string)@$eventFact['place'];
                }
             }
@@ -450,7 +450,7 @@ END;
             foreach ($this->xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Marriage') {
                   $marriageFound = true;
-                  $marriageDate = (string)$eventFact['date'];
+                  $marriageDate = DateHandler::formatDate((string)$eventFact['date'],true);    // formatDate call added Mar 2021 by Janet Bjorndahl
                   $marriagePlace = $this->getPlace($eventFact);
                }
             }
@@ -666,7 +666,7 @@ END;
 
 		// add javascript functions
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/jquery.tablednd_0_5.yui.1.js\"></script>");
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.37.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.38.js\"></script>");
 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
 
 		$tm = new TipManager();

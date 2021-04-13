@@ -43,11 +43,12 @@ class ESINHandler extends StructuredData {
 		'Primary' => '3'
 	);
 
-  // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl
-  private static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
-      'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Census', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
-      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Obituary', 'Ordination', 'Probate', 'Stilborn', 'Will',
-      'Estate Inventory', 'Estate Settlement'); 
+  // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl ('Census', 'Obituary', 'Estate Settlement' removed Mar 2021 by Janet Bjorndahl)
+  // ('Probate' removed and marriage events added Mar 2021 by Janet Bjorndahl)
+  public static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
+      'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
+      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Ordination', 'Stillborn', 'Will', 'Estate Inventory',
+      'Marriage', 'Alt Marriage', 'Marriage License', 'Marriage Bond', 'Marriage Contract', 'Divorce Filing', 'Divorce', 'Annulment'); 
       
   // Event type arrays added (to support event sorting) Oct 2020 by Janet Bjorndahl 
   private static $PERSON_EVENT_TYPES = array('Birth'=>'0010', 'Alt Birth'=>'0020', 'Christening'=>'0030',  'Alt Christening'=>'0040', 
@@ -161,17 +162,15 @@ class ESINHandler extends StructuredData {
       return false;
    }
   
-  // Created Nov 2020 by Janet Bjorndahl
+  // Created Nov 2020 by Janet Bjorndahl; changed Mar 2021 to return true only if significant reformating
   public static function hasReformatedDates($xml) {
     $formatedDate = $languageDate = '';
     if (isset($xml->event_fact)) {
       foreach ($xml->event_fact as $ef) {
         $date = (string)$ef['date'];
-        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array((string)$ef['type'], ESINHandler::$DISCRETE_EVENT));        
-        if ( $dateStatus === true ) {                                                                                                         
-          if ( mb_strtolower($formatedDate) != mb_strtolower($date) && mb_strtolower($languageDate) != mb_strtolower($date) && trim(mb_strtolower($date)) != 'unknown' ) {
-            return true;
-          }
+        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array((string)$ef['type'], ESINHandler::$DISCRETE_EVENT), true);        
+        if ( $dateStatus === 'Significant reformat' ) {                                                                                                         
+          return true;
         }
       }
     }
@@ -252,22 +251,22 @@ class ESINHandler extends StructuredData {
       $birthDate = $birthPlace = $deathDate = $deathPlace = '';
       if ((string)$p['birthdate'] || (string)$p['birthplace']) {
          $birthLabel = 'b. ';
-         $birthDate = DateHandler::formatDate((string)$p['birthdate']);        // formating call added Nov 2020 by Janet Bjorndahl
+         $birthDate = DateHandler::formatDate((string)$p['birthdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $birthPlace = (string)$p['birthplace'];
       }
       else if ((string)$p['chrdate'] || (string)$p['chrplace']) {
          $birthLabel = 'chr. ';
-         $birthDate = DateHandler::formatDate((string)$p['chrdate']);          // formating call added Nov 2020 by Janet Bjorndahl
+         $birthDate = DateHandler::formatDate((string)$p['chrdate'],true);          // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $birthPlace = (string)$p['chrplace'];
       }
       if ((string)$p['deathdate'] || (string)$p['deathplace']) {
          $deathLabel = 'd. ';
-         $deathDate = DateHandler::formatDate((string)$p['deathdate']);        // formating call added Nov 2020 by Janet Bjorndahl
+         $deathDate = DateHandler::formatDate((string)$p['deathdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $deathPlace = (string)$p['deathplace'];
       }
       else if ((string)$p['burialdate'] || (string)$p['burialplace']) {
          $deathLabel = 'bur. ';
-         $deathDate = DateHandler::formatDate((string)$p['burialdate']);       // formating call added Nov 2020 by Janet Bjorndahl
+         $deathDate = DateHandler::formatDate((string)$p['burialdate'],true);       // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
          $deathPlace = (string)$p['burialplace'];
       }
       if ($birthPlace) $birthPlace = '[[Place:' . StructuredData::addBarToTitle($birthPlace) . ']]';
@@ -688,7 +687,10 @@ END;
       while ( $i < sizeof($sort) ) {
         $temp = $sort[$i];
         $j = $i-1;
-        while ( $j >= 0 and $this->compareDates($sort[$j], $temp ) ) {
+        // Reorder dates if the first is later than the second or if it has greater precision and the types are of the same order.
+        // The latter condition is required to ensure that all dates in the same month are eventually compared to each other. 
+        while ( $j >=0 and ($this->compareDates($sort[$j], $temp) === 'later' ||
+            ($this->compareDates($sort[$j], $temp) === 'greater precision'  && substr($sort[$j]['typekey'],0,4) === substr($temp['typekey'],0,4))) ) {
           $sort[$j+1] = $sort[$j];
           $j--;
         }
@@ -696,26 +698,67 @@ END;
         $i++;
       }
     }
-    return $sort;  
+    return $sort;
   }
   
   // Compare dates at the lowest level (day, month or year) in common between the 2 dates
-  // If either date is missing (keytype not defined), return false so that the relative order of the two events is not switched. (This change added Dec 2020 by Janet Bjorndahl)
+  // Returns:
+  //    equal - same date, same precision (or one or both dates are missing)
+  //    later - the first date is later than the second
+  //    earlier - the first date is earlier than the second
+  //    greater precision - the dates are equivalent, and the first has greater precision than the second
+  //    less precision - the dates are equivalent, and the first has less precision than the second
   private function compareDates($s1, $s2) {
     if ( !isset($s1['keytype']) || !isset($s2['keytype']) ) {
-      return false;
+      return 'equal';
     }
-    if ( $s1['keytype'] === 'day' && $s2['keytype'] === 'day' ) {
-      return ($s1['datekey'] > $s2['datekey']);
+    
+    // Compare years. If both dates have the same year, and one of them has only the year, compare precision.
+    if ( $s1['year'] > $s2['year'] ) {
+      return 'later';
     }
-    else {
-      if ( ($s1['keytype'] === 'month' || $s1['keytype'] === 'day') && ($s2['keytype'] === 'month' || $s2['keytype'] === 'day') ) {  
-        return ($s1['month'] > $s2['month']);
+    if ( $s1['year'] < $s2['year'] ) {
+      return 'earlier';
+    }
+    if ( $s1['keytype'] === 'year' ) {
+      if ( $s2['keytype'] === 'year' ) {
+        return 'equal';
       }
       else {
-        return ($s1['year'] > $s2['year']);
+        return 'less precision';
       }
     }
+    if ( $s2['keytype'] === 'year' ) {
+      return 'greater precision';
+    }
+    
+    // Neither is year only. Compare months. If both dates have the same month, and one of them has only the month, compare precision.
+    if ( $s1['month'] > $s2['month'] ) {
+      return 'later';
+    }
+    if ( $s1['month'] < $s2['month'] ) {
+      return 'earlier';
+    }
+    if ( $s1['keytype'] === 'month' ) {
+      if ( $s2['keytype'] === 'month' ) {
+        return 'equal';
+      }
+      else {
+        return 'less precision';
+      }
+    }
+    if ( $s2['keytype'] === 'month' ) {
+      return 'greater precision';
+    }
+    
+    // Both dates are precise to the day. Compare.
+    if ($s1['datekey'] > $s2['datekey']) {
+      return 'later';
+    }
+    if ($s1['datekey'] < $s2['datekey']) {
+      return 'earlier';
+    }
+    return 'equal';
   }
   
    private function getCites($text) {
@@ -736,7 +779,7 @@ END;
 //      $notes = StructuredData::formatAsLinks((string)@$eventFact['notes']);
 //      $images = StructuredData::formatAsLinks((string)@$eventFact['images']);
       $type = (string)$eventFact['type'];
-      $date = DateHandler::formatDate((string)$eventFact['date']);                             // added Nov 2020 by Janet Bjorndahl
+      $date = DateHandler::formatDate((string)$eventFact['date'], in_array($type, ESINHandler::$DISCRETE_EVENT));         // added Nov 2020 by Janet Bjorndahl; discrete parm added Mar 2021 JB
       $place = (string)$eventFact['place'];
       if ($place) {
          $place = '[[Place:' . StructuredData::addBarToTitle($place) . ']]';
@@ -1097,13 +1140,15 @@ END;
 		if (isset($eventFact)) {
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
-      // If the date passes date editing but is not in standard format, replace it with the properly formated version 
-      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT));        // added Oct 2020 by Janet Bjorndahl
-      if ( $dateStatus === true ) {                                                                                                         // changed Nov 2020 by Janet Bjorndahl
-        if ( mb_strtolower($formatedDate) != mb_strtolower($date) && mb_strtolower($languageDate) != mb_strtolower($date) && trim(mb_strtolower($date)) != 'unknown' ) {
+      // If the date passes date editing but is not in standard format, replace it with the properly formated version
+      // added Oct 2020; changed Mar 2021 by Janet Bjorndahl 
+      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT), true);
+      if ( $dateStatus === 'Significant reformat' ) {              // Display in yellow with prev date below if parser had to do a significant reformat
           $prevDate = $date;
           $dateStyle = ' style="background-color:#ffff99;"';
-        }
+          $dateStatus = true;                                      // Set datestatus to true (successful edit) for remaining code
+      }
+      if ( $dateStatus === true ) {
         $date = $languageDate;
       }
       if (ESINHandler::isAmbiguousDate($date)) {
@@ -1155,10 +1200,10 @@ END;
          $result .= "<td></td>";
       }
 //      $result .= "</tr><tr><td colspan=\"2\"></td>";   this statement commented out Oct 2020 by Janet Bjorndahl (replaced by 3 below) - TEMPORARY CHANGE
-      $result .= "</tr><tr><td colspan=\"2\">" ;
-//      $result .= ( $dateStatus === true && $languageDate ? "suggested: $languageDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); 
-      $result .= ( $dateStatus === true && $prevDate ? "<b>was</b>: $prevDate" : ( $dateStatus === true ? '' : "<font color=darkred>$dateStatus</font>") ); // replaced above Nov 2020
-      $result .= "</td>";  
+      $result .= "</tr><tr><td colspan=\"2\"><output>" ;   // output tag added (to support removeEventFact) Mar 2021 by Janet Bjorndahl
+      $result .= ( $dateStatus === true && $prevDate ? "<b>was</b>: $prevDate" : 
+                 ( ($dateStatus === true || $dateStatus === '') ? '' : "<font color=darkred>$dateStatus</font>") ); // changed Mar 2021
+      $result .= "</output></td>";  
       if ($efNum == 0) {
 //         if ($typeString == 'Birth') {
 //            $sourceTip = '<b>Sources'.$tm->addMsgTip('EventFactSourceIDs').'&nbsp; Images'.$tm->addMsgTip('EventFactImageIDs').'&nbsp; Notes'.$tm->addMsgTip('EventFactNoteIDs').'&nbsp; &raquo; &nbsp; &nbsp;</b>';
@@ -1463,12 +1508,10 @@ END;
 		$result = '';
    
 		$date = $request->getVal("date$num");
-    // Format the date. If the only change is a change in case or if the date was 'unknown', then replace the date with the formated date. Added Nov 2020 by Janet Bjorndahl
-    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($type, ESINHandler::$DISCRETE_EVENT));
+    // Format the date. If successful and no significant reformating was required, replace the date with the formated date. Added Nov 2020; Changed Mar 2021 by Janet Bjorndahl
+    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($type, ESINHandler::$DISCRETE_EVENT), true);
     if ( $dateStatus === true ) {
-      if ( mb_strtolower($formatedDate) == mb_strtolower($date) || mb_strtolower($languageDate) == mb_strtolower($date) || trim(mb_strtolower($date)) == 'unknown' ) {
-        $date = $formatedDate;
-      }
+      $date = $formatedDate;
     }
 
 		$place = $request->getVal("place$num");

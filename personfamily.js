@@ -174,16 +174,24 @@ function removeEventFact(efNum) {
 	for (var i=rowNum;i<numRows-2;i+=2) {
 		row=tbl.rows[i];
 		var copyRow=tbl.rows[i+2];
-      var j;
+    var j;
 		$(row.cells[0]).find('select').val($(copyRow.cells[0]).find('select').val());
 		for (j=1; j<=3; j++) {
 			$(row.cells[j]).find('input').val($(copyRow.cells[j]).find('input').val());
-		}
-      row=tbl.rows[i+1];
-      copyRow=tbl.rows[i+3];
-      for (j=1; j<=3; j++) {
-         $(row.cells[j]).find('input').val($(copyRow.cells[j]).find('input').val());
+      // Copy highlighting as well, but only if it is different, since copying (even with no color) puts a wider border on the field. added Mar 2021 by Janet Bjorndahl
+      if ( $(row.cells[j]).find('input').css("background-color") != $(copyRow.cells[j]).find('input').css("background-color") ) {
+  	    $(row.cells[j]).find('input').css("background-color", $(copyRow.cells[j]).find('input').css("background-color"));
       }
+		}
+    row=tbl.rows[i+1];
+    copyRow=tbl.rows[i+3];
+		$(row.cells[0]).find('output').html($(copyRow.cells[0]).find('output').html());        // copy message; added Mar 2021 by Janet Bjorndahl
+    for (j=1; j<=3; j++) {
+      $(row.cells[j]).find('input').val($(copyRow.cells[j]).find('input').val());
+      if ( $(row.cells[j]).find('input').css("background-color") != $(copyRow.cells[j]).find('input').css("background-color") ) {  // copy highlighting; added Mar 2021 by Janet Bjorndahl
+  	    $(row.cells[j]).find('input').css("background-color", $(copyRow.cells[j]).find('input').css("background-color"));
+      }
+    }
 	}
    $('input', tbl.rows[numRows-2].cells[2]).autocompleteRemove();
     for (i=1; i <= 2; i++) {

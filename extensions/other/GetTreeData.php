@@ -195,7 +195,6 @@ class TreeData {
 
          // populate data
          list($marriageYear, $marriageDate, $marriagePlace, $eventTypeIndex) = $this->getEventData($xml, array('Marriage'));
-         $marriageDate = DateHandler::formatDate($marriageDate);              // added Nov 2020 by Janet Bjorndahl
          $thumbURL = $this->getPrimaryImage($xml, false);
          $data = array();
          $data['url'] = $family->getTitle()->getFullURL();
@@ -309,8 +308,8 @@ class TreeData {
       }
       $fullname = StructuredData::getFullname($member);
       $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
-      $beginYear = DateHandler::getYear($birthDate, true);       // changed to DateHandler function Oct 2020 by Janet Bjorndahl
-      $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
+      $beginYear = DateHandler::getYear($birthDate, true, true);                     // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021
+      $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true, true);   // 3rd parm added Mar 2021
       if ($beginYear || $endYear) {
          $yearrange = "$beginYear - $endYear";
       }
@@ -324,6 +323,7 @@ class TreeData {
 			foreach ($xml->event_fact as $event_fact) {
 				if ((string)$event_fact['type'] == $type) {
 					$eventDate = (string)$event_fact['date'];
+          $eventDate = DateHandler::formatDate($eventDate, true);             // true for discrete event types; call added Mar 2021 by Janet Bjorndahl
 					$eventYear = substr(DateHandler::getDateKey($eventDate), 0, 4);     // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                $eventPlace = '';
 //               $eventPlaceUrl = '';

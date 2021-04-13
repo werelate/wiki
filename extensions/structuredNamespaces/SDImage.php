@@ -222,9 +222,9 @@ class SDImage extends StructuredData {
       $fullname = StructuredData::getFullname($member);
       if (!$fullname) $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
       $link = "[[Person:$title|$fullname]]";
-      // changed to DateHandler function Oct 2020 by Janet Bjorndahl
-      $beginYear = DateHandler::getYear((string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'], true);
-      $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true);
+      // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB
+      $beginYear = DateHandler::getYear((string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'], true, true);
+      $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true, true);
       $yearrange = '';
       if ($beginYear || $endYear) {
          $yearrange = "<span class=\"wr-infobox-yearrange\">$beginYear - $endYear</span>";
