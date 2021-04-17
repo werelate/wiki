@@ -248,23 +248,16 @@ abstract class DateHandler {
     
     // The remainder of the code is for numeric keys.
     
-    if ( isset($pd['suffix'][$i]) && $pd['suffix'][$i] === 'BC' ) {
-      $intYear = $pd['effyear'][$i] * (-1);
-    }
-    else {
-      $intYear = (int)$pd['effyear'][$i];
-    }
-    
     // Handle situation where year, month and day are all present.
     if ( isset($pd['month'][$i]) && isset($pd['day'][$i]) ) {
-      $jd = gregoriantojd($monthNum, $pd['day'][$i], $intYear);
+      $jd = gregoriantojd($monthNum, $pd['day'][$i], $pd['effyear'][$i]);                                    // Changed Apr 2021 (parseDate sets effyear to negative if BC) - JB
       if ( isset($pd['modifier'][$i]) && preg_match("/\b(Bef|To)\b/i", $pd['modifier'][$i]) ) {              // For these modifiers, subtract 1 from the day
         $jd -= 1;
       }
       if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/i", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the day 
         $jd += 1;
       }
-      // TO DO - handle reversing days and months if negative year (BC) - figure out how to handle negative years elsewhere - doesn't work now
+      // TO DO - handle reversing days and months if negative year (BC)
       preg_match_all('#-?\d+#', jdtogregorian($jd), $fields, PREG_SET_ORDER);
       $result = $fields[2][0] . str_pad($fields[0][0],2,'0',STR_PAD_LEFT) . str_pad ($fields[1][0],2,'0',STR_PAD_LEFT);
       return (int)$result;
@@ -312,9 +305,11 @@ abstract class DateHandler {
     
     $parsedDate=self::parseDate($date);
     if ( isset($parsedDate['year'][0]) ) {
-      // If this is a date range and the first year and last year are the same, return the year (once) without modifiers.
-      if ( isset($parsedDate['year'][1]) && $parsedDate['year'][0] == $parsedDate['year'][1] ) {
-        return $parsedDate['year'][1];
+      // If this is a date range and the first year and last year are the same, return the year (once) without modifiers. (Changed to handle BC Apr 2021 - JB)
+      if ( isset($parsedDate['year'][1]) && $parsedDate['year'][0] == $parsedDate['year'][1] 
+            && ((!isset($parsedDate['suffix'][0]) && !isset($parsedDate['suffix'][1])) || 
+                (isset($parsedDate['suffix'][0]) && isset($parsedDate['suffix'][1]) && $parsedDate['suffix'][0] == $parsedDate['suffix'][1])) ) {
+        return $parsedDate['year'][1] . (isset($parsedDate['suffix'][1]) ? " " . $parsedDate['suffix'][1] : "");
       }
       else {
         // If this is a discrete event, change From/to (misused) to Bet/and (added Mar 2021 JB)
@@ -325,10 +320,12 @@ abstract class DateHandler {
         if ( isset($parsedDate['modifier'][0]) && !isset($parsedDate['year'][1]) && $parsedDate['modifier'][0] === 'to' ) {
           $parsedDate['modifier'][0] = 'To';                           // "to" can be used on its own - if so, capitalize (added Feb 2021)
         }
-        return ($includeModifiers && isset($parsedDate['modifier'][1]) ? $parsedDate['modifier'][1] . " " : "") .
+        return ($includeModifiers && isset($parsedDate['modifier'][1]) ? $parsedDate['modifier'][1] . " " : "") .    // Changed to include BC Apr 2021 - JB
                 ($includeModifiers && isset($parsedDate['year'][1]) ? $parsedDate['year'][1] . " " : "") .
+                ($includeModifiers && isset($parsedDate['suffix'][1]) ? $parsedDate['suffix'][1] . " " : "") .
                 ($includeModifiers && isset($parsedDate['modifier'][0]) ? ($parsedDate['modifier'][0] == 'and' ? "&" : $parsedDate['modifier'][0]) . " " : "") .
-                $parsedDate['year'][0];
+                $parsedDate['year'][0] .
+                (isset($parsedDate['suffix'][0]) ? " " . $parsedDate['suffix'][0] : "");
       }
     }
     return false;
@@ -567,10 +564,12 @@ abstract class DateHandler {
                   // However, in the case of bet/and or from/to, the first date can pick up the year and month from the second date (e.g.,
                   // ("Bet 10 and 15 Oct 1823" becomes "Bet 10 Oct 1823 and 15 Oct 1823") as long as this results in a valid date range.
                   // If this is applicable, treat this field as the day.
-                  // UNLESS it is possible that this field is the second part of a split year - if the field before this one is "/", treat this as the year.
+                  // UNLESS either of the following situations is true:
+                  // * This field could be the second part of a split year - if the field before this one is "/", treat this as the year (added Mar 2021 - JB)
+                  // * This could be a year between 32 BC and 32 AD - if the year already captured is < 4 digits, treat this as the year (added Apr 2021 - JB)
                   else {             
-                    if ( !($i>0 && $fields[$i-1][1]=='/') &&                           // check for possible split year situation added Mar 2021 by Janet Bjorndahl
-                          $dateIndex===1 && !isset($parsedDate['year'][1]) && isset($parsedDate['year'][0]) ) {   
+                    if ( !($i>0 && $fields[$i-1][1]=='/') &&
+                          $dateIndex===1 && !isset($parsedDate['year'][1]) && isset($parsedDate['year'][0]) && strlen($parsedDate['year'][0]) > 3 ) {   
                       if ( isset($parsedDate['day'][0]) && $num < $parsedDate['day'][0] ) { 
                         $parsedDate['year'][1] = $parsedDate['year'][0];                        
                         $parsedDate['effyear'][1] = $parsedDate['effyear'][0];         // added Feb 2021 by Janet Bjorndahl (so it is set even if an error is found later)
@@ -679,6 +678,13 @@ abstract class DateHandler {
     if ( isset($parsedDate['year'][1]) && !isset($parsedDate['modifier'][1]) && $parsedDate['modifier'][0] == 'to' ) {
       $parsedDate['modifier'][1] = 'From';
       $parsedDate['reformat'] = 'Significant reformat';
+    }
+    
+    // If (either) year is a BC year, make the effective year a negative number (refactored to apply more broadly Apr 2021 - JB)
+    for ($i=0; $i<=$dateIndex; $i++) {
+      if ( isset($parsedDate['suffix'][$i]) && $parsedDate['suffix'][$i] === 'BC' && isset($parsedDate['effyear'][$i]) ) {
+        $parsedDate['effyear'][$i] = '-' . $parsedDate['effyear'][$i];
+      }
     }
 
   return $parsedDate;
