@@ -500,11 +500,12 @@ END;
           else {
             $sortf[$i]['typekey'] = self::$FAMILY_EVENT_TYPES['Other Family'] . $eventFact['type'];
           }
-          $sortf[$i]['datekey'] = str_pad($dateKey,8,'0',STR_PAD_LEFT);
-          $sortf[$i]['year'] = substr($sortf[$i]['datekey'],0,4);
-          $sortf[$i]['month'] = substr($sortf[$i]['datekey'],0,6);
-          $sortf[$i]['keytype'] = ( substr($sortf[$i]['datekey'],6,2) !== '00' ? 'day' : 
-                                   (substr($sortf[$i]['datekey'],4,2) !== '00' ? 'month' : 'year') );
+          // Next 5 lines changed to handle BC years, Apr 2021 by Janet Bjorndahl
+          $sortf[$i]['datekey'] = $dateKey;
+          $sortf[$i]['year'] = substr($dateKey,0,-4);
+          $sortf[$i]['month'] = substr($dateKey,0,-2);
+          $sortf[$i]['keytype'] = ( substr($dateKey,-2,2) !== '00' ? 'day' : 
+                                   (substr($dateKey,-4,2) !== '00' ? 'month' : 'year') );
           $i++;        
         }
       }
@@ -527,11 +528,12 @@ END;
           else {
             $sortp[$i]['typekey'] = self::$PERSON_EVENT_TYPES['During Life With Date'] . $eventFact['type'];
           }
-          $sortp[$i]['datekey'] = str_pad($dateKey,8,'0',STR_PAD_LEFT);
-          $sortp[$i]['year'] = substr($sortp[$i]['datekey'],0,4);
-          $sortp[$i]['month'] = substr($sortp[$i]['datekey'],0,6);
-          $sortp[$i]['keytype'] = ( substr($sortp[$i]['datekey'],6,2) !== '00' ? 'day' : 
-                                   (substr($sortp[$i]['datekey'],4,2) !== '00' ? 'month' : 'year') );
+          // Next 5 lines changed to handle BC years, Apr 2021 by Janet Bjorndahl
+          $sortp[$i]['datekey'] = $dateKey;
+          $sortp[$i]['year'] = substr($dateKey,0,-4);
+          $sortp[$i]['month'] = substr($dateKey,0,-2);
+          $sortp[$i]['keytype'] = ( substr($dateKey,-2,2) !== '00' ? 'day' : 
+                                   (substr($dateKey,-4,2) !== '00' ? 'month' : 'year') );
           
           // If no family events have a date, track birth and death (or proxy) date keys for setting a default sort year for family events
           if ( !$familyDate ) {
@@ -564,7 +566,7 @@ END;
           if ( !isset($marriageKey) ) {
             $marriageKey = $sortp[0]['datekey'] + 10000;
           }
-          $marriageYear = substr(str_pad($marriageKey, 8, '0', STR_PAD_LEFT),0,4);
+          $marriageYear = substr($marriageKey,0,-4);              // Changed Apr 2021 to handle BC dates - Janet Bjorndahl
         }
       }
     }
@@ -599,7 +601,7 @@ END;
             while ( $j < $start && (!isset($sortf[$i]['year']) || ($sortf[$j-1]['num'] < $sortf[$i]['num']) ||
                      ($sortf[$j-1]['num'] == $sortf[$i]['num'] && $sortf[$j-1]['typekey'] < $sortf[$i]['typekey'])) ) {
               if ( isset($sortf[$j]['year']) ) {
-                $sortf[$i]['year'] = str_pad($sortf[$j]['year'] + $sortf[$i]['num'] - $sortf[$j]['num'], 4, '0' ,STR_PAD_LEFT);
+                $sortf[$i]['year'] = $sortf[$j]['year'] + $sortf[$i]['num'] - $sortf[$j]['num'];    // Changed Apr 2021 due to other changes to handle BC dates - JB
                 $sortf[$i]['keytype'] = 'year';
               }
               $j++;

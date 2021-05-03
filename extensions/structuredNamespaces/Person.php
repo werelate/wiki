@@ -472,7 +472,7 @@ class Person extends StructuredData {
                      if ($marriageDesc) $marriageDesc .= '<br/>';
                      // sometimes event type is "Reference Number" -- I don't know why
                      $conjunction = @Family::$EVENT_CONJUNCTIONS[(string)$eventFact['type']];
-                     $marriageDesc .= $conjunction.' '.join(' or ',$spouseLinks);
+                     $marriageDesc .= $conjunction . ' ' . (count($spouseLinks)>0 ? join(' or ',$spouseLinks) : 'Unknown');    // 'Unknown' added Apr 2021 by Janet Bjorndahl
                      $marriageEvents[] = array('type' => (string)$eventFact['type'], 'date' => (string)$eventFact['date'],
                         'place' => (string)$eventFact['place'], 'desc' => $marriageDesc,
                         'srcs' => (string)$eventFact['sources'], 'no_citation_needed' => true);
@@ -483,7 +483,8 @@ class Person extends StructuredData {
             else {
               if (!$isParentsSiblings) {
                 $marriageEvents[] = array('type' => 'Marriage', 'date' => '',
-                          'place' => '', 'desc' => @Family::$EVENT_CONJUNCTIONS['Marriage'] . ' ' . join(' or ',$spouseLinks),
+                          'place' => '', 'desc' => @Family::$EVENT_CONJUNCTIONS['Marriage'] . ' ' . 
+                              (count($spouseLinks)>0 ? join(' or ',$spouseLinks) : 'Unknown'),                                  // 'Unknown' added Apr 2021 by Janet Bjorndahl
                           'srcs' => '', 'no_citation_needed' => true);
               }
             }            
