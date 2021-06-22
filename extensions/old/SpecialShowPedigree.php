@@ -40,7 +40,7 @@ function wfSpecialShowPedigree() {
 			$wgOut->addHTML($sp->getCheckboxes());
 			$wgOut->addHTML('<div id="pedigreemap" style="width: 760px; height: 520px"></div>');
 			$wgOut->addHTML($sp->getLegend());
-			$wgOut->addScript("<script src=\"http://maps.google.com/maps?file=api&v=2&key=$wgGoogleMapKey\" type=\"text/javascript\"></script>");
+			$wgOut->addScript("<script src=\"https://maps.google.com/maps?file=api&v=2&key=$wgGoogleMapKey\" type=\"text/javascript\"></script>");
 			$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/pedigreemap.1.js\"></script>");
 			$mapData = $sp->getPedigreeMapData();
 			$mapData = str_replace("'", "\'", $mapData);

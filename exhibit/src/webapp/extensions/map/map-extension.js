@@ -34,14 +34,14 @@ Exhibit.MapExtension = {
         
     if (Exhibit.MapExtension.params.service == "google") {
         if (Exhibit.params.gmapkey) {
-            scriptURLs.push("http://maps.google.com/maps?file=api&v=2&key=" + Exhibit.params.gmapkey);
+            scriptURLs.push("https://maps.google.com/maps?file=api&v=2&key=AIzaSyC26HltfpTcFbvREl47-T6a7MPoIXvdOeI");
         } else if (Exhibit.MapExtension.params.gmapkey) {
-            scriptURLs.push("http://maps.google.com/maps?file=api&v=2&key=" + Exhibit.MapExtension.params.gmapkey);
+            scriptURLs.push("https://maps.google.com/maps?file=api&v=2&key=AIzaSyC26HltfpTcFbvREl47-T6a7MPoIXvdOeI");
         } else if (!("GMap2" in window)) {
-            scriptURLs.push("http://maps.google.com/maps?file=api&v=2");
+            scriptURLs.push("https://maps.google.com/maps?file=api&v=2&key=AIzaSyC26HltfpTcFbvREl47-T6a7MPoIXvdOeI");
         }
     } else {
-        scriptURLs.push("http://dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=5");
+        scriptURLs.push("https://dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=5");
     }
     
     if (Exhibit.MapExtension.params.bundle) {
