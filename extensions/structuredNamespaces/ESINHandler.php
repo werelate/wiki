@@ -133,6 +133,8 @@ class ESINHandler extends StructuredData {
    public static function isLivingDates($birthDate, $chrDate,
                                         $deathDate=null, $deathPlace=null, $deathDesc=null,
                                         $burDate=null, $burPlace=null, $burDesc=null) {
+
+      /* Having anything (besides 'living' or 'private') in death/burial fields is no longer sufficient to establish that a person is deceased (Jul 2021 Janet Bjorndahl) 
       if (ESINHandler::isNonLivingValue($deathDate) ||
           ESINHandler::isNonLivingValue($deathPlace) ||
           ESINHandler::isNonLivingValue($deathDesc) ||
@@ -141,6 +143,27 @@ class ESINHandler extends StructuredData {
           ESINHandler::isNonLivingValue($burDesc)) {
          return false;
       }
+      */
+
+      /* To establish that a person is deceased requires a valid death or burial date not using the "aft"  or "est" modifier
+         and not completely within parentheses unless "(in infancy)" or "(young)".                                           New rule Jul 2121 - Janet Bjorndahl
+         Famous people are exempt from the living persons rule. */
+      $formatedDate = $languageDate = '';
+      if ( stripos($deathDate,'aft')===false && stripos($deathDate,'est')===false ) {
+         if ( DateHandler::editDate($deathDate, $formatedDate, $languageDate, true, false) === true && 
+               $formatedDate!='' && (stripos($formatedDate, '(')!==0 || stripos($formatedDate,'(in infancy)')!==false || stripos($formatedDate,'(young)')!==false) ) {
+            return false;
+         }
+      }
+      if ( stripos($burDate,'aft')===false && stripos($burDate,'est')===false ) {
+         if ( DateHandler::editDate($burDate, $formatedDate, $languageDate, true, false) === true &&
+               $formatedDate!='' && stripos($formatedDate, '(')!==0 ) {
+            return false;
+         }
+      }
+      if ( stripos($deathDesc,'{{FamousLivingPersonException')!==false )
+         return false;
+           
       $birthYear = DateHandler::getEffectiveYear($birthDate);       // changed to new DateHandler function Oct 2020 by Janet Bjorndahl
       $chrYear = DateHandler::getEffectiveYear($chrDate);
       return ($birthYear && (int)date("Y") - (int)$birthYear < 110) || (!$birthYear && $chrYear && (int)date("Y") - (int)$chrYear < 110);
