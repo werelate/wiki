@@ -169,6 +169,22 @@ abstract class DateHandler {
         return 'Invalid date range';
       }  
     }
+    
+    // Future dates are not allowed (added Jul 2021 by Janet Bjorndahl)
+    $today = date_create('',timezone_open('Pacific/Auckland'));   // Use New Zealand time because New Zealand is unlikely to change to other side of International Date Line.
+    $thisYear = (int)$today->format("Y");
+    $thisMonth = (int)$today->format("m");
+    $thisDay = (int)$today->format("d");
+    for ($i=0; $i<=1; $i++) {
+      if ( (isset($parsedDate['effyear'][$i]) && (int)$parsedDate['effyear'][$i] > $thisYear) ||
+           (isset($parsedDate['month'][$i]) && (int)$parsedDate['effyear'][$i] == $thisYear && self::getMonthNumber($parsedDate['month'][$i]) > $thisMonth) || 
+           (isset($parsedDate['day'][$i]) && (int)$parsedDate['effyear'][$i] == $thisYear && self::getMonthNumber($parsedDate['month'][$i]) == $thisMonth && 
+                 (int)$parsedDate['day'][$i] > $thisDay) ) {
+        $formatedDate = '';
+        $languageDate = '';
+        return 'Future date';
+      }
+    }
 
     if ( isset($parsedDate['text']) ) {
       $formatedDate .= ($formatedDate == '' ? $parsedDate['text'] : ' ' . $parsedDate['text']);
