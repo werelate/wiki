@@ -1,6 +1,6 @@
 <?php
 
-// Created Oct 2020 (and modified Nov 2020) by Janet Bjorndahl
+// Created Oct 2020 (and modified Nov 2020; Norwegian added Aug 2021) by Janet Bjorndahl
 abstract class DateHandler {
 
   private static $GEDCOM_MONTHS = array('jan'=>'Jan','feb'=>'Feb','mar'=>'Mar','apr'=>'Apr','may'=>'May','jun'=>'Jun',
@@ -24,7 +24,9 @@ abstract class DateHandler {
                                         // additional for Spanish
                                         'ene'=>'Jan','abr'=>'Apr','ago'=>'Aug','dic'=>'Dec',
                                         'enero'=>'Jan','febrero'=>'Feb','marzo'=>'Mar','abril'=>'Apr','mayo'=>'May','junio'=>'Jun',
-                                        'julio'=>'Jul','agosto'=>'Aug','septiembre'=>'Sep','octubre'=>'Oct','noviembre'=>'Nov','diciembre'=>'Dec'
+                                        'julio'=>'Jul','agosto'=>'Aug','septiembre'=>'Sep','octubre'=>'Oct','noviembre'=>'Nov','diciembre'=>'Dec',
+                                        // additional for Norwegian
+                                        'des'=>'Dec','desember'=>'Dec'
                                         );
                                         
   private static $MONTHS = array('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec');                                        
@@ -464,10 +466,17 @@ abstract class DateHandler {
             $parsedDate['reformat'] = 'Significant reformat';        // added Mar 2021 by Janet Bjorndahl
           }
           else {
-            $parsedDate['year'][0] = $parts[0][2];        // Even if the date is ambiguous, the year can be returned for functions that require it
-            $parsedDate['effyear'][0] = $parts[0][2];     // Not worried whether this is the first or second date since it is very rare to have a range with numeric dates
-            $parsedDate['message'] = 'Ambiguous date';
-            return $parsedDate;
+            if ( (int)$parts[0][0] == (int)$parts[0][1] && self::isNumMonth($parts[0][0]) ) {    // added Aug 2021 by Janet Bjorndahl
+              $embeddedDate = $parts[0][1] . ' ' . self::$MONTHS[$parts[0][0]-1] . ' ' . $parts[0][2];
+              $date = substr($date,0,$fields[0][$i][1]) . $embeddedDate . substr($date,$fields[0][$i][1]+strlen($fields[0][$i][0]));
+              $parsedDate['reformat'] = 'Significant reformat';
+            }
+            else {
+              $parsedDate['year'][0] = $parts[0][2];        // Even if the date is ambiguous, the year can be returned for functions that require it
+              $parsedDate['effyear'][0] = $parts[0][2];     // Not worried whether this is the first or second date since it is very rare to have a range with numeric dates
+              $parsedDate['message'] = 'Ambiguous date';
+              return $parsedDate;
+            }
           }
         }
       }
@@ -592,7 +601,7 @@ abstract class DateHandler {
                         $parsedDate['month'][1] = $parsedDate['month'][0];
                         $parsedDate['day'][1] = "$num";
                         $parsedDate['reformat'] = 'Significant reformat';              // added Mar 2021 by Janet Bjorndahl
-                        $saveOriginal = true;
+                        // $saveOriginal = true;                                       // commented out Aug 2021 by Janet Bjorndahl
                       }
                       else {
                         if ( !self::treatAsYearRange($num,$parsedDate['year'][0]) ) {  // if not valid to use this as the day, and not reasonable to use it as the year, error
@@ -678,14 +687,14 @@ abstract class DateHandler {
     if ( $dateIndex === 2 ) {                                            // dateIndex would have been incremented after the last modifier read
       if ( !isset($parsedDate['year'][1]) && isset($parsedDate['year'][0]) && isset($parsedDate['month'][1]) && isset($parsedDate['month'][0]) ) {
         if ( self::getMonthNumber($parsedDate['month'][1]) < self::getMonthNumber($parsedDate['month'][0]) ) {   
-        $saveOriginal = true;
+        // $saveOriginal = true;                                         // commented out Aug 2021 by Janet Bjorndahl
         $parsedDate['year'][1] = $parsedDate['year'][0];
         $parsedDate['effyear'][1] = $parsedDate['effyear'][0];           // added Feb 2021 by Janet Bjorndahl (refactored where effyear is set)
         $parsedDate['reformat'] = 'Significant reformat';                // added Mar 2021 by Janet Bjorndahl
         }
       }
     }
-    // If it was necessary to pick up the year and/or month from the second date, capture the original date in a parenthetical text portion (possibly in addition to an existing one)
+    // If warranted, capture the original date in a parenthetical text portion (possibly in addition to an existing one)
     if ( $saveOriginal ) {
       $parsedDate['text'] = "($originalDate)" . ( isset($parsedDate['text']) ? " " . $parsedDate['text'] : "" );
     }
