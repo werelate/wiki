@@ -1039,8 +1039,11 @@ function wfAddPage($args) {
          if (ESINHandler::isLivingDates($args['bd'], null, $args['dd'], $args['dp'])) {
             $error = 'Living people cannot be added to WeRelate. People born in the last 110 years must have a death date';
          }
-         else if (ESINHandler::isAmbiguousDate($args['bd']) || ESINHandler::isAmbiguousDate($args['dd'])) {
-            $error = "Please write dates in D MMM YYYY format so they are unambiguous (ie 5 Jan 1900)";
+//         else if (ESINHandler::isAmbiguousDate($args['bd']) || ESINHandler::isAmbiguousDate($args['dd'])) {
+//            $error = "Please write dates in D MMM YYYY format so they are unambiguous (ie 5 Jan 1900)";
+         // All invalid dates must be fixed (not just ambiguous ones); changed Nov 2021 by Janet Bjorndahl
+         else if (ESINHandler::isInvalidDate($args['bd']) || ESINHandler::isInvalidDate($args['dd'])) {
+            $error = "Please correct date(s); they should be in D MMM YYYY format.";
          }
          else {
             if (!$title) $title = StructuredData::constructPersonTitle($args['g'], $args['s']);
@@ -1077,8 +1080,11 @@ function wfAddPage($args) {
          }
 		}
 		else if ($ns == NS_FAMILY) {
-         if (ESINHandler::isAmbiguousDate($args['md'])) {
-            $error = "Please write dates in D MMM YYYY format so they are unambiguous (ie 5 Jan 1900)";
+//         if (ESINHandler::isAmbiguousDate($args['md'])) {
+//            $error = "Please write dates in D MMM YYYY format so they are unambiguous (ie 5 Jan 1900)";
+         // All invalid dates must be fixed (not just ambiguous ones); changed Nov 2021 by Janet Bjorndahl
+         if (ESINHandler::isInvalidDate($args['md'])) {
+            $error = "Please correct date; it should be in D MMM YYYY format.";
          }
          else {
             $title = StructuredData::constructFamilyTitle($args['hg'], $args['hs'], $args['wg'], $args['ws']);
