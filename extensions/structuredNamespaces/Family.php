@@ -717,9 +717,15 @@ END;
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($children) || !StructuredData::titlesExist(NS_PERSON, $children))) {
 	   		$result .= "<p><font color=red>Child page not found; please click remove and add a new one</font></p>";
 	   }
-      if (ESINHandler::hasAmbiguousDates($this->xml)) {
-         $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
-      }
+//      if (ESINHandler::hasAmbiguousDates($this->xml)) {
+//         $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
+//   Message for all date errors (not just ambiguous ones) - changed Nov 2021 by Janet Bjorndahl
+     if (ESINHandler::hasInvalidDates($this->xml)) {
+       $result .= "<p><font color=red>Please correct invalid dates. Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).</font></p>";
+     }
+     if (ESINHandler::hasReformatedDates($this->xml)) {                                              // added Nov 2021 by Janet Bjorndahl
+       $result .= "<p><font color=red>One or more dates was changed to WeRelate standard. Please compare to original value to ensure no loss of meaning. If the standard date is OK, no further action is required - you may save the page.</font></p>";
+     }
 
       // add spouse input
       list ($hg, $hs, $wg, $ws) = StructuredData::parseFamilyTitle($this->titleString);
@@ -937,13 +943,15 @@ END;
      * Return true if xml property is valid
      */
 	protected function validateData(&$textbox1) {
-      global $wgUser;
-		 if (!StructuredData::titleStringHasId($this->titleString)) {
-		 	return false;
-		 }
-      if (ESINHandler::hasAmbiguousDates($this->xml)) {
-         return false;
-      }
+    global $wgUser;
+ 	  if (!StructuredData::titleStringHasId($this->titleString)) {
+	  	return false;
+	  }
+//     if (ESINHandler::hasAmbiguousDates($this->xml)) {
+//   All date errors (not just ambiguous dates) have to be fixed - changed Nov 2021 by Janet Bjorndahl
+    if (ESINHandler::hasInvalidDates($this->xml)) {
+        return false;
+    }
 		if (!StructuredData::isRedirect($textbox1)) {
 			$husbands = StructuredData::getTitlesAsArray($this->xml->husband);
 			$wives = StructuredData::getTitlesAsArray($this->xml->wife);
@@ -954,6 +962,7 @@ END;
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($husbands)) &&
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($wives)) &&
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($children)) &&
+            !ESINHandler::hasReformatedDates($this->xml) &&                                    // added Nov 2021 by Janet Bjorndahl
                  ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_PERSON, $husbands)) &&
                  ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_PERSON, $wives)) &&
                  ($wgUser->isAllowed('patrol') || StructuredData::titlesExist(NS_PERSON, $children))

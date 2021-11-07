@@ -169,6 +169,7 @@ class ESINHandler extends StructuredData {
       return ($birthYear && (int)date("Y") - (int)$birthYear < 110) || (!$birthYear && $chrYear && (int)date("Y") - (int)$chrYear < 110);
    }
 
+/* replaced by InvalidDate functions Nov 2021
    public static function isAmbiguousDate($date) {
       return preg_match('#\d{1,2}[-./ ]+\d{1,2}[-./ ]+\d{2,4}#', $date);
    }
@@ -183,6 +184,92 @@ class ESINHandler extends StructuredData {
          }
       }
       return false;
+   }
+*/
+
+   // Created Nov 2021 by Janet Bjorndahl (to replace isAmbiguousDate)
+   public static function isInvalidDate($date) {
+      $formatedDate = $languageDate = '';
+      if ( DateHandler::editDate($date, $formatedDate, $languageDate) !== true ) {        
+         return true;
+      }
+      return false;
+   }
+
+   // Created Nov 2021 by Janet Bjorndahl (to replace hasAmbiguousDates)
+   public static function hasInvalidDates($xml) {
+     $formatedDate = $languageDate = '';
+      if (isset($xml->event_fact)) {
+         foreach ($xml->event_fact as $ef) {
+            $date = (string)$ef['date'];
+            if ( DateHandler::editDate($date, $formatedDate, $languageDate) !== true ) {        
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+   
+   /**
+    * Check for events out of order. This function returns only true or false (not the specific issue).
+    * This only checks events on the person page, excluding marriage events, because the marriage page might be wrong and the user still needs to save the person page.  
+    * Created Nov 2021 by Janet Bjorndahl
+    */
+   public static function hasEventsOutOfOrder($person) {
+      $xml = $person->xml;
+      if (isset($xml->event_fact)) {
+         $sortedEvents = ESINHandler::sortEvents($xml);
+         
+         // A first pass to determine whether birth and/or death events exist
+         $hasBirthEvent = $hasDeathEvent = false;
+         foreach ($sortedEvents as $ef) {
+            if ( $ef['type'] == 'Birth' ) {
+               $hasBirthEvent = true;
+               break;
+            }
+            if ( $ef['type'] == 'Death' ) {
+               $hasDeathEvent = true;
+               break;
+            }
+         }   
+error_log("hasBirthEvent=$hasBirthEvent; hasDeathEvent=$hasDeathEvent");
+      // A second pass to determine whether any events occur before/after birth, death and burial events when they shouldn't
+         $hitBirthEvent = $hitDeathEvent = $hitBurialEvent = false;
+         foreach ($sortedEvents as $ef) {
+            if ( $ef['type'] == 'Birth' ) {
+               $hitBirthEvent = true;
+            }
+            if ( $ef['type'] == 'Death' ) {
+               $hitDeathEvent = true;
+            }
+            if ( $ef['type'] == 'Burial' ) {
+               $hitBurialEvent = true;
+            }
+            // Event (other than Alt event) occurs before birth date
+            if ( $hasBirthEvent && !$hitBirthEvent && substr($ef['type'],0,3) != 'Alt' ) {
+error_log("1: " . $ef['type']);            
+               return true;
+            }
+            // Event that can only occur after death occurs before death date
+            if ( $hasDeathEvent && !$hitDeathEvent && 
+                    ($ef['type'] == 'Burial' || $ef['type'] == 'Obituary' || $ef['type'] == 'Funeral' || $ef['type'] == 'Cremation' || $ef['type'] == 'Cause of Death' || 
+                     $ef['type'] == 'Estate Inventory' || $ef['type'] == 'Probate' || $ef['type'] == 'Estate Settlement') ) {
+error_log("2: " . $ef['type']);            
+               return true;
+            }                     
+            // Event (other than Alt event) that should never occur after death occurs after death or burial date
+            // Ignore events without dates, as some of them automatically sort after the death event
+            // Note that Will is excluded from this list because it is sometimes used for the date the will was presented to the court (before it was proved)
+            if ( ($hitDeathEvent || $hitBurialEvent) && $ef['date'] != '' && substr($ef['type'],0,3) != 'Alt' &&
+                     $ef['type'] != 'Death' && $ef['type'] != 'Burial' && $ef['type'] != 'Obituary' && $ef['type'] != 'Funeral' && $ef['type'] != 'Cremation'  && 
+                     $ef['type'] != 'Estate Inventory' && $ef['type'] != 'Probate' && $ef['type'] != 'Estate Settlement' && $ef['type'] != 'DNA' &&
+                     $ef['type'] != 'Other' && $ef['type'] != 'Cause of Death' && $ef['type'] != 'Will' ) {
+error_log("3: " . $ef['type']);            
+               return true;
+            }                     
+         }
+      }
+   return false;
    }
   
   // Created Nov 2020 by Janet Bjorndahl; changed Mar 2021 to return true only if significant reformating
@@ -534,8 +621,8 @@ END;
       }
       if ( $i > 0 ) {
         $familyDate = true;
-        $sortf = $this->sortEventKeys($sortf, 'numtypekey');
-        $sortf = $this->sortEventKeys($sortf, 'datekey');
+        $sortf = ESINHandler::sortEventKeys($sortf, 'numtypekey');
+        $sortf = ESINHandler::sortEventKeys($sortf, 'datekey');
       }
     }
       
@@ -572,8 +659,8 @@ END;
         }
       }
       if ( $i > 0 ) {
-        $sortp = $this->sortEventKeys($sortp, 'typekey');
-        $sortp = $this->sortEventKeys($sortp, 'datekey');
+        $sortp = ESINHandler::sortEventKeys($sortp, 'typekey');
+        $sortp = ESINHandler::sortEventKeys($sortp, 'datekey');
         
         // If no family events have a date, set a default sort year for family events
         // Assume 20 years after birth/proxy (but before death/proxy), or 1 year after first person event if no birth/proxy or death/proxy date
@@ -642,14 +729,14 @@ END;
       }
       // Incorporate the additional family events (if any) into the previously sorted family events, inserting them where they belong based on family number and event type 
       if ( $i > $start ) {
-        $sortf = $this->sortEventKeys($sortf, 'numtypekey', $start);
+        $sortf = ESINHandler::sortEventKeys($sortf, 'numtypekey', $start);
       }
     }
     
     // Combine the person and family events and sort first by type and then date. Relative order achieved in previous sorts will be preserved when dates are equivalent.
     $sorta = array_merge($sortp, $sortf);
-    $sorta = $this->sortEventKeys($sorta, 'typekey'); 
-    $sorta = $this->sortEventKeys($sorta, 'datekey'); 
+    $sorta = ESINHandler::sortEventKeys($sorta, 'typekey'); 
+    $sorta = ESINHandler::sortEventKeys($sorta, 'datekey'); 
 
     // Add person events without dates, inserting them where they belong based on event type
     if ( isset($xml->event_fact) ) {
@@ -668,7 +755,7 @@ END;
         }
       }
       if ( $i > $start ) {
-        $sorta = $this->sortEventKeys($sorta, 'typekey', $start);
+        $sorta = ESINHandler::sortEventKeys($sorta, 'typekey', $start);
       }
     }
     foreach ($sorta as $sort) {
@@ -714,8 +801,8 @@ END;
         $j = $i-1;
         // Reorder dates if the first is later than the second or if it has greater precision and the types are of the same order.
         // The latter condition is required to ensure that all dates in the same month are eventually compared to each other. 
-        while ( $j >=0 and ($this->compareDates($sort[$j], $temp) === 'later' ||
-            ($this->compareDates($sort[$j], $temp) === 'greater precision'  && substr($sort[$j]['typekey'],0,4) === substr($temp['typekey'],0,4))) ) {
+        while ( $j >=0 and (ESINHandler::compareDates($sort[$j], $temp) === 'later' ||
+            (ESINHandler::compareDates($sort[$j], $temp) === 'greater precision'  && substr($sort[$j]['typekey'],0,4) === substr($temp['typekey'],0,4))) ) {
           $sort[$j+1] = $sort[$j];
           $j--;
         }
@@ -1176,7 +1263,9 @@ END;
       if ( $dateStatus === true ) {
         $date = $languageDate;
       }
-      if (ESINHandler::isAmbiguousDate($date)) {
+//      if (ESINHandler::isAmbiguousDate($date)) {
+//    If the date fails date editing, display in light red (will need to be corrected). (Changed from a check for just ambiguous dates Nov 2021 by Janet Bjorndahl)
+      else {                               
          $dateStyle = ' style="background-color:#fdd;"';
       }
          
