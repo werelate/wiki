@@ -717,8 +717,6 @@ END;
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($children) || !StructuredData::titlesExist(NS_PERSON, $children))) {
 	   		$result .= "<p><font color=red>Child page not found; please click remove and add a new one</font></p>";
 	   }
-//      if (ESINHandler::hasAmbiguousDates($this->xml)) {
-//         $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
 //   Message for all date errors (not just ambiguous ones) - changed Nov 2021 by Janet Bjorndahl
      if (ESINHandler::hasInvalidDates($this->xml)) {
        $result .= "<p><font color=red>Please correct invalid dates. Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).</font></p>";
@@ -947,7 +945,6 @@ END;
  	  if (!StructuredData::titleStringHasId($this->titleString)) {
 	  	return false;
 	  }
-//     if (ESINHandler::hasAmbiguousDates($this->xml)) {
 //   All date errors (not just ambiguous dates) have to be fixed - changed Nov 2021 by Janet Bjorndahl
     if (ESINHandler::hasInvalidDates($this->xml)) {
         return false;
