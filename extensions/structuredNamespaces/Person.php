@@ -361,7 +361,6 @@ class Person extends StructuredData {
    protected function getFamilyMember($member, $label, $addSpouseLink, &$spouseLinks, $defaultName='', $gender='', $familyTitle='') {
       global $wrHostName;
 
-//      $birthKey = 0;
       $yearrange = '';
       if (isset($member)) {
          $title = (string)$member['title'];
@@ -369,7 +368,6 @@ class Person extends StructuredData {
          if (!$fullname) $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
          $link = "[[Person:$title|$fullname]]";
          $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
-   //      $birthKey = DateHandler::getDateKey($birthDate, true);
          $beginYear = DateHandler::getYear($birthDate, true, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB 
          $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true, true);   // 3rd parm added Mar 2021 JB
          if ($beginYear || $endYear) {
@@ -391,7 +389,6 @@ class Person extends StructuredData {
 		if ($label == 'C' || $label == 'S') $label = '';
       if ($label) $label = "<span class=\"wr-infobox-label\">$label</span>.&nbsp; ";
       $result = "<li><span class=\"wr-infobox-fullname\">{$label}{$link}</span>$yearrange</li>";
-//      return array($birthKey, $result);
       return $result;
    }
 
@@ -1357,8 +1354,6 @@ END;
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($spouseOfFamilies) || !StructuredData::titlesExist(NS_FAMILY, $spouseOfFamilies))) {
    		$result .= "<p><font color=red>Spouse family page not found; please remove it, save this page, then add a new one</font></p>";
 	   }
-//     if (ESINHandler::hasAmbiguousDates($this->xml)) {
-//       $result .= "<p><font color=red>Please write dates in \"<i>D MMM YYYY</i>\" format so they are unambiguous (ie 5 Jan 1900)</font></p>";
 //   Message for all date errors (not just ambiguous ones) - changed Nov 2021 by Janet Bjorndahl
      if (ESINHandler::hasInvalidDates($this->xml)) {
        $result .= "<p><font color=red>Please correct invalid dates. Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).</font></p>";
@@ -1551,7 +1546,6 @@ END;
 		 if (!StructuredData::titleStringHasId($this->titleString)) {
 		 	return false;
 		 }
-//     if (ESINHandler::hasAmbiguousDates($this->xml)) {
 //   All date errors (not just ambiguous dates) have to be fixed - changed Nov 2021 by Janet Bjorndahl
      if (ESINHandler::hasInvalidDates($this->xml)) {
         return false;

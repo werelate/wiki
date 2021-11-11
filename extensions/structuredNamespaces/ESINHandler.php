@@ -119,11 +119,6 @@ class ESINHandler extends StructuredData {
 		return array($birthDate, $birthPlace, $chrDate, $chrPlace, $deathDate, $deathPlace, $burDate, $burPlace, $deathDesc, $burDesc);
 	}
 
-   private static function isNonLivingValue($v) {
-      $lv = mb_strtolower($v);
-      return ($v && $lv != 'living' && $lv != 'private');
-   }
-
 	public static function isLiving($xml) {
 	   list ($birthDate, $birthPlace, $chrDate, $chrPlace, $deathDate, $deathPlace, $burDate, $burPlace, $deathDesc, $burDesc)
 	     = ESINHandler::getBirthChrDeathBurDatePlaceDesc($xml);
@@ -133,20 +128,8 @@ class ESINHandler extends StructuredData {
    public static function isLivingDates($birthDate, $chrDate,
                                         $deathDate=null, $deathPlace=null, $deathDesc=null,
                                         $burDate=null, $burPlace=null, $burDesc=null) {
-
-      /* Having anything (besides 'living' or 'private') in death/burial fields is no longer sufficient to establish that a person is deceased (Jul 2021 Janet Bjorndahl) 
-      if (ESINHandler::isNonLivingValue($deathDate) ||
-          ESINHandler::isNonLivingValue($deathPlace) ||
-          ESINHandler::isNonLivingValue($deathDesc) ||
-          ESINHandler::isNonLivingValue($burDate) ||
-          ESINHandler::isNonLivingValue($burPlace) ||
-          ESINHandler::isNonLivingValue($burDesc)) {
-         return false;
-      }
-      */
-
       /* To establish that a person is deceased requires a valid death or burial date not using the "aft"  or "est" modifier
-         and not completely within parentheses unless "(in infancy)" or "(young)".                                           New rule Jul 2121 - Janet Bjorndahl
+         and not completely within parentheses unless "(in infancy)" or "(young)".                                           New rule Jul 2021 - Janet Bjorndahl
          Famous people are exempt from the living persons rule. */
       $formatedDate = $languageDate = '';
       if ( stripos($deathDate,'aft')===false && stripos($deathDate,'est')===false ) {
@@ -168,24 +151,6 @@ class ESINHandler extends StructuredData {
       $chrYear = DateHandler::getEffectiveYear($chrDate);
       return ($birthYear && (int)date("Y") - (int)$birthYear < 110) || (!$birthYear && $chrYear && (int)date("Y") - (int)$chrYear < 110);
    }
-
-/* replaced by InvalidDate functions Nov 2021
-   public static function isAmbiguousDate($date) {
-      return preg_match('#\d{1,2}[-./ ]+\d{1,2}[-./ ]+\d{2,4}#', $date);
-   }
-
-   public static function hasAmbiguousDates($xml) {
-      if (isset($xml->event_fact)) {
-         foreach ($xml->event_fact as $ef) {
-            $date = (string)$ef['date'];
-            if (ESINHandler::isAmbiguousDate($date)) {
-               return true;
-            }
-         }
-      }
-      return false;
-   }
-*/
 
    // Created Nov 2021 by Janet Bjorndahl (to replace isAmbiguousDate)
    public static function isInvalidDate($date) {
@@ -1263,7 +1228,6 @@ END;
       if ( $dateStatus === true ) {
         $date = $languageDate;
       }
-//      if (ESINHandler::isAmbiguousDate($date)) {
 //    If the date fails date editing, display in light red (will need to be corrected). (Changed from a check for just ambiguous dates Nov 2021 by Janet Bjorndahl)
       else {                               
          $dateStyle = ' style="background-color:#fdd;"';
@@ -1313,7 +1277,6 @@ END;
       else {
          $result .= "<td></td>";
       }
-//      $result .= "</tr><tr><td colspan=\"2\"></td>";   this statement commented out Oct 2020 by Janet Bjorndahl (replaced by 3 below) - TEMPORARY CHANGE
       $result .= "</tr><tr><td colspan=\"2\"><output>" ;   // output tag added (to support removeEventFact) Mar 2021 by Janet Bjorndahl
       $result .= ( $dateStatus === true && $prevDate ? "<b>was</b>: $prevDate" : 
                  ( ($dateStatus === true || $dateStatus === '') ? '' : "<font color=darkred>$dateStatus</font>") ); // changed Mar 2021
