@@ -119,6 +119,7 @@ li#f-disclaimer,
 .wr-infobox-editlink,
 .addfamilylink,
 .addchildlink,
+.addspouselink,
 #wr_familytreelink {
     /* Hides all the elements irrelevant for printing */
     display: none;
