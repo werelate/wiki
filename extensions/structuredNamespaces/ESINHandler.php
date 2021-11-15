@@ -190,14 +190,11 @@ class ESINHandler extends StructuredData {
          foreach ($sortedEvents as $ef) {
             if ( $ef['type'] == 'Birth' ) {
                $hasBirthEvent = true;
-               break;
             }
             if ( $ef['type'] == 'Death' ) {
                $hasDeathEvent = true;
-               break;
             }
          }   
-error_log("hasBirthEvent=$hasBirthEvent; hasDeathEvent=$hasDeathEvent");
       // A second pass to determine whether any events occur before/after birth, death and burial events when they shouldn't
          $hitBirthEvent = $hitDeathEvent = $hitBurialEvent = false;
          foreach ($sortedEvents as $ef) {
@@ -212,14 +209,12 @@ error_log("hasBirthEvent=$hasBirthEvent; hasDeathEvent=$hasDeathEvent");
             }
             // Event (other than Alt event) occurs before birth date
             if ( $hasBirthEvent && !$hitBirthEvent && substr($ef['type'],0,3) != 'Alt' ) {
-error_log("1: " . $ef['type']);            
                return true;
             }
             // Event that can only occur after death occurs before death date
             if ( $hasDeathEvent && !$hitDeathEvent && 
                     ($ef['type'] == 'Burial' || $ef['type'] == 'Obituary' || $ef['type'] == 'Funeral' || $ef['type'] == 'Cremation' || $ef['type'] == 'Cause of Death' || 
                      $ef['type'] == 'Estate Inventory' || $ef['type'] == 'Probate' || $ef['type'] == 'Estate Settlement') ) {
-error_log("2: " . $ef['type']);            
                return true;
             }                     
             // Event (other than Alt event) that should never occur after death occurs after death or burial date
@@ -229,7 +224,6 @@ error_log("2: " . $ef['type']);
                      $ef['type'] != 'Death' && $ef['type'] != 'Burial' && $ef['type'] != 'Obituary' && $ef['type'] != 'Funeral' && $ef['type'] != 'Cremation'  && 
                      $ef['type'] != 'Estate Inventory' && $ef['type'] != 'Probate' && $ef['type'] != 'Estate Settlement' && $ef['type'] != 'DNA' &&
                      $ef['type'] != 'Other' && $ef['type'] != 'Cause of Death' && $ef['type'] != 'Will' ) {
-error_log("3: " . $ef['type']);            
                return true;
             }                     
          }
