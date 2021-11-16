@@ -176,24 +176,24 @@ class Person extends StructuredData {
 		'Male' => 'M',
 		'Unknown' => '?',
 	);
-	// TODO Remove Citizenship (same as Naturalization), Employment, Funeral, Illness, Obituary, Pension, Stillborn?
+
+  // Estate Inventory and Estate Settlement moved from African American sub-list to main list Nov 2021 by Janet Bjorndahl
 	protected static $OTHER_EVENT_TYPES = array(
 	'Alt Birth', 'Alt Burial', 'Alt Christening', 'Alt Death', 
 	'Adoption', 'Ancestral File Number', 'Baptism',
 	'Bar Mitzvah', 'Bat Mitzvah',	'Blessing', 'Caste', 'Cause of Death', 'Census', 'Citizenship', 'Confirmation', 'Cremation', 'Degree', 'DNA', 'Education',
-	'Emigration', 'Employment', 'Excommunication', 'First Communion', 'Funeral', 'Graduation', 'Illness', 'Immigration', 'Living', 'Medical', 'Military',
+	'Emigration', 'Employment', 'Estate Inventory', 'Estate Settlement', 
+  'Excommunication', 'First Communion', 'Funeral', 'Graduation', 'Illness', 'Immigration', 'Living', 'Medical', 'Military',
 	'Mission', 'Namesake', 'Nationality', 'Naturalization', 'Obituary', 'Occupation', 'Ordination', 'Pension', 'Physical Description',
 	'Probate', 'Property', 'Reference Number', 'Religion', 'Residence', 'Retirement', 'Soc Sec No', 'Stillborn', 'Title (nobility)', 'Will',
 	'=African American', 
 	':Distribution List',
 	':Emancipation',
 	':Escape or Runaway',
-	':Estate Inventory',
-	':Estate Settlement',
 	':First Appearance',
 	':Freedmen~s Bureau', // use ~ for '
 	':Hired Away',
-   ':Homestead',
+  ':Homestead',
 	':Household List',
 	':Plantation Journal',
 	':Purchase',
