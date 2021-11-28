@@ -274,13 +274,14 @@ class UserPage extends StructuredData {
           foreach ($familyTrees as $familyTree) {
             $values[$n] = '<dl><dt>'.$familyTree['name'].' <span class="plainlinks">'
                    . ' ([http://'.$wrHostName.'/wiki/Special:Search?k='. urlencode('+Tree:"'.$this->userName.'/'.$familyTree['name'].'"') . " search])";  // link renamed Dec 2020
-//                   . ' ([http://'.$wrHostName.'/fte/index.php?userName='. urlencode($this->userName) . '&treeName=' . urlencode($familyTree['name']) . " launch FTE])";  removed Dec 2020
-            if ( $familyTree['count'] > 0 ) { // Add explore link, but only for trees with at least one page (added Sep 2020 by Janet Bjorndahl)
+            // Add explore and copy links, but only for trees with at least one page
+            if ( $familyTree['count'] > 0 ) {
               $firstTitle = SpecialTrees::getExploreFirstTitle($this->userName, $familyTree['name']);
-              $values[$n] .= ' ([http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . $this->userName. '&tree='
-                      . str_replace(' ','+',$familyTree['name']) . '&liststart=0&listrows=20 explore])';   // bug fixed Dec 2020
-              $values[$n] .= ' ([http://'.$wrHostName.'/w/index.php?title=Special:CopyTree&user=' . $this->userName
-                      . '&name=' . str_replace(' ','+',$familyTree['name']) . ' copy])';   // added Dec 2020 
+              $values[$n] .= ' ([http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL()   // explore link added Sep 2020 by Janet Bjorndahl 
+                      . '&mode=explore&user=' . urlencode($this->userName)                                    // url encoding added Nov 2021 - JB
+                      . '&tree=' . urlencode($familyTree['name']) . '&liststart=0&listrows=20 explore])';     // bug fixed Dec 2020
+              $values[$n] .= ' ([http://'.$wrHostName.'/w/index.php?title=Special:CopyTree&user='             // copy link added Dec 2020
+                      . urlencode($this->userName) . '&name=' . urlencode($familyTree['name']) . ' copy])';   // url encoding added Nov 2021 - JB
             }
             $values[$n++] .= "</span><dd>pages: {$familyTree['count']}</dl>";     // renamed from people to pages Dec 2020 by Janet Bjorndahl
           }
