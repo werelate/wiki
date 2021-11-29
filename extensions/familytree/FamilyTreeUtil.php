@@ -155,7 +155,8 @@ class FamilyTreeUtil {
    }
 
    public static function isValidTreeName($treeName) {
-     return mb_strpos($treeName, '|') === false && $treeName != '[new]' && strlen(trim($treeName)) > 0;
+     // Tree name can't have | or search wildcard (* or ?) in it's name (wildcards added Nov 2021 by Janet Bjorndahl)
+     return preg_match("(\||\*|\?)", $treeName) === 0 && $treeName != '[new]' && strlen(trim($treeName)) > 0;
    }
 
    public static function toInputName($name) {

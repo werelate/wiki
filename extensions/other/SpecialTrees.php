@@ -177,13 +177,13 @@ class SpecialTrees {
    private function emailTree() {
    	global $wrHostName, $wrProtocol, $wgLang, $wgUser, $IP;
 
-    // Link is to explore function that replaced FTE (changed Dec 2020 Janet Bjorndahl)
+    // Link is to explore function that replaced FTE (changed Dec 2020 Janet Bjorndahl; urlencoding added Nov 2021)
     $firstTitle = SpecialTrees::getExploreFirstTitle($wgUser->getName(), $this->name);
-   	$exploreLink = $wrProtocol.'://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . $wgUser->getName() . '&tree='
-                      . str_replace(' ','+',$this->name) . '&liststart=0&listrows=20';
-   	// Added link to allow recipient to copy the tree (Dec 2020 by Janet Bjorndahl)
-    $copyLink = $wrProtocol.'://'.$wrHostName.'/w/index.php?title=Special:CopyTree&user=' . $wgUser->getname() . '&name='
-                      . str_replace(' ','+',$this->name);
+   	$exploreLink = $wrProtocol.'://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . urlencode($wgUser->getName())
+                      . '&tree=' . urlencode($this->name) . '&liststart=0&listrows=20';
+   	// Added link to allow recipient to copy the tree (Dec 2020 by Janet Bjorndahl; urlencoding added Nov 2021)
+    $copyLink = $wrProtocol.'://'.$wrHostName.'/w/index.php?title=Special:CopyTree&user=' . urlencode($wgUser->getname()) 
+                      . '&name=' . urlencode($this->name);
 
 /*    
    	$link = $wrProtocol.'://'.$wrHostName.'/fte/index.php?userName='. urlencode($wgUser->getName()) . '&treeName=' . urlencode($this->name);
@@ -395,7 +395,8 @@ class SpecialTrees {
      $dbr->freeResult($rows);
 
      $firstTitle = $this->getExploreFirstTitle($this->user, $this->name);
-     $wgOut->redirect('http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . $this->user. '&tree=' . $this->name . '&liststart=0&listrows=20');
+     $wgOut->redirect('http://'.$wrHostName.'/w/index.php?title=' . $firstTitle->getPrefixedURL(). '&mode=explore&user=' . urlencode($this->user)
+           . '&tree=' . urlencode($this->name) . '&liststart=0&listrows=20');      // urlencoding added Nov 2021 by Janet Bjorndahl
    }
    
    private function showInputForm($title, $field, $submitName, $submitValue) {

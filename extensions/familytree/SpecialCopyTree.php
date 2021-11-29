@@ -5,6 +5,8 @@
  * @subpackage SpecialPage
  */
 
+/* Written Dec 2020 by Janet Bjorndahl to replace FTE flash functionality */
+
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfSpecialCopyTreeSetup";
 
@@ -47,13 +49,18 @@ function wfSpecialCopyTree() {
   // If user has already entered the tree name, copy the tree and display message. Else display the input form.
   $wgOut->setPagetitle("Copy Tree");
   if ( $newName ) {
-    $status = wfCopyFamilyTree("user=$user|name=$name|newuser=$newUser|newname=$newName");
-    if ($status != '<copy status="' . FTE_SUCCESS . '"></copy>') {
-      $msg = htmlspecialchars("Error copying tree $user/$name");
-    }
-	  else {
-      $msg = htmlspecialchars("Tree $user/$name is being copied to $newUser/$newName");
+  	if (!FamilyTreeUtil::isValidTreeName($newName)) {        // added Nov 2021 by Janet Bjorndahl
+      $msg = $newName . ' is not a valid tree name';
 	  }
+    else {
+      $status = wfCopyFamilyTree("user=$user|name=$name|newuser=$newUser|newname=$newName");
+      if ($status != '<copy status="' . FTE_SUCCESS . '"></copy>') {
+        $msg = htmlspecialchars("Error copying tree $user/$name");
+      }
+	    else {
+        $msg = htmlspecialchars("Tree $user/$name is being copied to $newUser/$newName");
+	    }
+    }
 	  $wgOut->addHTML( "<p><font size=\"+1\" color=\"red\">$msg</font></p>\n");
   }
   else {

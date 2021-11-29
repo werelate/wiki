@@ -2092,6 +2092,7 @@ Please confirm that really want to recreate this page.',
 'treeupdate' => 'Trees',
 'treeupdatebutton' => 'Update',
 'userprofile' => 'User Profile',
+'userwildcard' => 'User name cannot include a search wildcard (*,?)',    // added Nov 2021 by Janet Bjorndahl
 'watercooler' => 'Watercooler'
 );
 
