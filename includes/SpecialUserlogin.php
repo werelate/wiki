@@ -225,6 +225,12 @@ class LoginForm {
 			return;
 		}
 
+    // WERELATE - prevent use of search wildcard in user name (wildcard in user name prevents searching the user's trees)
+    if ( preg_match("(\*|\?)", $this->mName) ) {            // added Nov 2021 by Janet Bjorndahl
+			$this->mainLoginForm( wfMsg( 'userwildcard' ) );
+			return false;
+		}
+
 		$name = trim( $this->mName );
 		$u = User::newFromName( $name );
 		if ( is_null( $u ) || in_array( $u->getName(), $wgReservedUsernames ) ) {
