@@ -376,6 +376,10 @@ END;
    <?php if ($wgTitle->getNamespace() === NS_SPECIAL && $wgTitle->getText() === 'Userlogin') { ?>
    <script src='https://www.google.com/recaptcha/api.js'></script>
    <?php } ?>
+   <?php if (!$suppressAds && $wgUser->getOption('wrnoads') < $now && $wgTitle->getArticleID() != 0) { ?>
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5042243421154153" crossorigin="anonymous"></script>
+   <?php } ?>
+
 <?php
 //   jquery.bgiframe.min.1.js separator.js
 //   jquery.clickmenu.yui.3.js separator.js
@@ -701,20 +705,32 @@ END;
 <div style="margin-top: 16px">
 <?php
 if ($wgTitle->getNamespace() == NS_PERSON) {
+  $namePieces = explode(" ", $wgTitle->getText());
+  $firstName = "";
+  $lastName = "";
+  if (count($namePieces) > 0 && $namePieces[0] != "Unknown") {
+    $firstName = urlencode($namePieces[0]);
+  }
+  if (count($namePieces) > 1 && $namePieces[1] != "Unknown" && substr($namePieces[1], 0, 1) != "(") {
+    $lastName = urlencode($namePieces[1]);
+  }
+  echo '<iframe height="600" width="300" src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=Mixed_Records_300x600&widget=tree&width=300&height=600&onSitePlacement=Mixed_Records_300x600&tr_ifid=werelate_281825853&firstName='.$firstName.'&lastName='.$lastName.'&tr_device="/>';
 ?>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- rhs600 -->
-<ins class="adsbygoogle"
-     style="display:inline-block;width:300px;height:600px"
-     data-ad-client="ca-pub-5042243421154153"
-     data-ad-slot="7402015214"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
 <?php
 } else {
 ?>
-<iframe height="600" width="300" src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=Mixed_Records_300x600&widget=mixed&width=300&height=600&onSitePlacement=Mixed_Records_300x600&tr_ifid=werelate_281825853&firstName=&lastName=&tr_device="/>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5042243421154153"
+     crossorigin="anonymous"></script>
+<!-- rhs600 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-5042243421154153"
+     data-ad-slot="7402015214"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 <?php
 }
 ?>
