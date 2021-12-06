@@ -705,6 +705,18 @@ END;
 <div style="margin-top: 16px">
 <?php
 if ($wgTitle->getNamespace() == NS_PERSON) {
+?>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5042243421154153"
+     crossorigin="anonymous"></script>
+<!-- rhs300 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:300px;height:250px"
+     data-ad-client="ca-pub-5042243421154153"
+     data-ad-slot="5881944012"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<?php
   $namePieces = explode(" ", $wgTitle->getText());
   $firstName = "";
   $lastName = "";
