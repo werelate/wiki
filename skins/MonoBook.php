@@ -723,7 +723,7 @@ if ($wgTitle->getNamespace() == NS_PERSON) {
   if (count($namePieces) > 1 && $namePieces[1] != "Unknown" && substr($namePieces[1], 0, 1) != "(") {
     $lastName = urlencode($namePieces[1]);
   }
-  echo '<iframe height="600" width="300" src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=Mixed_Records_300x600&widget=tree&width=300&height=600&onSitePlacement=Mixed_Records_300x600&tr_ifid=werelate_281825853&firstName='.$firstName.'&lastName='.$lastName.'&tr_device="></iframe>';
+  echo '<div style="margin-top: 20px"><iframe height="600" width="300" src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=Mixed_Records_300x600&widget=tree&width=300&height=600&onSitePlacement=Mixed_Records_300x600&tr_ifid=werelate_281825853&firstName='.$firstName.'&lastName='.$lastName.'&tr_device="></iframe></div>';
 ?>
 <?php
 } else {
