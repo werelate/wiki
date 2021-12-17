@@ -148,7 +148,30 @@ class MovePageForm {
 				<input type='text' size='40' name='wpNewTitle' id='wpNewTitle' value=\"{$encNewTitle}\" />
 				<input type='hidden' name=\"wpOldTitle\" value=\"{$encOldTitle}\" />
 			</td>
-		</tr>
+		</tr>" );
+    // WERELATE - added button to standardize the title (required splitting the original addHTML statement)    added Dec 2021 by Janet Bjorndahl
+    // If suggested new title not passed in for a person or family page, and the page meets certain criteria, 
+    // include a button to redisplay the form with the standardized title as the suggested new title.
+    if ( $this->newTitle == '' ) {
+      if ( $ot->getNamespace() == NS_PERSON || $ot->getNamespace() == NS_FAMILY ) {
+        $correctTitle = StructuredData::standardizeTitle($ot);
+        if ( $correctTitle!='' ) {
+          $standardizetitle = wfMsgHtml( 'standardizetitle' );
+          $url = $titleObj->getLocalURL('target='.wfUrlencode($encOldTitle).
+                                        '&wpNewTitle='.wfUrlencode($correctTitle).
+                                        '&wpReason='.wfUrlencode('make page title agree with name'));
+          $wgOut->addHTML ("
+            <td>&nbsp;</td>
+            <td align='left'>
+              <a href=$url>
+		            <button type='button'>{$standardizetitle}</button>
+              </a>
+            </td>
+          </tr>");
+        }
+      }    
+    }         
+    $wgOut->addHTML("
 		<tr>
 			<td align='right' valign='top'><br /><label for='wpReason'>{$movereason}:</label></td>
 			<td align='left' valign='top'><br />
