@@ -604,6 +604,123 @@ abstract class StructuredData {
       }
 	}
 	
+  // This function returns the standardized title of a person or family page for the rename page (SpecialMovepage).   - added Dec 2021 by Janet Bjorndahl
+  // If the page isn't eligible for an auto-standardized title, it returns an empty string (button won't be displayed).
+  // Pages for people living prior to 1550 often have user-designed titles to match Wikipedia entries and
+  // thus aren't eligible for an auto-standardized title (to minimize the uninformed replacement of user-designed titles). 
+  public static function standardizeTitle($ot) { 
+    $cutoffYear = 1550;
+    $pageXml = AddTreePagesJob::readPageXml($ot);
+    
+    // If any date is prior to the cutoff year or if there are no dates, return empty string. Else, return correct title.
+    if ( $ot->getNamespace() == NS_PERSON ) {
+      if ( StructuredData::compareEventsToCutoff($pageXml, $cutoffYear) == 'date after cutoff' ) {
+        return "Person:" . StructuredData::constructName(@$pageXml->name['given'], @$pageXml->name['surname']);
+      }
+      else {
+        return '';
+      }
+    }
+    
+    if ( $ot->getNamespace() == NS_FAMILY ) {
+      $hasHusbandPage = false;
+      $hasPostCutoffDate = false;
+      $husbandName = $wifeName = '';
+      // In the case of more than one occurence of husband or wife (bad data), ignore occurences after the first.
+      if ( isset($pageXml->husband) ) {
+        foreach ($pageXml->husband as $spouse) {
+          $husbandName = StructuredData::constructName(@$spouse['given'], @$spouse['surname']);
+          $familyDates = StructuredData::compareSpouseDatesToCutoff($spouse, $cutoffYear);
+          if ( $familyDates == 'date before cutoff' ) {
+            return '';
+          }
+          if ( $familyDates == 'date after cutoff' ) {
+            $hasPostCutoffDate = true;
+          }
+          $hasHusbandPage = true;
+          break;
+        }
+      }
+      else {
+        list ($hg, $hs, $wg, $ws) = StructuredData::parseFamilyTitle($ot->getText());
+        $husbandName = StructuredData::constructName($hg, $hs);
+      }
+
+      if ( isset($pageXml->wife) ) {
+        foreach ($pageXml->wife as $spouse) {
+          $wifeName = StructuredData::constructName(@$spouse['given'], @$spouse['surname']);
+          $familyDates = StructuredData::compareSpouseDatesToCutoff($spouse, $cutoffYear);
+          if ( $familyDates == 'date before cutoff' ) {
+            return '';
+          }
+          if ( $familyDates == 'date after cutoff' ) {
+            $hasPostCutoffDate = true;
+          }
+          break;
+        }
+      }
+      else {
+        if ( !$hasHusbandPage ) {    // If neither husband nor wife page exists, not eligible for auto-standardized title
+          return '';
+        }
+        list ($hg, $hs, $wg, $ws) = StructuredData::parseFamilyTitle($ot->getText());
+        $wifeName = StructuredData::constructName($wg, $ws);
+      }
+
+      $familyDates = StructuredData::compareEventsToCutoff($pageXml, $cutoffYear);
+      if ( $familyDates == 'date before cutoff' ) {
+        return '';
+      }
+      if ( $hasPostCutoffDate || ($familyDates == 'date after cutoff') ) {
+        return "Family:" . StructuredData::constructFamilyName($husbandName, $wifeName);
+      }
+      else {
+        return '';
+      }
+    }
+  }
+  
+  private static function compareEventsToCutoff($xml, $cutoffYear) {                      // added Dec 2021 by Janet Bjorndahl
+    $hasDate = false;
+    if ( isset($xml->event_fact) ) {
+   	  foreach ($xml->event_fact as $ef) {
+        if ( isset($ef['date']) ) {
+          $year = DateHandler::getEffectiveYear((string)$ef['date']);
+          if ( $year!=false ) {
+            $hasDate = true;
+            if ( $year < $cutoffYear ) {
+              return 'date before cutoff';
+            }  
+          }
+        }
+      }
+    }
+    return $hasDate ? 'date after cutoff' : 'no date';
+  }
+  
+  private static function compareSpouseDatesToCutoff($spouse, $cutoffYear) {              // added Dec 2021 by Janet Bjorndahl
+    $hasDate = false;
+    if ( isset($spouse['birthdate']) ) {
+      $year = DateHandler::getEffectiveYear((string)$spouse['birthdate']);
+      if ( $year!=false ) {
+        $hasDate = true;
+        if ( $year < $cutoffYear ) {
+          return 'date before cutoff';
+        }
+      }
+    }
+    if ( isset($spouse['deathdate']) ) {
+      $year = DateHandler::getEffectiveYear((string)$spouse['deathdate']);
+      if ( $year!=false ) {
+        $hasDate = true;
+        if ( $year < $cutoffYear ) {
+          return 'date before cutoff';
+        }
+      }
+    }
+    return $hasDate ? 'date after cutoff' : 'no date';
+  }
+ 
 	public static function parsePersonTitle($name) {
 		$gn = $sn = '';
 		$pos = strrpos($name, '(');
