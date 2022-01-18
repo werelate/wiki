@@ -1941,9 +1941,9 @@ END;
 	   		if (@$keepKeys[$element['key']]) {
 	   			if ($count < count($stdEventTypes)) $count = count($stdEventTypes);
 	   			$type = $element['type'];
-	   			if ($type == Person::$BIRTH_TAG) {
+	   			if ($type == Person::$BIRTH_TAG && in_array($type, $stdEventTypes)) {
 	   				if (!$birthFound) {
-	   					$i = array_search($type, Person::$STD_EVENT_TYPES);
+	   					$i = array_search($type, $stdEventTypes);
 	   					$birthFound = true;
 	   				}
 	   				else {
@@ -1952,9 +1952,9 @@ END;
 	   					$count++;
 	   				}
 	   			}
-	   			else if ($type == Person::$CHR_TAG) {
+	   			else if ($type == Person::$CHR_TAG && in_array($type, $stdEventTypes)) {
 	   				if (!$christeningFound) {
-	   					$i = array_search($type, Person::$STD_EVENT_TYPES);
+	   					$i = array_search($type, $stdEventTypes);
 	   					$christeningFound = true;
 	   				}
 	   				else {
@@ -1963,9 +1963,9 @@ END;
 	   					$count++;
 	   				}
 	   			}
-	   			else if ($type == Person::$DEATH_TAG) {
+	   			else if ($type == Person::$DEATH_TAG && in_array($type, $stdEventTypes)) {
 	   				if (!$deathFound) {
-	   					$i = array_search($type, Person::$STD_EVENT_TYPES);
+	   					$i = array_search($type, $stdEventTypes);
 	   					$deathFound = true;
 	   				}
 	   				else {
@@ -1974,9 +1974,9 @@ END;
 	   					$count++;
 	   				}
 	   			}
-	   			else if ($type == Person::$BUR_TAG) {
+	   			else if ($type == Person::$BUR_TAG && in_array($type, $stdEventTypes)) {
 	   				if (!$burialFound) {
-	   					$i = array_search($type, Person::$STD_EVENT_TYPES);
+	   					$i = array_search($type, $stdEventTypes);
 	   					$burialFound = true;
 	   				}
 	   				else {
@@ -1985,9 +1985,9 @@ END;
 	   					$count++;
 	   				}
 	   			}
-	   			else if ($type == Family::$MARRIAGE_TAG) {
+	   			else if ($type == Family::$MARRIAGE_TAG && in_array($type, $stdEventTypes)) {
 	   				if (!$marriageFound) {
-	   					$i = array_search($type, Family::$STD_EVENT_TYPES);
+	   					$i = array_search($type, $stdEventTypes);
 	   					$marriageFound = true;
 	   				}
 	   				else {
