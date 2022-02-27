@@ -176,26 +176,40 @@ class ESINHandler extends StructuredData {
    }
    
    /**
-    * Check for events out of order. This function returns only true or false (not the specific issue).
+    * Check for events out of order. This function returns true, false or a number (the number of years an event is too early or late), not the specific issue.
     * This only checks events on the person page, excluding marriage events, because the marriage page might be wrong and the user still needs to save the person page.  
-    * Created Nov 2021 by Janet Bjorndahl
+    * Created Nov 2021 by Janet Bjorndahl; modified Feb 2022 to return the number of years
     */
    public static function hasEventsOutOfOrder($person) {
       $xml = $person->xml;
       if (isset($xml->event_fact)) {
-         $sortedEvents = ESINHandler::sortEvents($xml);
+         $sortedEvents = ESINHandler::sortEvents($xml);   // first, sort events
          
-         // A first pass to determine whether birth and/or death events exist
+         // A first pass to determine whether birth and/or death events exist, and get years for birth, death and burial
          $hasBirthEvent = $hasDeathEvent = false;
+         $birthEarliestYear = $deathEarliestYear = $deathLatestYear = $burialLatestYear = -9999;
          foreach ($sortedEvents as $ef) {
             if ( $ef['type'] == 'Birth' ) {
                $hasBirthEvent = true;
+               if ( DateHandler::getEffectiveFirstYear($ef['date']) !== false ) {
+                  $birthEarliestYear = DateHandler::getEffectiveFirstYear($ef['date']);
+               }
             }
             if ( $ef['type'] == 'Death' ) {
                $hasDeathEvent = true;
+               if ( DateHandler::getEffectiveYear($ef['date']) !== false ) {
+                  $deathEarliestYear = DateHandler::getEffectiveFirstYear($ef['date']);
+                  $deathLatestYear = DateHandler::getEffectiveYear($ef['date']);
+               }
             }
-         }   
-      // A second pass to determine whether any events occur before/after birth, death and burial events when they shouldn't
+            if ( $ef['type'] == 'Burial' ) {
+               if ( DateHandler::getEffectiveYear($ef['date']) !== false ) {
+                  $burialLatestYear = DateHandler::getEffectiveYear($ef['date']);
+               }
+            }
+         }
+         
+         // A second pass to determine whether any events occur before/after birth, death and burial events when they shouldn't
          $hitBirthEvent = $hitDeathEvent = $hitBurialEvent = false;
          foreach ($sortedEvents as $ef) {
             if ( $ef['type'] == 'Birth' ) {
@@ -209,22 +223,45 @@ class ESINHandler extends StructuredData {
             }
             // Event (other than Alt event) occurs before birth date
             if ( $hasBirthEvent && !$hitBirthEvent && substr($ef['type'],0,3) != 'Alt' ) {
-               return true;
+               if ( DateHandler::getEffectiveFirstYear($ef['date']) !== false && $birthEarliestYear != -9999 ) {
+                  return $birthEarliestYear - (int)DateHandler::getEffectiveFirstYear($ef['date']);
+               }   
+               else {
+                  return true;
+               }
             }
             // Event that can only occur after death occurs before death date
             if ( $hasDeathEvent && !$hitDeathEvent && 
                     ($ef['type'] == 'Burial' || $ef['type'] == 'Obituary' || $ef['type'] == 'Funeral' || $ef['type'] == 'Cremation' || $ef['type'] == 'Cause of Death' || 
                      $ef['type'] == 'Estate Inventory' || $ef['type'] == 'Probate' || $ef['type'] == 'Estate Settlement') ) {
-               return true;
+               if ( DateHandler::getEffectiveFirstYear($ef['date']) !== false && $deathEarliestYear != -9999 ) {
+                  return $deathEarliestYear - (int)DateHandler::getEffectiveFirstYear($ef['date']);
+               }   
+               else {
+                  return true;
+               }
             }                     
             // Event (other than Alt event) that should never occur after death occurs after death or burial date
             // Ignore events without dates, as some of them automatically sort after the death event
             // Note that Will is excluded from this list because it is sometimes used for the date the will was presented to the court (before it was proved)
+            // Property is excluded because it is sometimes used to note property disposition (or lack thereof) after death
             if ( ($hitDeathEvent || $hitBurialEvent) && $ef['date'] != '' && substr($ef['type'],0,3) != 'Alt' &&
                      $ef['type'] != 'Death' && $ef['type'] != 'Burial' && $ef['type'] != 'Obituary' && $ef['type'] != 'Funeral' && $ef['type'] != 'Cremation'  && 
                      $ef['type'] != 'Estate Inventory' && $ef['type'] != 'Probate' && $ef['type'] != 'Estate Settlement' && $ef['type'] != 'DNA' &&
-                     $ef['type'] != 'Other' && $ef['type'] != 'Cause of Death' && $ef['type'] != 'Will' ) {
-               return true;
+                     $ef['type'] != 'Other' && $ef['type'] != 'Cause of Death' && $ef['type'] != 'Will' && $ef['type'] != 'Property') {
+               if ( DateHandler::getEffectiveYear($ef['date']) !== false ) {
+                  if ( $deathLatestYear != -9999 ) {
+                     return (int)DateHandler::getEffectiveYear($ef['date']) - $deathLatestYear;
+                  }
+                  else {
+                     if ( $burialLatestYear != -9999 ) {
+                        return (int)DateHandler::getEffectiveYear($ef['date']) - $burialLatestYear;
+                     }
+                  }
+               }      
+               else {   
+                  return true;
+               }   
             }                     
          }
       }

@@ -176,6 +176,7 @@ class Person extends StructuredData {
 		'Male' => 'M',
 		'Unknown' => '?',
 	);
+  protected static $EVENTS_OUT_OF_ORDER_THRESHOLD = 9; 
 
   // Estate Inventory and Estate Settlement moved from African American sub-list to main list Nov 2021 by Janet Bjorndahl
 	protected static $OTHER_EVENT_TYPES = array(
@@ -1358,8 +1359,14 @@ END;
      if (ESINHandler::hasInvalidDates($this->xml)) {
        $result .= "<p><font color=red>Please correct invalid dates. Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).</font></p>";
      }
-     if (ESINHandler::hasEventsOutOfOrder($this)) {                                                  // added Nov 2021 by Janet Bjorndahl
-       $result .= "<p><font color=red>Warning: Events are out of order. Please correct date(s) if you can.</font></p>";
+     $eventsOutOfOrder = ESINHandler::hasEventsOutOfOrder($this);                                    // added Nov 2021 by Janet Bjorndahl (modifed Feb 2022)
+     if ($eventsOutOfOrder > self::$EVENTS_OUT_OF_ORDER_THRESHOLD) {                                       // added Feb 2022 by Janet Bjorndahl            
+       $result .= "<p><font color=red>Events are out of order. Please correct date(s) before saving.</font></p>";
+     }
+     else {
+       if ($eventsOutOfOrder !== false) {
+         $result .= "<p><font color=red>Warning: Events are out of order. Please correct date(s) if you can.</font></p>";
+       }
      }
      if (ESINHandler::hasReformatedDates($this->xml)) {                                              // added Nov 2020 by Janet Bjorndahl
        $result .= "<p><font color=red>One or more dates was changed to WeRelate standard. Please compare to original value to ensure no loss of meaning. If the standard date is OK, no further action is required - you may save the page.</font></p>";
@@ -1546,8 +1553,12 @@ END;
 		 if (!StructuredData::titleStringHasId($this->titleString)) {
 		 	return false;
 		 }
-//   All date errors (not just ambiguous dates) have to be fixed - changed Nov 2021 by Janet Bjorndahl
+     // All date errors (not just ambiguous dates) have to be fixed - changed Nov 2021 by Janet Bjorndahl
      if (ESINHandler::hasInvalidDates($this->xml)) {
+        return false;
+     }
+     // Events out of order by more than a specified number of years have to be fixed - added Feb 2022 by Janet Bjorndahl 
+     if (ESINHandler::hasEventsOutOfOrder($this) > self::$EVENTS_OUT_OF_ORDER_THRESHOLD) {
         return false;
      }
      if (!StructuredData::isRedirect($textbox1)) {
