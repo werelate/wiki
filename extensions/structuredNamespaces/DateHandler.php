@@ -361,6 +361,24 @@ abstract class DateHandler {
       return false;
     }
   }
+
+  // This function returns the first year in the date. If it is a split year, it returns the effective year (e.g., 1624 for 1623/24).
+  public static function getEffectiveFirstYear($date) {
+    $parsedDate = array();
+    
+    $parsedDate=self::parseDate($date);
+    if ( isset($parsedDate['effyear'][1]) ) {
+      return $parsedDate['effyear'][1];
+    }
+    else {
+      if ( isset($parsedDate['effyear'][0]) ) {
+        return $parsedDate['effyear'][0];
+      }
+      else {
+        return false;
+      }
+    }
+  }
     
   // This function parses the input date and returns results in an array, along with a possible error message.
   // Modifier, day, month, year, suffix (e.g., BC) and effective year are returned in sub-arrays. If there are 2 dates (bet/and or from/to), 
