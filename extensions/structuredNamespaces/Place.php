@@ -1078,14 +1078,17 @@ END;
       $dbr =& wfGetDB(DB_SLAVE);
       $title = Title::newFromText($titleString, NS_PLACE);
       $dbkey = $title->getDBkey();
-
+      
       // read all place_abbrev rows for $titleString
 		$rows = $dbr->select('place_abbrevs', array('primary_name','priority'), array('title' => $dbkey), 'placeAbbrevsGetParents');
       $errno = $dbr->lastErrno();
       while ($row = $dbr->fetchObject($rows)) {
          // keep distinct primary_name's with lowest priorities
-         if (!@$parents[$row->primary_name] || $parents[$row->primary_name] > $row->priority) {
-            $parents[$row->primary_name] = $row->priority;
+         // parent's priority adjusted to remove impact of spaces because we don't want spaces in parent place name to impact child's priority (changed Feb 2022 JB)
+         $placeName = explode(',', $row->primary_name, 2);
+         $adjPriority = $row->priority - substr_count($placeName[0], ' ');
+         if (!@$parents[$row->primary_name] || $parents[$row->primary_name] > $adjPriority) {   // This and next line changed to use adjusted priority Feb 2022 JB
+            $parents[$row->primary_name] = $adjPriority;
          }
       }
       $dbr->freeResult($rows);
@@ -1095,13 +1098,32 @@ END;
 
     protected function placeAbbrevsInsertAbbrev($abbrev, $name, $primaryName, $titleString, $priority, $latitude, $longitude) {
       $key = $abbrev . '|' . $titleString;
+  		$dbw =& wfGetDB( DB_MASTER );
       if (@$this->placeAbbrevsSeenPlaces[$key]) {
+         // If a record with this abbrev and title has already been written, check it's priority. If it is higher than the priority passed,
+         // update the record with the info passed (latitude and longitude should be the same and not need updating).
+         // This is relevant when the abbrev excludes the level where a parent place has "also located in" (e.g., abbrev is just 'city country' and the city's 
+         // parent county is in one state and also located in another state).
+         $title = Title::newFromText($titleString, NS_PLACE);
+         $dbkey = $title->getDBkey();
+         $rows = $dbw->select('place_abbrevs', array('priority'), array('abbrev' => $abbrev, 'title' => $dbkey), 'placeAbbrevsInsertAbbrev');
+         if ($row = $dbw->fetchObject($rows)) {
+            if ($priority < $row->priority) {
+               $dbw->update('place_abbrevs', 
+                   array('name' => $name, 
+                         'primary_name' => $primaryName, 
+                         'priority' => $priority), 
+                   array('abbrev'  => $abbrev, 
+                         'title' => $dbkey), 
+                   'placeAbbrevsInsertAbbrev');
+            }
+         }              
+         $dbw->freeResult($rows);
          return;
       }
       $this->placeAbbrevsSeenPlaces[$key] = true;
 
       //error_log("placeAbbrevsInsertAbbrev abbrev=$abbrev name=$name primaryName=$primaryName titleString=$titleString priority=$priority lat=$latitude lon=$longitude\n");
-		$dbw =& wfGetDB( DB_MASTER );
 		$dbw->insert('place_abbrevs',
 		   array(
 		      'abbrev' => $abbrev,
@@ -1195,10 +1217,10 @@ END;
       }
       $dbr->freeResult($rows);
 
-      // $priority includes $numSpaces from parent places, which it shouldn't
+      // $priority includes $numSpaces from parent places, which it shouldn't - fixed Feb 2022 by changing placeAbbrevsGetParents - JB
 		$parents = Place::placeAbbrevsGetParents($locatedIn);
     if ( count($parents) === 0 ) {
-      $numSpaces = substr_count($prefName, ' ');
+      $numSpaces = substr_count($prefName, '_');      // changed (prefName only) from space to underscore Feb 2022 by Janet Bjorndahl
       Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, null, $titleString, $wlh + $numSpaces, $latitude, $longitude);
 	   	foreach ($altNames as $altName) {
         $numSpaces = substr_count($altName, ' ');
@@ -1206,7 +1228,7 @@ END;
 		   }
     }
 		foreach ($parents as $parentName => $priority) {
-         $numSpaces = substr_count($prefName, ' ');
+         $numSpaces = substr_count($prefName, '_');      // changed (prefName only) from space to underscore Feb 2022 by Janet Bjorndahl
    		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 10, $latitude, $longitude);
 	   	foreach ($altNames as $altName) {
             $numSpaces = substr_count($altName, ' ');
@@ -1216,16 +1238,32 @@ END;
 		foreach ($alis as $ali) {
    		$parents = Place::placeAbbrevsGetParents($ali);
    		foreach ($parents as $primaryName => $priority) {
-            $numSpaces = substr_count($prefName, ' ');
-            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 11, $latitude, $longitude);
+            $numSpaces = substr_count($prefName, '_');      // changed (prefName only) from space to underscore Feb 2022 by Janet Bjorndahl
+            // priority adjustment for "also located in" changed from 1 to 2 to match the batch job (Feb 2022 by Janet Bjorndahl)
+            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 12, $latitude, $longitude);
             foreach ($altNames as $altName) {
                $numSpaces = substr_count($altName, ' ');
-               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 25, $latitude, $longitude);
+               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 26, $latitude, $longitude);
             }
          }
 		}
     }
 
+    /**
+     * Propagate update of abbrevs for contained places (recursively).   added Feb 2022 by Janet Bjorndahl
+     * Note that this propagates in the opposite direction of propagating edit data, which updates "contained places" 
+     * in the XML of the parent place, whereas this function updates abbrevs in the database for child, grandchild, etc. places.
+     */
+    private function propagateAbbrevs($xml) {
+       foreach ($xml->contained_place as $containedPlace) {
+          $place = trim((string)$containedPlace['place']);
+     	    $containedPlaceXml = StructuredData::getXmlForTitle('place', Title::newFromText($place, NS_PLACE));
+          Place::placeAbbrevsDelete($place);
+          Place::placeAbbrevsAdd($place, $containedPlaceXml);
+          Place::propagateAbbrevs($containedPlaceXml);
+       }
+    }               
+        
     /**
      * Propagate data in xml property to other articles if necessary
      * @param string $oldText contains text being replaced
@@ -1251,6 +1289,8 @@ END;
                Place::placeAbbrevsDelete($this->titleString);
                if (isset($this->xml)) {
                   Place::placeAbbrevsAdd($this->titleString, $this->xml);
+                  // maintain place_abbrevs for contained places (recursive function) added Feb 2022 by Janet Bjorndahl
+                  Place::propagateAbbrevs($this->xml);
                }
             }
          }
