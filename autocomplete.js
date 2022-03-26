@@ -676,7 +676,7 @@ $.fn.autocomplete = function(options) {
 		new $.autocomplete(input, options);
 	});
 
-	// Don't break Ethe chain
+	// Don't break the chain
 	return this;
 }
 
@@ -702,7 +702,8 @@ $.fn.autocompleteRemove = function() {
 }
 
 $(document).ready(function() {
-	$(".place_input").autocomplete({ defaultNs:'Place', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
+	$(".place_input").autocomplete({ defaultNs:'NoCemetery', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
+	$(".cemetery_input").autocomplete({ defaultNs:'Place', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
 	$(".person_input").autocomplete({ defaultNs:'Person', userid:userId});
 	$(".family_input").autocomplete({ defaultNs:'Family', userid:userId});
 	$(".image_input").autocomplete({ defaultNs:'Image', userid:userId});

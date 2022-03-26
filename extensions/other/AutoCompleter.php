@@ -22,6 +22,7 @@ class AutoCompleter {
 	      'surname' => 102,
 	      'source' => 104,
 	      'place' => 106,
+	      'nocemetery' => 1060,
 	      'person' => 108,
 	      'family' => 110,
 	      'mysource' => 112,
@@ -35,6 +36,7 @@ class AutoCompleter {
 	      114 => 'Repository',
 	      108 => 'Person',
 	      106 => 'Place',
+	      1060 => 'NoCemetery',
 	      104 => 'Source',
 	      102 => 'Surname',
           2 => 'User',
@@ -105,7 +107,10 @@ class AutoCompleter {
       return "<results status=\"$error\"></results>";
 	}
 
-	private static function generatePlaceCacheKey($title) {
+	private static function generatePlaceCacheKey($title, $noCemetery=false) {
+	    if ($noCemetery) {
+	        return "ac:NoCemetery:$title";
+	    }
   		return "ac:Place:$title";
 	}
 
@@ -140,9 +145,13 @@ class AutoCompleter {
       return $s;
     }
 
-	private static function lookupPlaceDB($conn, $abbrev) {
+	private static function lookupPlaceDB($conn, $abbrev, $noCemetery=false) {
 		$abbrev = mysql_real_escape_string($abbrev, $conn);
-		$sql = "SELECT name, title FROM place_abbrevs WHERE abbrev LIKE '$abbrev%' ORDER BY priority LIMIT 32";
+		$sql = "SELECT name, title FROM place_abbrevs WHERE abbrev LIKE '$abbrev%'";
+		if ($noCemetery) {
+		    $sql .= " AND NOT types LIKE '%cemetery%'";
+		}
+		$sql .= " ORDER BY priority LIMIT 32";
 		$res = @mysql_query($sql, $conn);
 		if ($res === false) {
 			return false;
@@ -174,17 +183,17 @@ class AutoCompleter {
 	   return '<'.AutoCompleter::RESULTS_TAG." status=\"$status\">\n".$xml.'</'.AutoCompleter::RESULTS_TAG.'>';
    }
 
-	public static function getPlaceResults($cache, $conn, $title) {
+	public static function getPlaceResults($cache, $conn, $title, $noCemetery=false) {
 	   // clean title
 		$title = AutoCompleter::placeAbbrevsCleanAbbrev($title);
 		// trim title to 100
 		$title = mb_substr($title, 0, 100);
 		// lookup in cache
-		$cacheKey = AutoCompleter::generatePlaceCacheKey($title);
+		$cacheKey = AutoCompleter::generatePlaceCacheKey($title, $noCemetery);
 		$results = AutoCompleter::lookupCache($cache, $cacheKey);
 		if ($results === false) {
 			// lookup in db
-			$results = AutoCompleter::lookupPlaceDB($conn, $title);
+			$results = AutoCompleter::lookupPlaceDB($conn, $title, $noCemetery);
 			// cache results
          AutoCompleter::cacheResults($cache, $cacheKey, $results, AutoCompleter::EXP_TIME);
 		}
@@ -202,8 +211,8 @@ class AutoCompleter {
 	 * @return false in case of error
 	 */
 	public static function getResults($cache, $conn, $title, $userid='', $nsDefault='') {
-		if ($nsDefault == 'Place') {
-			return AutoCompleter::getPlaceResults($cache, $conn, $title);
+		if ($nsDefault == 'Place' || $nsDefault == 'NoCemetery') {
+			return AutoCompleter::getPlaceResults($cache, $conn, $title, $nsDefault == 'NoCemetery');
 		}
 
 	   $ns = '';
@@ -235,6 +244,10 @@ class AutoCompleter {
       else if (strncasecmp($title, 'place:', 6) == 0) {
          $ns = 'place';
          $title = substr($title, 6);
+      }
+      else if (strncasecmp($title, 'nocemetery:', 11) == 0) {
+         $ns = 'nocemetery';
+         $title = substr($title, 11);
       }
       else if (strncasecmp($title, 'person:', 7) == 0) {
          $ns = 'person';
@@ -270,8 +283,8 @@ class AutoCompleter {
 		   $ns = AutoCompleter::$nsidToNs[$nsid];
 		}
 
-	   // convert and validate userid - must have userid unless searching source, repository, or place
-      $isGlobal = ($nsid == 104 || $nsid == 106 || $nsid == 114);
+	   // convert and validate userid - must have userid unless searching source, repository, or place (or nocemetery)
+      $isGlobal = ($nsid == 104 || $nsid == 106 || $nsid == 1060 || $nsid == 114);
 
 	   if ($nsid == 104) { // is this still needed?
 	   	$userid = 0;
