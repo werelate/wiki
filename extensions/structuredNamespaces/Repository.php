@@ -228,7 +228,7 @@ END;
       
 		// display edit fields
       $result .= "<h2>Repository information</h2><table>"
-         . "<tr><td align=right>Place:</td><td align=left><input tabindex=\"1\" class=\"place_input\" name=\"place\" value=\"$place\" size=\"60\"/></td></tr>"
+         . "<tr><td align=right>Place:</td><td align=left><input tabindex=\"1\" class=\"nocemetery_input\" name=\"place\" value=\"$place\" size=\"60\"/></td></tr>"
          . "<tr><td align=right>URL:</td><td align=left><input tabindex=\"1\" name=\"url\" value=\"$url\" size=\"60\"$urlStyle/></td></tr>"
          . "<tr><td align=right>Phone:</td><td align=left><input tabindex=\"1\" name=\"phone\" value=\"$phone\" size=\"20\"/></td></tr>"
       	. "<tr><td align=right>Postal<br/>Address</td><td align=left><textarea tabindex=\"1\" name=\"postal_address\" rows=\"3\" cols=\"60\">$address</textarea></td></tr>"

@@ -345,7 +345,7 @@ class AddPageForm {
   <td align="right">Surname: </td><td><input type="text" name="s" size=35 maxlength="50" value="$surname" tabindex="1"/></td></tr>
 <tr><td align="right">Gender: </td><td>$genderSelect</td></tr>
 <tr><td align="right">$birthSelect date: </td><td><input type="text" name="bd" size=15 maxlength="25" value="$birthdate"  tabindex="1" /></td>
-  <td align="right">Place: </td><td><input class="place_input" type="text" name="bp" size=35 maxlength="130" value="$birthplace" tabindex="1" /></td></tr>
+  <td align="right">Place: </td><td><input class="nocemetery_input" type="text" name="bp" size=35 maxlength="130" value="$birthplace" tabindex="1" /></td></tr>
 <tr><td align="right">$deathSelect date: </td><td><input type="text" name="dd" size=15 maxlength="25" value="$deathdate" tabindex="1" /></td>
   <td align="right">Place: </td><td><input class="place_input" type="text" name="dp" size=35 maxlength="130" value="$deathplace" tabindex="1" /></td></tr>
 <tr><td colspan=4 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1"/></td></tr></table>
@@ -377,7 +377,7 @@ END;
 <tr><td align="right">Wife given name: </td><td><input type="text" name="wg" size=15 maxlength="50" value="$wifegivenname" tabindex="1" /></td>
   <td align="right">Maiden name: </td><td><input type="text" name="ws" size=25 maxlength="50" value="$wifesurname" tabindex="1" /></td></tr>
 <tr><td align="right">Marriage date: </td><td><input type="text" name="md" size=15 maxlength="25" value="$marriagedate" tabindex="1" /></td>
-  <td align="right">Place: </td><td><input class="place_input" type="text" name="mp" size=25 maxlength="130" value="$marriageplace" tabindex="1" /></td></tr>
+  <td align="right">Place: </td><td><input class="nocemetery_input" type="text" name="mp" size=25 maxlength="130" value="$marriageplace" tabindex="1" /></td></tr>
 <tr><td colspan=4 align="right"><input type="submit" name="add" value="$buttonValue" tabindex="1" /></td></tr></table>
 </form>
 END;

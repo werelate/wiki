@@ -1892,7 +1892,7 @@ $hiddenFields
 <input id="checkbox_sup" type="checkbox" name="sup"$supChecked/>superior places</td>
 </tr><tr id="birth_row">
 <td align=right>Birth/Chr date: </td><td colspan=2><input id="input_bd" class="input_short" type="text" name="bd" size=14 maxlength=25 value="$birthdate" onfocus="select()"/> &nbsp;$birthRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_bp" class="input_wider place_input" type="text" name="bp" maxlength=130 value="$birthplace" onfocus="select()"/></td>
+<td align=right>Place: </td><td colspan=2><input id="input_bp" class="input_wider nocemetery_input" type="text" name="bp" maxlength=130 value="$birthplace" onfocus="select()"/></td>
 </tr><tr id="death_row">
 <td align=right>Death/Bur date: </td><td colspan=2><input id="input_dd" class="input_short" type="text" name="dd" size=14 maxlength=25 value="$deathdate" onfocus="select()"/> &nbsp;$deathRangeSelect</td>
 <td align=right>Place: </td><td colspan=2><input id="input_dp" class="input_wider place_input" type="text" name="dp" maxlength=130 value="$deathplace" onfocus="select()"/></td>
@@ -1906,7 +1906,7 @@ $relativeRows
 <td align=right>Surname: </td><td colspan=2><input id="input_ws" class="input_wider" type="text" name="ws" maxlength=50 value="$wifesurname" onfocus="select()"/></td>
 </tr><tr id="marriage_row">
 <td align=right>Marriage date: </td><td colspan=2><input id="input_md" class="input_short" type="text" name="md" size=14 maxlength=25 value="$marriagedate" onfocus="select()"/> &nbsp;$marriageRangeSelect</td>
-<td align=right>Place: </td><td colspan=2><input id="input_mp" class="input_wider place_input" type="text" name="mp" maxlength=130 value="$marriageplace" onfocus="select()"/></td>
+<td align=right>Place: </td><td colspan=2><input id="input_mp" class="input_wider nocemetery_input" type="text" name="mp" maxlength=130 value="$marriageplace" onfocus="select()"/></td>
 </tr><tr id="placename_row">
 <td align=right>Place name: </td><td colspan=2><input id="input_pn" class="input_medium" type="text" name="pn" maxlength=50 value="$placename" onfocus="select()"/></td>
 <td align=right>Located in: </td><td colspan=2><input id="input_li" class="input_wider place_input" type="text" name="li" maxlength=130 value="$locatedinplace" onfocus="select()"/></td>

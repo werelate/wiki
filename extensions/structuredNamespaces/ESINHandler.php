@@ -1299,7 +1299,12 @@ END;
 			$result .= '</select></td>';
 		}
 		$result .= "<td><input class=\"ef_date\" tabindex=\"1\" type=\"text\" name=\"date$efNum\" value=\"$date\"$dateStyle/></td>";
-		$result .= "<td><input class=\"place_input ef_place\" tabindex=\"1\" type=\"text\" name=\"place$efNum\" value=\"$place\"/></td>";
+		if ($stdEventType == 'Burial' || $typeString == 'Alt Burial') {
+		    $acClass = "place_input";
+		} else {
+		    $acClass = "nocemetery_input";
+		}
+       	$result .= "<td><input class=\"$acClass ef_place\" tabindex=\"1\" type=\"text\" name=\"place$efNum\" value=\"$place\"/></td>";
 		$result .= "<td colspan=\"2\"><input class=\"ef_desc\" tabindex=\"1\" type=\"text\" name=\"desc$efNum\" value=\"$desc\"/></td>";
       $oneBased = $efNum+1;
       if (!$stdEventType) {
