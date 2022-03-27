@@ -47,7 +47,7 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 	
 	$wgOut->setPageTitle($searchForm->target ? 'Search for possible matches' : 'Search WeRelate');
    $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/search.33.js\"></script>");
-	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+	$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 
     $now = wfTimestampNow();
     $ns = $wgRequest->getVal('ns');

@@ -632,7 +632,7 @@ END;
 		// add javascript functions
       $wgOut->addScript("<script type=\"text/javascript\">$placeTypesBuf</script>");
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/place.1.js\"></script>");
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 //      if ($target == 'gedcom'&& $target != 'AddPage') {
 //         $result .= "<p><font color=red>Add any additional information you have about this place".
 //                     ($target == 'gedcom' ? ' and save the page' : ', save the page, then close this window').

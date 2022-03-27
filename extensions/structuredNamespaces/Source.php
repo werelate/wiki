@@ -876,7 +876,7 @@ END;
       $target = $wgRequest->getVal('target');
 
 		// add javascript functions
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 //      if ($target && $target != 'AddPage') {
 //         $result .= "<p><font color=red>Add any additional information you have about the source".
 //                     ($target == 'gedcom' ? ' and save the page' : ', save the page, then close this window').

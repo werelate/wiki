@@ -958,7 +958,7 @@ END
 			: '';
 // WERELATE - add scripts
       global $wgScriptPath;
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/image.1.js\"></script>");
 // WERELATE: removed tabindexes; added id to table
 		$wgOut->addHTML( "

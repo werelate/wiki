@@ -417,7 +417,7 @@ class SDImage extends StructuredData {
    	}
 
       // add javascript functions
-		$wgOut->addScript("<script type='text/javascript' src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+		$wgOut->addScript("<script type='text/javascript' src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 		if ($wgRequest->getVal('action') != 'submit') {
 	      $wgOut->addScript("<script type='text/javascript' src=\"$wgScriptPath/fnclientwiki.yui.1.js\"></script>");
 		}

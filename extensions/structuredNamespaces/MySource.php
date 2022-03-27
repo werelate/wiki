@@ -325,7 +325,7 @@ END;
       $target = $wgRequest->getVal('target');
 
 		// add javascript functions
-		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.10.js\"></script>");
+		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 
       $invalidStyle = ' style="background-color:#fdd;"';
 //      $altNames = '';
