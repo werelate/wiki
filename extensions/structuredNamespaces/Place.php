@@ -1023,6 +1023,7 @@ END;
        $altNames = array();
        $latitude = 0;
        $longitude = 0;
+       $types = "";
        if (isset($xml)) {
           foreach ($xml->also_located_in as $pli) {
              $alsoLocatedIn[] = (string)$pli['place'];
@@ -1032,14 +1033,15 @@ END;
           }
           $latitude = (float) $xml->latitude;
           $longitude = (float) $xml->longitude;
+          $types = trim($xml->type);                                             // added Apr 2022 by Janet Bjorndahl
       }
-      return array($alsoLocatedIn, $altNames, $latitude, $longitude);
+      return array($alsoLocatedIn, $altNames, $latitude, $longitude, $types);    // types added Apr 2022 by Janet Bjorndahl
    }
 
 
     protected function placeAbbrevsChanged($origXml, $xml) {
-      list ($origAlis, $origAltNames, $origLat, $origLon) = Place::placeAbbrevsGetData($origXml);
-      list ($alis, $altNames, $lat, $lon) = Place::placeAbbrevsGetData($xml);
+      list ($origAlis, $origAltNames, $origLat, $origLon, $origTypes) = Place::placeAbbrevsGetData($origXml);    // origTypes added Apr 2022 by JB
+      list ($alis, $altNames, $lat, $lon, $types) = Place::placeAbbrevsGetData($xml);                            // types added Apr 2022 by JB
 
       if (count($origAlis) != count($alis) || count($origAltNames) != count($altNames)) {
          return true;
@@ -1054,8 +1056,7 @@ END;
             return true;
          }
       }
-
-      if ($origLat != $lat || $origLon != $lon) {
+      if ($origLat != $lat || $origLon != $lon || $origTypes != $types) {         // types added Apr 2022 by Janet Bjorndahl
         return true;
       }
 
@@ -1096,12 +1097,12 @@ END;
       return $parents;
     }
 
-    protected function placeAbbrevsInsertAbbrev($abbrev, $name, $primaryName, $titleString, $priority, $latitude, $longitude) {
+    protected function placeAbbrevsInsertAbbrev($abbrev, $name, $primaryName, $titleString, $priority, $latitude, $longitude, $types) {  // types added Apr 2022 JB
       $key = $abbrev . '|' . $titleString;
   		$dbw =& wfGetDB( DB_MASTER );
       if (@$this->placeAbbrevsSeenPlaces[$key]) {
          // If a record with this abbrev and title has already been written, check it's priority. If it is higher than the priority passed,
-         // update the record with the info passed (latitude and longitude should be the same and not need updating).
+         // update the record with the info passed (latitude, longitude and types should be the same and not need updating).
          // This is relevant when the abbrev excludes the level where a parent place has "also located in" (e.g., abbrev is just 'city country' and the city's 
          // parent county is in one state and also located in another state).
          $title = Title::newFromText($titleString, NS_PLACE);
@@ -1123,7 +1124,7 @@ END;
       }
       $this->placeAbbrevsSeenPlaces[$key] = true;
 
-      //error_log("placeAbbrevsInsertAbbrev abbrev=$abbrev name=$name primaryName=$primaryName titleString=$titleString priority=$priority lat=$latitude lon=$longitude\n");
+//error_log("placeAbbrevsInsertAbbrev abbrev=$abbrev name=$name primaryName=$primaryName titleString=$titleString priority=$priority lat=$latitude lon=$longitude types=$types\n");
 		$dbw->insert('place_abbrevs',
 		   array(
 		      'abbrev' => $abbrev,
@@ -1132,7 +1133,8 @@ END;
 		      'title' => $titleString,
 		      'priority' => $priority,
 		      'latitude' => $latitude,
-		      'longitude' => $longitude
+		      'longitude' => $longitude,
+          'types' => $types                              // types added Apr 2022 by Janet Bjorndahl      
 		));
     }
 
@@ -1167,11 +1169,11 @@ END;
       return $s;
     }
 
-    protected function placeAbbrevsInsertAbbrevs($name, $primaryName, $suffix, $titleString, $priority, $latitude, $longitude) {
+    protected function placeAbbrevsInsertAbbrevs($name, $primaryName, $suffix, $titleString, $priority, $latitude, $longitude, $types) {  // types added Apr 2022 JB
       // clean names
       if (!$suffix) {
          Place::placeAbbrevsInsertAbbrev(Place::placeAbbrevsCleanAbbrev($name), Place::placeAbbrevsClean($name),
-                                          Place::placeAbbrevsClean($primaryName), $titleString, $priority, $latitude, $longitude);
+                                          Place::placeAbbrevsClean($primaryName), $titleString, $priority, $latitude, $longitude, $types);
          return;
       }
 
@@ -1185,11 +1187,11 @@ END;
          // construct abbrevs
          $abbrevSuffix = join(", ", array_slice($levels, $i));
          $abbrev = Place::placeAbbrevsCleanAbbrev($name . ", " . $abbrevSuffix);
-         Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority, $latitude, $longitude);
+         Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority, $latitude, $longitude, $types);
          $pos = mb_strpos($name, "(");
          if ($pos > 0) {
             $abbrev = Place::placeAbbrevsCleanAbbrev(mb_substr($name, 0, $pos) . ", " . $abbrevSuffix);
-            Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority, $latitude, $longitude);
+            Place::placeAbbrevsInsertAbbrev($abbrev, $fullName, $primaryFullName, $titleString, $priority, $latitude, $longitude, $types);
          }
       }
     }
@@ -1199,7 +1201,7 @@ END;
       $title = Title::newFromText($titleString, NS_PLACE);
       $titleString = $title->getDBkey();
 		list($prefName, $locatedIn) = Place::getPrefNameLocatedIn($titleString);
-		list($alis, $altNames, $latitude, $longitude) = Place::placeAbbrevsGetData($xml);
+		list($alis, $altNames, $latitude, $longitude, $types) = Place::placeAbbrevsGetData($xml);    // types added Apr 2022 by JB
 
 		// get wlh
       $dbr =& wfGetDB(DB_SLAVE);
@@ -1221,18 +1223,18 @@ END;
 		$parents = Place::placeAbbrevsGetParents($locatedIn);
     if ( count($parents) === 0 ) {
       $numSpaces = substr_count($prefName, '_');      // changed (prefName only) from space to underscore Feb 2022 by Janet Bjorndahl
-      Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, null, $titleString, $wlh + $numSpaces, $latitude, $longitude);
+      Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, null, $titleString, $wlh + $numSpaces, $latitude, $longitude, $types);  // types added Apr 2022 JB
 	   	foreach ($altNames as $altName) {
         $numSpaces = substr_count($altName, ' ');
-		    Place::placeAbbrevsInsertAbbrevs($altName, $prefName, null, $titleString, $wlh + $numSpaces + 14, $latitude, $longitude);
+		    Place::placeAbbrevsInsertAbbrevs($altName, $prefName, null, $titleString, $wlh + $numSpaces + 14, $latitude, $longitude, $types);
 		   }
     }
 		foreach ($parents as $parentName => $priority) {
          $numSpaces = substr_count($prefName, '_');      // changed (prefName only) from space to underscore Feb 2022 by Janet Bjorndahl
-   		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 10, $latitude, $longitude);
+   		Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 10, $latitude, $longitude, $types);
 	   	foreach ($altNames as $altName) {
             $numSpaces = substr_count($altName, ' ');
-		      Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 24, $latitude, $longitude);
+		      Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $parentName, $titleString, $wlh + $numSpaces + $priority + 24, $latitude, $longitude, $types);
 		   }
 		}
 		foreach ($alis as $ali) {
@@ -1240,27 +1242,31 @@ END;
    		foreach ($parents as $primaryName => $priority) {
             $numSpaces = substr_count($prefName, '_');      // changed (prefName only) from space to underscore Feb 2022 by Janet Bjorndahl
             // priority adjustment for "also located in" changed from 1 to 2 to match the batch job (Feb 2022 by Janet Bjorndahl)
-            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 12, $latitude, $longitude);
+            Place::placeAbbrevsInsertAbbrevs($prefName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 12, $latitude, $longitude, $types);
             foreach ($altNames as $altName) {
                $numSpaces = substr_count($altName, ' ');
-               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 26, $latitude, $longitude);
+               Place::placeAbbrevsInsertAbbrevs($altName, $prefName, $primaryName, $titleString, $wlh + $numSpaces + $priority + 26, $latitude, $longitude, $types);
             }
          }
 		}
     }
 
     /**
-     * Propagate update of abbrevs for contained places (recursively).   added Feb 2022 by Janet Bjorndahl
+     * Propagate update of abbrevs for contained places (recursively).   added Feb 2022 and updated Apr 2022 by Janet Bjorndahl
      * Note that this propagates in the opposite direction of propagating edit data, which updates "contained places" 
      * in the XML of the parent place, whereas this function updates abbrevs in the database for child, grandchild, etc. places.
      */
     private function propagateAbbrevs($xml) {
-       foreach ($xml->contained_place as $containedPlace) {
-          $place = trim((string)$containedPlace['place']);
-     	    $containedPlaceXml = StructuredData::getXmlForTitle('place', Title::newFromText($place, NS_PLACE));
-          Place::placeAbbrevsDelete($place);
-          Place::placeAbbrevsAdd($place, $containedPlaceXml);
-          Place::propagateAbbrevs($containedPlaceXml);
+       if (isset($xml)) {
+         foreach ($xml->contained_place as $containedPlace) {
+            $place = trim((string)$containedPlace['place']);
+     	      $containedPlaceXml = StructuredData::getXmlForTitle('place', Title::newFromText($place, NS_PLACE));
+            if (isset($containedPlaceXml)) {
+               Place::placeAbbrevsDelete($place);
+               Place::placeAbbrevsAdd($place, $containedPlaceXml);
+               Place::propagateAbbrevs($containedPlaceXml);
+            }
+         }
        }
     }               
         
