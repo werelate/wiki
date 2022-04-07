@@ -322,8 +322,9 @@ If you disagree with an existing variant, <a href="/wiki/WeRelate_talk:Variant_n
 $basename
 $prefixedNames
 <h3>Soundex Variants</h3>
-<p style="font-size: 10px">Rare names with the same soundex code, like the names below,
-will be included in searches automatically.</p>
+<p style="font-size: 10px">Rare names with the same soundex code are <strong>always</strong>
+included in search results. They don't need to be added as variants.
+Below is a list of example rare names with the same soundex code..</p>
 $soundexExamples
 </td>
 </tr>
