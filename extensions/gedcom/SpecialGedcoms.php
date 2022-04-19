@@ -79,7 +79,7 @@ class GedcomsPage extends QueryPage {
 	 * @return string
 	 */
 	function formatResult( $skin, $result ) {
-		global $wgLang, $wgContLang;
+		global $wgLang, $wgContLang, $wgServer;
 		
 		$dm = $wgContLang->getDirMark();
 		$statusMsg = @FamilyTreeUtil::$STATUS_MESSAGES[$result->fg_status];
