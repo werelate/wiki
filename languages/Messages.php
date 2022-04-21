@@ -2094,7 +2094,12 @@ Please confirm that really want to recreate this page.',
 'treeupdatebutton' => 'Update',
 'userprofile' => 'User Profile',
 'userwildcard' => 'User name cannot include a search wildcard (*,?)',    // added Nov 2021 by Janet Bjorndahl
-'watercooler' => 'Watercooler'
+'watercooler' => 'Watercooler',
+
+# Data quality issues    // added Apr 2022 by Janet Bjorndahl
+'DQissues' => 'Data Quality Issues',
+'unusualsituations' => '(incomplete data, errors and unusual situations that should be reviewed)'
+
 );
 
 ?>
