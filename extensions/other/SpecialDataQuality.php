@@ -45,7 +45,7 @@ class DataQuality {
 	}
 
 	function execute() {
-		global $wgOut, $wgRequest, $wgLang, $wgUser;
+		global $wgOut, $wgRequest, $wgLang, $wgUser, $wgScriptPath;
 		$fname = 'DataQualityPage::execute';
 
 		$this->limit = min( $this->request->getInt( 'limit', 50 ), 500 );
@@ -99,30 +99,53 @@ class DataQuality {
     $this->tree = $wgRequest->getVal('tree');
     
     if ($wgUser->isLoggedIn()) {
-      $watchSelectExtra = '';
+      // If user selected watched or unwatched, disable MyTrees dropdown. If user selected MyTree(s), disable watched/unwatched dropdown.
+      if ($this->watched == 'wu') {
+        $treeSelectExtra = '';
+      }
+      else {
+        $treeSelectExtra = 'disabled';
+      }
+      if ($this->tree == '') {
+        $watchSelectExtra = '';
+      }
+      else {
+        $watchSelectExtra = 'disabled';
+      } 
     }
     else {
 	   	$watchSelectExtra = 'disabled';
+	   	$treeSelectExtra = 'disabled';
       $this->watched = 'wu';
 	  }
+    // Set up javascript to toggle enabling/disabling one dropdown depending on selection in another dropdown. 
+    $treeSelectExtra .= ' onchange="toggleEnabled(\'tree\', \'\', \'watched\')"';
+    $watchSelectExtra .= ' onchange="toggleEnabled(\'watched\', \'wu\', \'tree\')"';
+     
     $myTreeOptions = array();
     $myTreeOptions['Whether or not in'] = '';
-    $myTreeOptions['In any of MyTrees'] = 'all';
+    $treeCounter = 0;
     if ($wgUser->isLoggedIn()) {
       $conds[] = 'ft_user = "' . $wgUser->getName() . '"';
       $options['ORDER BY'] = 'ft_name';
 		  $res = $dbr->select( array( 'familytree' ), array( 'ft_name' , 'ft_tree_id'), $conds, $fname, $options );
 		  while ( $row = $dbr->fetchObject( $res ) ) {
+        $treeCounter++;
+        if ($treeCounter==1) {
+          $myTreeOptions['In any of MyTrees'] = 'all';
+        }
 			  $myTreeOptions[substr($row->ft_name,0,30)] = $row->ft_tree_id;
 		  }
 		  $dbr->freeResult( $res );
     } 
-     
+
+ 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/report.1.js\"></script>");
+
     $parmForm = '<form method="get" action="/wiki/' . $this->selfTitle->getPrefixedURL() . '">';
     $parmForm .= '<table class="parmform"><tr><td><label for="category">Category: </label>';
     $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'category', self::$DATA_QUALITY_CATEGORIES, $this->category, '', false) . '</td>';
     $parmForm .= '<td><label for="tree">MyTrees: </label>';
-    $parmForm .= StructuredData::addSelectToHtml(0, 'tree', $myTreeOptions, $this->tree, $watchSelectExtra, false) . '</td>';
+    $parmForm .= StructuredData::addSelectToHtml(0, 'tree', $myTreeOptions, $this->tree, $treeSelectExtra, false) . '</td>';
     $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'watched', SearchForm::$WATCH_OPTIONS, $this->watched, $watchSelectExtra, false) . '</td>';
     $parmForm .= '<input type="hidden" name="limit" value="' . $this->limit . '">';
 	  $parmForm .= '<td><input type="submit" value="' . wfMsgExt( 'allpagessubmit', array( 'escape') ) . '" /></td></tr></table>';
@@ -330,7 +353,7 @@ class DataQuality {
 		return $this->skin->makeKnownLinkObj( $this->selfTitle, $text, $query );
 	}
 
-  function getPrevNext( $limit, $prevId, $nextId, $otherParms ) {     // other parameters added Sep 2020 by Janet Bjorndahl
+  function getPrevNext( $limit, $prevId, $nextId, $otherParms ) {
 		global $wgLang;
 		$fmtLimit = $wgLang->formatNum( $limit );
 		$prev = wfMsg( 'prevn', $fmtLimit );
@@ -355,7 +378,7 @@ class DataQuality {
 		return wfMsg( 'viewprevnext', $prevLink, $nextLink, $nums );
 	}
 
-	function numLink( $limit, $from, $otherParms ) {    // other parameters added Sep 2020 by Janet Bjorndahl
+	function numLink( $limit, $from, $otherParms ) {
 		global $wgLang;
 		$query = "limit={$limit}{$otherParms}&from={$from}";
 		$fmtLimit = $wgLang->formatNum( $limit );
