@@ -79,7 +79,7 @@ class WhatLinksHerePage {
 	  }
     $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'watched', SearchForm::$WATCH_OPTIONS, $this->watched, $watchSelectExtra, false) . '</td>';
     $parmForm .= '<input type="hidden" name="limit" value="' . $this->limit . '">';
-	  $parmForm .= '<td><input type="submit" name="submit" value="' . wfMsgExt( 'allpagessubmit', array( 'escape') ) . '" /></td></tr></table>';
+	  $parmForm .= '<td><input type="submit" value="' . wfMsgExt( 'allpagessubmit', array( 'escape') ) . '" /></td></tr></table>';
   	$parmForm .= '</form>';
   	$wgOut->addHTML( $parmForm );
 

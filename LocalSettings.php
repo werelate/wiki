@@ -340,6 +340,7 @@ require_once("$IP/extensions/other/SpecialTrees.php");
 require_once("$IP/extensions/other/SpecialBrowse.php");
 require_once("$IP/extensions/other/SpecialAddPage.php");
 require_once("$IP/extensions/other/SpecialAddSubpage.php");
+require_once("$IP/extensions/other/SpecialDataQuality.php");    // added Apr 2022 by Janet Bjorndahl
 require_once("$IP/extensions/other/SpecialSearch.php");
 require_once("$IP/extensions/other/SpecialImportGedcom.php");
 require_once("$IP/extensions/other/SpecialNetwork.php");

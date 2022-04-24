@@ -1043,6 +1043,9 @@ function wfAddPage($args) {
          else if (ESINHandler::isInvalidDate($args['bd']) || ESINHandler::isInvalidDate($args['dd'])) {
             $error = "Please correct date(s); they should be in D MMM YYYY format.";
          }
+         else if ($args['gnd']=='') {                                                          // added Apr 2022 by Janet Bjorndahl
+            $error = "You must select a gender (right-click and select 'Back' if necessary)";
+         }
          else {
             if (!$title) $title = StructuredData::constructPersonTitle($args['g'], $args['s']);
             if ($title) {

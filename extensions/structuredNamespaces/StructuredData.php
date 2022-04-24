@@ -517,12 +517,13 @@ abstract class StructuredData {
 //		return $result;
 	}
 
-   // name should be in title case
+   // name should be in title case but might not be                                                       // changed to address when not title case Apr 2022 JB
   private static function isUnknownName($name) {
     $charsMeaningUnknown = array('?','_','-');
-    return !$name || $name == 'Unknown' || $name == 'Unk' ||
-            $name == 'N.N.' || $name == 'N.N' || $name == 'Nn' || $name == 'Nn.' || $name == 'N N' ||
-            $name == 'Fnu' || $name == 'Lnu' || $name == 'Father' || $name == 'Mother' ||
+    $lowerName = strtolower($name);
+    return !$name || $lowerName == 'unknown' || $lowerName == 'unk' ||
+            $lowerName == 'n.n.' || $lowerName == 'n.n' || $lowerName == 'nn' || $lowerName == 'nn.' || $lowerName == 'n n' ||
+            $lowerName == 'fnu' || $lowerName == 'lnu' || $lowerName == 'father' || $lowerName == 'mother' ||
             trim(str_replace($charsMeaningUnknown,'',$name)) == '';                                              // this condition added Nov 2020 by Janet Bjorndahl
   }
    
