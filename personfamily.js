@@ -120,7 +120,8 @@ function addEventFact(eventTypes) {
    var efNum=(rowNum-1)/2;
 	var row=tbl.insertRow(rowNum);
 	var cell=row.insertCell(0);
-	var sel='<select class="ef_select" tabindex="1" name="event_fact'+efNum+'"><option value="Unknown">Type of event</option>';
+	var sel='<select class="ef_select" tabindex="1" name="event_fact'+efNum+
+      '" onchange="changePlaceAutocomplete('+efNum+')"><option value="Unknown">Type of event</option>';  // onchange added Apr 2022 by Janet Bjorndahl
 	for (var i=0;i<eventTypes.length;i++) {
 		var eventType = eventTypes[i].replace(/~/g,"'");
 		var attrs;
@@ -146,7 +147,7 @@ function addEventFact(eventTypes) {
 	cell.getElementsByTagName('select')[0].focus();
 	cell=row.insertCell(1); cell.innerHTML='<input class="ef_date" tabindex="1" type="text" name="date'+efNum+'"/>';
 	cell=row.insertCell(2); cell.innerHTML='<input class="ef_place" tabindex="1" type="text" name="place'+efNum+'"/>';
-	$('input', cell).autocomplete({ defaultNs:'Place', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
+	$('input', cell).autocomplete({ defaultNs:'NoCemetery', dontCache: true, matchCommaPhrases:1, ignoreCase:1});      // defaultNs changed Apr 2022 by Janet Bjorndahl
 	cell=row.insertCell(3); cell.colSpan=2; cell.innerHTML='<input class="ef_desc" tabindex="1" type="text" name="desc'+efNum+'"/>';
    cell=row.insertCell(4); cell.innerHTML='<a title="Remove this event/fact" href="javascript:void(0);" onClick="removeEventFact('+(efNum+1)+'); return preventDefaultAction(event);">remove</a>';
    row=tbl.insertRow(rowNum+1);
@@ -201,6 +202,20 @@ function removeEventFact(efNum) {
 	if (tbl.rows[tbl.rows.length-1].cells[0].getElementsByTagName('select').length == 0) {
 		moveAutoCompletes(tbl,2,2);
 	}
+}
+
+// Function added Apr 2022 by Janet Bjorndahl to control whether or not cemeteries appear in the place autocomplete
+function changePlaceAutocomplete(efNum) {
+	var tbl=document.getElementById('event_fact_input');
+	var rowNum=(efNum)*2+1;
+	var row=tbl.rows[rowNum];
+  var type=$(tbl.rows[rowNum].cells[0]).find('select').val();
+  if (type == 'Alt Burial') {
+  	$('input', tbl.rows[rowNum].cells[2]).autocomplete({ defaultNs:'Place', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
+  }
+  else {
+  	$('input', tbl.rows[rowNum].cells[2]).autocomplete({ defaultNs:'NoCemetery', dontCache: true, matchCommaPhrases:1, ignoreCase:1});
+  }
 }
 
 function addSource() {
