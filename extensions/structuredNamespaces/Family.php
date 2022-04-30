@@ -666,7 +666,7 @@ END;
 
 		// add javascript functions
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/jquery.tablednd_0_5.yui.1.js\"></script>");
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.38.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.39.js\"></script>");
 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 
 		$tm = new TipManager();
