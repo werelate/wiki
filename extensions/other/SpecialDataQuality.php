@@ -258,7 +258,7 @@ class DataQuality {
 		if ( $offsetCond ) {
 			$conds[] = $offsetCond;
 		}
-		$fields = array( 'dq_namespace', 'dq_title', 'dqi_issue_desc' );
+		$fields = array( 'dq_page_id', 'dq_namespace', 'dq_title', 'dqi_issue_desc' );
  
 		$res = $dbr->select( array( 'dq_issue', 'dq_page' ), $fields, $conds, $fname, $options );
 
@@ -269,13 +269,6 @@ class DataQuality {
 		// Read the rows into an array
 		$rows = array();
 		while ( $row = $dbr->fetchObject( $res ) ) {
-			$pageTitle = $row->dq_title;
-			if ($row->dq_namespace == 108) {
-			  $pieces = explode('_', $pageTitle);
-			  if (count($pieces) >= 2) {
-			    $pageTitle = implode('_',array_slice($pieces, 1, -1)).'_'.$pieces[0].'_'.$pieces[count($pieces)-1];
-			  }
-			}
 			$rows[] = $row;
 		}
 		$dbr->freeResult( $res );
@@ -329,10 +322,10 @@ class DataQuality {
 
 		$wgOut->addHTML( '<table>' );
 		foreach ( $rows as $row ) {
-			$nt = Title::makeTitle( $row->dq_namespace, $row->dq_title );
+      $nt = Title::newFromID($row->dq_page_id);      // get title from the wiki database because special characters are saved differently in the dq tables
       $pageTitle = '';
-      if ($row->dq_namespace == 108) {
-			  $pieces = explode('_', $row->dq_title);
+      if ($row->dq_namespace == 108) { 
+			  $pieces = explode('_', $nt->getDbkey());
 			  if (count($pieces) >= 2) {
 			    $pageTitle = 'Person:'.implode(' ',array_slice($pieces, 1, -1)).', '.$pieces[0].' '.$pieces[count($pieces)-1];
 			  }
