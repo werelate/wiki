@@ -131,9 +131,11 @@ class DataQuality {
 		  $res = $dbr->select( array( 'familytree' ), array( 'ft_name' , 'ft_tree_id'), $conds, $fname, $options );
 		  while ( $row = $dbr->fetchObject( $res ) ) {
         $treeCounter++;
+        /* Searching in all of a users' trees times out (even after 5 minutes) - don't add this option back unless an indexing solution is found
         if ($treeCounter==1) {
           $myTreeOptions['In any of MyTrees'] = 'all';
         }
+        */
 			  $myTreeOptions[substr($row->ft_name,0,30)] = $row->ft_tree_id;
 		  }
 		  $dbr->freeResult( $res );
