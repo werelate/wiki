@@ -26,16 +26,35 @@ function wfSpecialDataQuality() {
 
 class DataQuality {
 	var $request;
-	var $limit, $fromPage, $fromIssue, $dir, $target;
+	var $limit, $fromOrder, $dir, $target;
 	var $selfTitle, $skin;
  
   private static $DATA_QUALITY_CATEGORIES = array(
-//      'all' => '',  
-//      'Anomalies' => 'Anomaly',
+      'all' => '',  
+      'Anomalies' => 'Anomaly',
       'Errors' => 'Error',
 //      'Intergenerational' => 'Relationship',
-//      'Incomplete' => 'Incomplete',
+      'Incomplete' => 'Incomplete',
 //      'Living' => 'Living'
+   );
+   
+   private static $VERIFIED_OPTIONS = array(
+     'Exclude verified' => 'u',
+     'Include verified' => 'vu',
+     'Only verified' => 'v'
+   );  
+   
+   private static $DATA_QUALITY_TEMPLATES = array(
+     'Wife younger than' => 'UnusuallyYoungWife',
+     'Husband younger than' => 'UnusuallyYoungHusband',
+     'Wife older than' => 'UnusuallyOldWife',
+     'Husband older than' => 'UnusuallyOldHusband',
+     "Born before parents' marriage" => 'BirthBeforeParentsMarriage',
+     'Born over' => 'BirthLongAfterParentsMarriage',
+     'Born before mother was' => 'UnusuallyYoungMother',
+     'Born before father was' => 'UnusuallyYoungFather',
+     'Born after mother was' => 'UnusuallyOldMother',
+     'Born after father was' => 'UnusuallyOldFather'
    );
 
 	function DataQuality( &$request ) {
@@ -53,15 +72,7 @@ class DataQuality {
 			$this->limit = 50;
 		}
 
-		$flds = split(':', $this->request->getText( 'from' ), 3);
-    if ( count($flds) == 3 ) {
-		  $this->fromPage = $flds[0] . ':' . $flds[1];
-		  $this->fromIssue = $flds[2];
-    }
-    else {
-		  $this->fromPage = '';
-		  $this->fromIssue = '';
-    }
+    $this->fromOrder = $this->request->getText( 'from' );
 		$this->dir = $this->request->getText( 'dir', 'next' );
 		if ( $this->dir != 'prev' ) {
 			$this->dir = 'next';
@@ -87,11 +98,14 @@ class DataQuality {
 		} else {
 			$cacheNotice = wfMsg( 'perfcached' );
 		}
-		$wgOut->addWikiText( $cacheNotice . " See [[Help:Monitoring Data Quality]] for more information, including why you can't select a different category.");
+		$wgOut->addWikiText( $cacheNotice . " View the [[Talk:Data Quality Issues|talk page]]. See [[Help:Monitoring Data Quality]] for more information.");
 
     // Filters
     $this->category = $wgRequest->getVal('category');
-    $this->category = 'Error';                              // temporary until other categories allowed
+    $this->verified = $wgRequest->getVal('verified');
+    if (!$this->verified) {
+      $this->verified = 'u';
+    }
     $this->watched = $wgRequest->getVal('watched');
     if (!$this->watched) {
     	$this->watched = 'wu';
@@ -111,7 +125,7 @@ class DataQuality {
       }
       else {
         $watchSelectExtra = 'disabled';
-      } 
+      }
     }
     else {
 	   	$watchSelectExtra = 'disabled';
@@ -121,7 +135,7 @@ class DataQuality {
     // Set up javascript to toggle enabling/disabling one dropdown depending on selection in another dropdown. 
     $treeSelectExtra .= ' onchange="toggleEnabled(\'tree\', \'\', \'watched\')"';
     $watchSelectExtra .= ' onchange="toggleEnabled(\'watched\', \'wu\', \'tree\')"';
-     
+
     $myTreeOptions = array();
     $myTreeOptions['Whether or not in'] = '';
     $treeCounter = 0;
@@ -141,11 +155,12 @@ class DataQuality {
 		  $dbr->freeResult( $res );
     } 
 
- 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/report.1.js\"></script>");
+ 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/report.2.js\"></script>");
 
     $parmForm = '<form method="get" action="/wiki/' . $this->selfTitle->getPrefixedURL() . '">';
     $parmForm .= '<table class="parmform"><tr><td><label for="category">Category: </label>';
-    $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'category', self::$DATA_QUALITY_CATEGORIES, $this->category, '', false) . '</td>';
+    $parmForm .= StructuredData::addSelectToHtml(0, 'category', self::$DATA_QUALITY_CATEGORIES, $this->category, '', false) . '</td>';
+    $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'verified', self::$VERIFIED_OPTIONS, $this->verified, '', false) . '</td>';
     $parmForm .= '<td><label for="tree">MyTrees: </label>';
     $parmForm .= StructuredData::addSelectToHtml(0, 'tree', $myTreeOptions, $this->tree, $treeSelectExtra, false) . '</td>';
     $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'watched', SearchForm::$WATCH_OPTIONS, $this->watched, $watchSelectExtra, false) . '</td>';
@@ -154,38 +169,36 @@ class DataQuality {
   	$parmForm .= '</form>';
   	$wgOut->addHTML( $parmForm );
 
-		$this->showIssues( $this->limit, $this->fromPage, $this->fromIssue, $this->dir, $this->category, $this->tree, $this->watched );
+		$this->showIssues( $this->limit, $this->fromOrder, $this->dir, $this->category, $this->tree, $this->verified, $this->watched );
 	}
 	/**
 	 * @param int       $level      Recursion level
 	 * @param Title     $target     Target title
 	 * @param int       $limit      Number of entries to display
-	 * @param Title     $fromPage   Display from this page title
-   * @param string    $fromIssue  Display from this issue within the page title
-	 * @param string    $dir        'next' or 'prev', whether $fromTitle is the start or end of the list
+	 * @param Title     $fromOrder  Display from this issue order number
+	 * @param string    $dir        'next' or 'prev', whether $fromOrder is the start or end of the list
 	 * @private
 	 */
-	function showIssues( $limit, $fromPage = '', $fromIssue = '', $dir = 'next', $category = '', $tree = '', $watched = 'wu' ) {
+	function showIssues( $limit, $fromOrder = '', $dir = 'next', $category = '', $tree = '', $verified = 'u', $watched = 'wu' ) {
 		global $wgOut, $wgUser;
 		$fname = 'DataQualityPage::showIssues';
 
 		$dbr =& wfGetDB( DB_SLAVE );
 
 		// Some extra validation
-		if ( !$fromPage && $dir == 'prev' ) {
+		if ( !$fromOrder && $dir == 'prev' ) {
 			// Before start? No make sense
 			$dir = 'next';
 		}
 
 		// Make the query - start with basic criteria and join conditions
 		$conds = array(
-      'dqi_job_id = (select max(dq_job_id) from dq_page)',  // driving table is dq_issue, but dq_page identifies the most recently completed job
+      'dqi_job_id = (SELECT max(dq_job_id) FROM dq_page)',  // driving table is dq_issue, but dq_page identifies the most recently completed job
       'dq_job_id = dqi_job_id',
-			'dq_page_id=dqi_page_id',
+			'dq_page_id = dqi_page_id',
 		);
 
 		$options = array();
-		$pageTitle = "case dq_namespace when 108 then concat(substring_index(substring_index(dq_title, '_', 2), '_', -1), '_', substring_index(dq_title, '_', 1), '_', substring_index(dq_title, '_', -1)) else dq_title end";    // If Person page, sort by surname then given name
    
     // If user selected a MyTree (or all MyTrees), filter based on that and ignore watched filter (it is assumed the user is watching all MyTree pages)
     if ( $tree != '' ) {
@@ -220,29 +233,27 @@ class DataQuality {
       $catCond = false;
     }
     
-    if ( $fromPage && strpos($fromPage, ':')) {
-			$flds = split(":", $fromPage, 2);
-			$fromNamespace = $dbr->addQuotes($flds[0]);
-			$fromTitle = $dbr->addQuotes($flds[1]);
-			if ($flds[0] == '108') {
-			  $pieces = explode('_', $flds[1]);
-			  if (count($pieces) >= 2) {
-			    $fromTitle = $dbr->addQuotes($pieces[1].'_'.$pieces[0].'_'.$pieces[count($pieces)-1]);
-			  }
-			}
-      $fromDesc = $dbr->addQuotes($fromIssue);
+    if ( $verified == 'v' ) {
+      $verifiedCond = 'dqi_verified_by IS NOT NULL';
+    }
+    if ( $verified == 'u' ) {
+      $verifiedCond = 'dqi_verified_by IS NULL';
+    }
+    if ( $verified == 'vu' ) {
+      $verifiedCond = false;
+    }
+        
+    if ( $fromOrder ) {
 			if ( 'prev' == $dir ) {
-				$offsetCond = "(dq_namespace < $fromNamespace OR (dq_namespace = $fromNamespace AND $pageTitle < $fromTitle) " .
-              "OR (dq_namespace = $fromNamespace AND $pageTitle = $fromTitle AND dqi_issue_desc < $fromDesc))";
-				$options['ORDER BY'] = "dq_namespace DESC, $pageTitle DESC, dqi_issue_desc DESC";
+				$offsetCond = "dqi_order < $fromOrder";
+				$options['ORDER BY'] = "dqi_order DESC";
 			} else {
-				$offsetCond = "(dq_namespace > $fromNamespace OR (dq_namespace = $fromNamespace AND $pageTitle > $fromTitle) " . 
-              "OR (dq_namespace = $fromNamespace AND $pageTitle = $fromTitle AND dqi_issue_desc >= $fromDesc))";
-				$options['ORDER BY'] = "dq_namespace, $pageTitle, dqi_issue_desc";
+				$offsetCond = "dqi_order >= $fromOrder";
+				$options['ORDER BY'] = "dqi_order";
 			}
 		} else {
 			$offsetCond = false;
-			$options['ORDER BY'] = "dq_namespace, $pageTitle, dqi_issue_desc";
+			$options['ORDER BY'] = "dqi_order";
 		}
    
 		// Read an extra row as an at-end check
@@ -251,6 +262,9 @@ class DataQuality {
 		if ( $catCond ) {
 			$conds[] = $catCond;
 		}
+    if ( $verifiedCond ) {
+      $conds[] = $verifiedCond;
+    }
 		if ( $treeCond ) {
 			$conds[] = $treeCond;
 		}
@@ -260,7 +274,7 @@ class DataQuality {
 		if ( $offsetCond ) {
 			$conds[] = $offsetCond;
 		}
-		$fields = array( 'dq_page_id', 'dq_namespace', 'dq_title', 'dqi_issue_desc' );
+		$fields = array( 'dqi_order', 'dq_page_id', 'dq_namespace', 'dq_title', 'dqi_category', 'dqi_issue_desc', 'dqi_verified_by', 'dq_viewed_by' );
  
 		$res = $dbr->select( array( 'dq_issue', 'dq_page' ), $fields, $conds, $fname, $options );
 
@@ -271,19 +285,20 @@ class DataQuality {
 		// Read the rows into an array
 		$rows = array();
 		while ( $row = $dbr->fetchObject( $res ) ) {
+      $row->dq_title = Title::newFromID($row->dq_page_id)->getDbkey();     // replace title from dq_page with title from the wiki database to handle special characters correctly 
 			$rows[] = $row;
 		}
 		$dbr->freeResult( $res );
 
 		$numRows = count( $rows );
-
+   
 		// Work out the start and end IDs, for prev/next links
 		if ( $dir == 'prev' ) {
 			// Descending order
 			if ( $numRows > $limit ) {
 				// More rows available before these ones
 				// Get the ID from the top row displayed
-				$prevId = $rows[$limit-1]->dq_namespace . ':' . $rows[$limit-1]->dq_title . ':' . $rows[$limit-1]->dqi_issue_desc;
+				$prevId = $rows[$limit-1]->dqi_order;
 				// Remove undisplayed rows
 				$rows = array_slice( $rows, 0, $limit );
 			} else {
@@ -291,7 +306,7 @@ class DataQuality {
 				$prevId = '';
 			}
 			// Assume that the ID specified in $from exists, so there must be another page
-			$nextId = $fromPage . ($fromPage == '' ? '' : ':') . $fromIssue;
+			$nextId = $fromOrder;
 
 			// Reverse order ready for display
 			$rows = array_reverse( $rows );
@@ -301,20 +316,21 @@ class DataQuality {
 			if ( $numRows > $limit ) {
 				// More rows available after these ones
 				// Get the ID from the last row in the result set
-				$nextId = $rows[$limit]->dq_namespace . ':' . $rows[$limit]->dq_title  . ':' . $rows[$limit]->dqi_issue_desc;
+				$nextId = $rows[$limit]->dqi_order;
 				// Remove undisplayed rows
 				$rows = array_slice( $rows, 0, $limit );
 			} else {
 				// No more rows after
 				$nextId = false;
 			}
-        $prevId = $fromPage . ($fromPage == '' ? '' : ':') . $fromIssue ;
+        $prevId = $fromOrder;
 		}
 
     $otherParms = '';  // add parameters such as filters to prev/next links
     if ( $category != '' ) {
       $otherParms .= '&category=' . $category;
     }
+    $otherParms .= '&verified=' . $verified;
     if ( $tree != '' ) {
       $otherParms .= '&tree=' . $tree;
     }
@@ -322,12 +338,14 @@ class DataQuality {
 	  $prevnext = $this->getPrevNext( $limit, $prevId, $nextId, $otherParms );
 		$wgOut->addHTML( $prevnext );
 
-		$wgOut->addHTML( '<table>' );
+		$wgOut->addHTML( "\n<table id=\"issue_list\">" );
+    $rowNum = 0;
 		foreach ( $rows as $row ) {
-      $nt = Title::newFromID($row->dq_page_id);      // get title from the wiki database because special characters are saved differently in the dq tables
+      $rowNum++;
+      $nt = Title::makeTitle($row->dq_namespace, $row->dq_title);      
       $pageTitle = '';
       if ($row->dq_namespace == 108) { 
-			  $pieces = explode('_', $nt->getDbkey());
+			  $pieces = explode('_', $row->dq_title);
 			  if (count($pieces) >= 2) {
 			    $pageTitle = 'Person:'.implode(' ',array_slice($pieces, 1, -1)).', '.$pieces[0].' '.$pieces[count($pieces)-1];
 			  }
@@ -335,8 +353,44 @@ class DataQuality {
 			$link = $this->skin->makeKnownLinkObj( $nt, $pageTitle );
 			$wgOut->addHTML( '<tr><td>' . $link . '</td>' );
 
-			// Display issue description
+			// Display issue description and verification info
   		$wgOut->addHTML( '<td>' . $row->dqi_issue_desc . '</td>' );
+      if ( $row->dqi_verified_by!='') {
+  		  $wgOut->addHTML( '<td>Verified by ' . $row->dqi_verified_by . '</td>' );
+      }
+      else {
+        $wgOut->addHTML( '<td></td>' );
+      }
+      
+      // If user is logged in, add verify button (if applicable) and deferred info/button
+      if ( $wgUser->isLoggedIn() ) {
+        if ( $row->dqi_category == "Anomaly" ) {
+          $template = '';
+          foreach ( array_keys(self::$DATA_QUALITY_TEMPLATES) as $partialIssueDesc ) {
+            if ( substr($row->dqi_issue_desc, 0, strlen($partialIssueDesc)) == $partialIssueDesc ) {
+              $template = urlencode(self::$DATA_QUALITY_TEMPLATES[$partialIssueDesc]);
+              break;  
+            }
+          }
+          if ( $template != '' ) {
+            $wgOut->addHTML( '<td><input type="button" id="verify' . $rowNum . '" title="Track that you verified this isn\'t an error and added sources as necessary to support the data" value="' . 
+                    wfMsgExt( 'verified', array( 'escape') ) . 
+                    '" onClick="addVerifiedTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->dq_namespace . ',\'' . $row->dq_title . '\',\'' . 
+                    $template . '\',\'' . urlencode($row->dqi_issue_desc) . '\')" /></td>' );
+          }  
+        }
+        else {
+          $wgOut->addHTML( '<td></td>' );
+        }
+        if ( strpos($row->dq_viewed_by, '|' . $wgUser->getName() . '|') !== false ) {
+          $wgOut->addHTML( '<td><span class="attn">Deferred</span></td>');
+        }  
+        else {
+          $wgOut->addHTML( '<td><input type="button" id="defer' . $rowNum . '" title="Do not show me this issue again until I request to see hidden issues." value="' . 
+                  wfMsgExt( 'deferissue', array( 'escape') ) . 
+                  '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->dq_namespace . ',\'' . $row->dq_title . '\')" /></td>' );
+        }      
+      }
 			$wgOut->addHTML( "</tr>\n" );
 		}
 		$wgOut->addHTML( "</table>\n" );
