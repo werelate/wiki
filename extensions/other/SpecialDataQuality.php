@@ -168,6 +168,16 @@ class DataQuality {
 	  $parmForm .= '<td><input type="submit" value="' . wfMsgExt( 'allpagessubmit', array( 'escape') ) . '" /></td></tr></table>';
   	$parmForm .= '</form>';
   	$wgOut->addHTML( $parmForm );
+   
+    // If user is filtering on watchlist or a MyTree, limit the number of rows that will be returned, for performance reasons.   
+    if ($this->watched=='w' && $this->limit > 50) {
+      $wgOut->addHTML('<p><span class="attn">Note</span>: When selecting only watched pages, scrolling is limited to 50 issues at a time, for performance reasons.</p>');
+      $this->limit = 50;
+    }
+    if ($this->tree!='' && $this->limit > 20) {
+      $wgOut->addHTML('<p>Note: When filtering on a MyTree, scrolling is limited to 20 issues at a time, for performance reasons.</p>');
+      $this->limit = 20;
+    }
 
 		$this->showIssues( $this->limit, $this->fromOrder, $this->dir, $this->category, $this->tree, $this->verified, $this->watched );
 	}
