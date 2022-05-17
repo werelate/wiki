@@ -295,7 +295,9 @@ class DataQuality {
 		// Read the rows into an array
 		$rows = array();
 		while ( $row = $dbr->fetchObject( $res ) ) {
-      $row->dq_title = Title::newFromID($row->dq_page_id)->getDbkey();     // replace title from dq_page with title from the wiki database to handle special characters correctly 
+      if ( Title::newFromID($row->dq_page_id) != null ) {                    // check for null, which occurs if page deleted (keep row in output to ensure numRows > limit if applicable)
+        $row->dq_title = Title::newFromID($row->dq_page_id)->getDbkey();     // replace title from dq_page with title from the wiki database to handle special characters correctly
+      } 
 			$rows[] = $row;
 		}
 		$dbr->freeResult( $res );
