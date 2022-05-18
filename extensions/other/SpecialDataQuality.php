@@ -206,6 +206,7 @@ class DataQuality {
       'dqi_job_id = (SELECT max(dq_job_id) FROM dq_page)',  // driving table is dq_issue, but dq_page identifies the most recently completed job
       'dq_job_id = dqi_job_id',
 			'dq_page_id = dqi_page_id',
+      'page_id = dqi_page_id',
 		);
 
 		$options = array();
@@ -214,10 +215,10 @@ class DataQuality {
     if ( $tree != '' ) {
       $watchedCond = false;
       if ( $tree == 'all' ) {
-        $treeCond = '(dq_namespace, dq_title) IN (SELECT fp_namespace, fp_title FROM familytree_page WHERE fp_user_id = ' . $wgUser->getId() . ')';
+        $treeCond = '(page_namespace, page_title) IN (SELECT fp_namespace, fp_title FROM familytree_page WHERE fp_user_id = ' . $wgUser->getId() . ')';
       }
       else {
-        $treeCond = '(dq_namespace, dq_title) IN (SELECT fp_namespace, fp_title FROM familytree_page WHERE fp_tree_id = ' . $tree . ')';
+        $treeCond = '(page_namespace, page_title) IN (SELECT fp_namespace, fp_title FROM familytree_page WHERE fp_tree_id = ' . $tree . ')';
       }
     }  
     else {
@@ -232,7 +233,7 @@ class DataQuality {
         $watchedCond = false;
       }
       else {
-        $watchedCond = '(dq_namespace, dq_title) ' . $watchedSelect . ' (SELECT wl_namespace, wl_title FROM watchlist WHERE wl_user = ' . $wgUser->getID() . ')';
+        $watchedCond = '(page_namespace, page_title) ' . $watchedSelect . ' (SELECT wl_namespace, wl_title FROM watchlist WHERE wl_user = ' . $wgUser->getID() . ')';
       }
     }
     
@@ -284,9 +285,10 @@ class DataQuality {
 		if ( $offsetCond ) {
 			$conds[] = $offsetCond;
 		}
-		$fields = array( 'dqi_order', 'dq_page_id', 'dq_namespace', 'dq_title', 'dqi_category', 'dqi_issue_desc', 'dqi_verified_by', 'dq_viewed_by' );
+    // Read page_title (and namespace) from the page table because it has the same charset and collation sequence as tables used for filters (allows matching on index)
+		$fields = array( 'dqi_order', 'dq_page_id', 'page_namespace', 'page_title', 'dqi_category', 'dqi_issue_desc', 'dqi_verified_by', 'dq_viewed_by' );
  
-		$res = $dbr->select( array( 'dq_issue', 'dq_page' ), $fields, $conds, $fname, $options );
+		$res = $dbr->select( array( 'dq_issue', 'dq_page', 'page' ), $fields, $conds, $fname, $options );
 
 		if ( !$dbr->numRows( $res ) ) {
 			return;
@@ -295,7 +297,6 @@ class DataQuality {
 		// Read the rows into an array
 		$rows = array();
 		while ( $row = $dbr->fetchObject( $res ) ) {
-      $row->dq_title = Title::newFromID($row->dq_page_id)->getDbkey();     // replace title from dq_page with title from the wiki database to handle special characters correctly 
 			$rows[] = $row;
 		}
 		$dbr->freeResult( $res );
@@ -352,10 +353,10 @@ class DataQuality {
     $rowNum = 0;
 		foreach ( $rows as $row ) {
       $rowNum++;
-      $nt = Title::makeTitle($row->dq_namespace, $row->dq_title);      
+      $nt = Title::makeTitle($row->page_namespace, $row->page_title);      
       $pageTitle = '';
-      if ($row->dq_namespace == 108) { 
-			  $pieces = explode('_', $row->dq_title);
+      if ($row->page_namespace == 108) { 
+			  $pieces = explode('_', $row->page_title);
 			  if (count($pieces) >= 2) {
 			    $pageTitle = 'Person:'.implode(' ',array_slice($pieces, 1, -1)).', '.$pieces[0].' '.$pieces[count($pieces)-1];
 			  }
@@ -385,7 +386,7 @@ class DataQuality {
           if ( $template != '' ) {
             $wgOut->addHTML( '<td><input type="button" id="verify' . $rowNum . '" title="Track that you verified this isn\'t an error and added sources as necessary to support the data" value="' . 
                     wfMsgExt( 'verified', array( 'escape') ) . 
-                    '" onClick="addVerifiedTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->dq_namespace . ',\'' . $row->dq_title . '\',\'' . 
+                    '" onClick="addVerifiedTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
                     $template . '\',\'' . urlencode($row->dqi_issue_desc) . '\')" /></td>' );
           }  
         }
@@ -398,7 +399,7 @@ class DataQuality {
         else {
           $wgOut->addHTML( '<td><input type="button" id="defer' . $rowNum . '" title="Do not show me this issue again until I request to see hidden issues." value="' . 
                   wfMsgExt( 'deferissue', array( 'escape') ) . 
-                  '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->dq_namespace . ',\'' . $row->dq_title . '\')" /></td>' );
+                  '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\')" /></td>' );
         }      
       }
 			$wgOut->addHTML( "</tr>\n" );
