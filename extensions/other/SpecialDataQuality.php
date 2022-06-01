@@ -286,7 +286,7 @@ class DataQuality {
 			$conds[] = $offsetCond;
 		}
     // Read page_title (and namespace) from the page table because it has the same charset and collation sequence as tables used for filters (allows matching on index)
-		$fields = array( 'dqi_order', 'dq_page_id', 'page_namespace', 'page_title', 'dqi_category', 'dqi_issue_desc', 'dqi_verified_by', 'dq_viewed_by' );
+		$fields = array( 'dqi_order', 'dq_page_id', 'page_namespace', 'page_title', 'dq_actual_birth_year', 'dqi_category', 'dqi_issue_desc', 'dqi_verified_by', 'dq_viewed_by' );
  
 		$res = $dbr->select( array( 'dq_issue', 'dq_page', 'page' ), $fields, $conds, $fname, $options );
 
@@ -364,7 +364,8 @@ class DataQuality {
 			$link = $this->skin->makeKnownLinkObj( $nt, $pageTitle );
 			$wgOut->addHTML( '<tr><td>' . $link . '</td>' );
 
-			// Display issue description and verification info
+			// Display birth year (if known), issue description and verification info
+      $wgOut->addHTML( '<td>' . (is_null($row->dq_actual_birth_year) ? ' ' : 'b.' . $row->dq_actual_birth_year) . '</td>' );
   		$wgOut->addHTML( '<td>' . $row->dqi_issue_desc . '</td>' );
       if ( $row->dqi_verified_by!='') {
   		  $wgOut->addHTML( '<td>Verified by ' . $row->dqi_verified_by . '</td>' );
@@ -388,6 +389,9 @@ class DataQuality {
                     wfMsgExt( 'verified', array( 'escape') ) . 
                     '" onClick="addVerifiedTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
                     $template . '\',\'' . urlencode($row->dqi_issue_desc) . '\')" /></td>' );
+          }
+          else {
+            $wgOut->addHTML( '<td></td>' );
           }  
         }
         else {
