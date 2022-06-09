@@ -44,6 +44,17 @@ class DataQuality {
      'Only verified' => 'v'
    );  
    
+   private static $YEAR_RANGE_OPTIONS = array(
+     'Any year' => '',
+     'Bef 1500' => 'bef1500',
+     '1500s' => '15',
+     '1600s' => '16',
+     '1700s' => '17',
+     '1800s' => '18',
+     '1900s' => '19',
+     '2000s' => '20'
+   );  
+   
    private static $DATA_QUALITY_TEMPLATES = array(
      'Wife younger than' => 'UnusuallyYoungWife',
      'Husband younger than' => 'UnusuallyYoungHusband',
@@ -106,6 +117,10 @@ class DataQuality {
     if (!$this->verified) {
       $this->verified = 'u';
     }
+    $this->byear = $wgRequest->getVal('byear');
+    if (!$this->byear) {
+      $this->byear = '';
+    }
     $this->watched = $wgRequest->getVal('watched');
     if (!$this->watched) {
     	$this->watched = 'wu';
@@ -161,6 +176,8 @@ class DataQuality {
     $parmForm .= '<table class="parmform"><tr><td><label for="category">Category: </label>';
     $parmForm .= StructuredData::addSelectToHtml(0, 'category', self::$DATA_QUALITY_CATEGORIES, $this->category, '', false) . '</td>';
     $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'verified', self::$VERIFIED_OPTIONS, $this->verified, '', false) . '</td>';
+    $parmForm .= '<td><label for="byear">Born: </label>';
+    $parmForm .= StructuredData::addSelectToHtml(0, 'byear', self::$YEAR_RANGE_OPTIONS, $this->byear, '', false) . '</td>';
     $parmForm .= '<td><label for="tree">MyTrees: </label>';
     $parmForm .= StructuredData::addSelectToHtml(0, 'tree', $myTreeOptions, $this->tree, $treeSelectExtra, false) . '</td>';
     $parmForm .= '<td>' . StructuredData::addSelectToHtml(0, 'watched', SearchForm::$WATCH_OPTIONS, $this->watched, $watchSelectExtra, false) . '</td>';
@@ -179,7 +196,7 @@ class DataQuality {
       $this->limit = 20;
     }
 
-		$this->showIssues( $this->limit, $this->fromOrder, $this->dir, $this->category, $this->tree, $this->verified, $this->watched );
+		$this->showIssues( $this->limit, $this->fromOrder, $this->dir, $this->category, $this->verified, $this->byear, $this->tree, $this->watched );
 	}
 	/**
 	 * @param int       $level      Recursion level
@@ -189,7 +206,7 @@ class DataQuality {
 	 * @param string    $dir        'next' or 'prev', whether $fromOrder is the start or end of the list
 	 * @private
 	 */
-	function showIssues( $limit, $fromOrder = '', $dir = 'next', $category = '', $tree = '', $verified = 'u', $watched = 'wu' ) {
+	function showIssues( $limit, $fromOrder = '', $dir = 'next', $category = '', $verified = 'u', $byear = '', $tree = '', $watched = 'wu' ) {
 		global $wgOut, $wgUser;
 		$fname = 'DataQualityPage::showIssues';
 
@@ -253,6 +270,18 @@ class DataQuality {
     if ( $verified == 'vu' ) {
       $verifiedCond = false;
     }
+    
+    if ( $byear == '' ) {
+      $byearCond = false;
+    }
+    else {
+      if ( $byear == 'bef1500' ) {
+        $byearCond = 'dq_actual_birth_year < 1500';
+      }
+      else {
+        $byearCond = 'dq_actual_birth_year between ' . $byear . '00 and ' . $byear . '99';
+      } 
+    }      
         
     if ( $fromOrder ) {
 			if ( 'prev' == $dir ) {
@@ -275,6 +304,9 @@ class DataQuality {
 		}
     if ( $verifiedCond ) {
       $conds[] = $verifiedCond;
+    }
+    if ( $byearCond ) {
+      $conds[] = $byearCond;
     }
 		if ( $treeCond ) {
 			$conds[] = $treeCond;
