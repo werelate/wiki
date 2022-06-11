@@ -379,6 +379,9 @@ class DataQuality {
       $otherParms .= '&category=' . $category;
     }
     $otherParms .= '&verified=' . $verified;
+    if ( $byear != '' ) {
+      $otherParms .= '&byear=' . $byear;
+    } 
     if ( $tree != '' ) {
       $otherParms .= '&tree=' . $tree;
     }
