@@ -509,7 +509,7 @@ END
    	$skin =& $wgUser->getSkin();
 
       $ret = '<div id="familytree-table"><table width="99%" cellpadding="5" cellspacing="0" border="0">'.
-              '<tr><td><b>Name</b></td><td><b>Pages</b></td><td><b>Imported GEDCOMs</b></td><td><b>Export a GEDCOM</b></td><td><b>Rename / Merge tree</b></td><td><b>Related pages not in tree</b></td><td><b>Other watchers</b></td><td><b>E-mail (share)</b></td><td><b>Deletion impact</b></td></tr>';   // Delete tree removed Dec 2020 by Janet Bjorndahl
+              '<tr><td><b>Name</b></td><td><b>Pages</b></td><td><b>Imported GEDCOMs</b></td><td><b>Check for issues</b></td><td><b>Export a GEDCOM</b></td><td><b>Rename / Merge tree</b></td><td><b>Related pages not in tree</b></td><td><b>Other watchers</b></td><td><b>E-mail (share)</b></td><td><b>Deletion impact</b></td></tr>';   // Delete tree removed Dec 2020 by Janet Bjorndahl
 /*
       $ret = '<div id="familytree-table"><table width="99%" cellpadding="5" cellspacing="0" border="0">'.
               '<tr><td><b>Name</b></td><td><b>Pages</b></td><td><b>Imported GEDCOMs</b></td><td><b>Export a GEDCOM</b></td><td><b>Rename / Merge tree</b></td><td><b>Related pages not in tree</b></td><td><b>Other watchers</b></td><td><b>E-mail (share)</b></td><td><b>Deletion impact</b></td><td><b>Delete</b></td></tr>';
@@ -519,6 +519,7 @@ END
       if (!is_null($familyTrees)) {
          foreach($familyTrees as $familyTree) {
             $gedcom = $this->getGedcoms($db, $familyTree['id'], $familyTree['name']);
+            $quality = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'DataQuality'), 'check', wfArrayToCGI(array('tree' => $familyTree['id']))); // added Jun 2022 JB
             $export = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'export', wfArrayToCGI(array('action'=> 'exportGedcom', 'name' => $familyTree['name'])), 
             				'', '', '', ' title="Export a GEDCOM file of the pages in this tree"');
             $rename = $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Trees'), 'rename&nbsp;/&nbsp;merge', wfArrayToCGI(array('action'=> 'renameTree', 'name' => $familyTree['name'])),
@@ -545,7 +546,7 @@ END
                 wfArrayToCGI(array('mode' => 'explore', 'user' => $wgUser->getName(), 'tree' => $familyTree['name'], 'liststart' => '0', 'listrows' => '20', 'listns' => '')));
               $ret .= " (&nbsp;$explore&nbsp;)";
               }
-            $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td></tr>";   // delete tree link removed Dec 2020 by Janet Bjorndahl
+            $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$quality</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td></tr>";   // delete tree link removed Dec 2020 by Janet Bjorndahl
 /*            
             $ret .= '</span><td>' . $familyTree['count'] . "</td><td>$gedcom</td><td>$export</td><td>$rename</td><td>$relatedPages</td><td>$countWatchers</td><td>$email</td><td>$deletionImpact</td><td>$delete</td></tr>";
 */            
