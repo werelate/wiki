@@ -16,12 +16,12 @@ function wfDataQualitySetup() {
 
 /**
  * Entry point
- * @param string $par An article name ??
+ * @param string $par Can be a user name - if so, default to watched pages
  */
-function wfSpecialDataQuality() {
+function wfSpecialDataQuality( $par ) {
 	global $wgRequest;
 	$page = new DataQuality( $wgRequest );
-	$page->execute();
+	$page->execute( $par );
 }
 
 class DataQuality {
@@ -74,7 +74,7 @@ class DataQuality {
 		$this->skin =& $wgUser->getSkin();
 	}
 
-	function execute() {
+	function execute( $par ) {
 		global $wgOut, $wgRequest, $wgLang, $wgUser, $wgScriptPath;
 		$fname = 'DataQualityPage::execute';
 
@@ -123,7 +123,12 @@ class DataQuality {
     }
     $this->watched = $wgRequest->getVal('watched');
     if (!$this->watched) {
-    	$this->watched = 'wu';
+      if ( $wgUser->isLoggedIn() && $par == $wgUser->getName() ) {
+        $this->watched = 'w'; 
+      }
+      else {
+      	$this->watched = 'wu';
+      }
     }
     $this->tree = $wgRequest->getVal('tree');
     
@@ -374,6 +379,9 @@ class DataQuality {
       $otherParms .= '&category=' . $category;
     }
     $otherParms .= '&verified=' . $verified;
+    if ( $byear != '' ) {
+      $otherParms .= '&byear=' . $byear;
+    } 
     if ( $tree != '' ) {
       $otherParms .= '&tree=' . $tree;
     }
