@@ -175,7 +175,7 @@ class DataQuality {
 		  $dbr->freeResult( $res );
     } 
 
- 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/report.2.js\"></script>");
+ 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/report.3.js\"></script>");
 
     $parmForm = '<form method="get" action="/wiki/' . $this->selfTitle->getPrefixedURL() . '">';
     $parmForm .= '<table class="parmform"><tr><td><label for="category">Category: </label>';
@@ -441,7 +441,7 @@ class DataQuality {
           $wgOut->addHTML( '<td><span class="attn">Deferred</span></td>');
         }  
         else {
-          $wgOut->addHTML( '<td><input type="button" id="defer' . $rowNum . '" title="Do not show me this issue again until I request to see hidden issues." value="' . 
+          $wgOut->addHTML( '<td><input type="button" id="defer' . $rowNum . '" title="Mark this issue as deferred so that you can ignore it for now." value="' . 
                   wfMsgExt( 'deferissue', array( 'escape') ) . 
                   '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\')" /></td>' );
         }      

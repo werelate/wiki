@@ -49,6 +49,7 @@ function wfAddVerifiedTemplate() {
   $pageId = $wgRequest->getVal('pid'); 
   $callback = $wgRequest->getVal('callback');
   $desc = urldecode($wgRequest->getVal('desc'));
+  $comments = urldecode($wgRequest->getVal('comments'));
   $addWatches = $wgUser->getOption( 'watchdefault' );
 
   $pageTitle = Title::newFromText($titleString, $namespace);
@@ -59,7 +60,8 @@ function wfAddVerifiedTemplate() {
 	  if ($targetTalkContents) {
 			$targetTalkContents = rtrim($targetTalkContents) . "\n\n";
 		}
-		$success = $article->doEdit($targetTalkContents . '{{' . $templateName . '|' . date("j M Y") . '|[[User:' . $wgUser->getName() . '|' . $wgUser->getName() . ']]}}', "Add $templateName template");
+		$success = $article->doEdit($targetTalkContents . '{{' . $templateName . '|' . date("j M Y") . '|[[User:' . $wgUser->getName() . '|' . $wgUser->getName() . ']]|' . 
+                $comments . '}}', "Add $templateName template");
     if ($success) {
 		  if ($addWatches) {
    		  StructuredData::addWatch($wgUser, $article, true);
