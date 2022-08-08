@@ -132,7 +132,11 @@ class WhatLinksHerePage {
 		);
 
 		$options = array();
-		$pageTitle = "case page_namespace when 108 then concat(substring_index(substring_index(page_title, '_', 2), '_', -1), '_', substring_index(page_title, '_', 1), '_', substring_index(page_title, '_', -1)) else page_title end";
+		$pageTitle = "CASE page_namespace WHEN 108 THEN CONCAT(" .       // sort description fixed to handle surnames with spaces Aug 2022 by Janet Bjorndahl
+          "SUBSTRING(page_title, POSITION('_' IN page_title)+1, LENGTH(page_title)-POSITION('_' IN page_title)-LENGTH(SUBSTRING_INDEX(page_title,'_',-1))-1)," . // surname
+          "',_', SUBSTRING_INDEX(page_title, '_', 1)," . // given
+          "'_', SUBSTRING_INDEX(page_title, '_', -1)) " . // number 
+          "ELSE page_title END";
    
     if ( $ns == '' ) {      // filters on namespace and whether watched added Sep 2020 by Janet Bjorndahl 
       $nsCond = false;

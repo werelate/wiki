@@ -65,7 +65,9 @@ class DataQuality {
      'Born before mother was' => 'UnusuallyYoungMother',
      'Born before father was' => 'UnusuallyYoungFather',
      'Born after mother was' => 'UnusuallyOldMother',
-     'Born after father was' => 'UnusuallyOldFather'
+     'Born after father was' => 'UnusuallyOldFather',
+     'Christened/baptized after mother died' => 'BaptismAfterMothersDeath',
+     'Christened/baptized more than 1 year after father died' => 'BaptismWellAfterFathersDeath'
    );
 
 	function DataQuality( &$request ) {
@@ -109,7 +111,7 @@ class DataQuality {
 		} else {
 			$cacheNotice = wfMsg( 'perfcached' );
 		}
-		$wgOut->addWikiText( $cacheNotice . " View the [[Talk:Data Quality Issues|talk page]]. See [[Help:Monitoring Data Quality]] for more information.");
+		$wgOut->addWikiText( $cacheNotice . " View the [[Talk:Data Quality Issues|talk page]]. <span class=\"firstHeading\">See [[Help:Monitoring Data Quality]] for more information.</span>");
 
     // Filters
     $this->category = $wgRequest->getVal('category');
@@ -123,7 +125,7 @@ class DataQuality {
     }
     $this->watched = $wgRequest->getVal('watched');
     if (!$this->watched) {
-      if ( $wgUser->isLoggedIn() && $par == $wgUser->getName() ) {
+      if ( $wgUser->isLoggedIn() && ($par == urlencode($wgUser->getName()) || $par == str_replace('+','_',urlencode($wgUser->getName()))) ) {    /* fixed bug Aug 2022 JB */
         $this->watched = 'w'; 
       }
       else {
@@ -175,7 +177,7 @@ class DataQuality {
 		  $dbr->freeResult( $res );
     } 
 
- 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/report.3.js\"></script>");
+ 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/report.4.js\"></script>");
 
     $parmForm = '<form method="get" action="/wiki/' . $this->selfTitle->getPrefixedURL() . '">';
     $parmForm .= '<table class="parmform"><tr><td><label for="category">Category: </label>';
@@ -401,6 +403,14 @@ class DataQuality {
 			    $pageTitle = 'Person:'.implode(' ',array_slice($pieces, 1, -1)).', '.$pieces[0].' '.$pieces[count($pieces)-1];
 			  }
       }
+      else {
+        $parts = explode('_and_', $row->page_title);
+        if (count($parts) == 2) {
+  			  $piecesh = explode('_', $parts[0]);
+  			  $piecesw = explode('_', $parts[1]);
+          $pageTitle = 'Family:'.implode(' ',array_slice($piecesh, 1)).', '.$piecesh[0].' and '.implode(' ',array_slice($piecesw, 1, -1)).', '.$piecesw[0].' '.$piecesw[count($piecesw)-1];
+        }
+      }
 			$link = $this->skin->makeKnownLinkObj( $nt, $pageTitle );
 			$wgOut->addHTML( '<tr><td>' . $link . '</td>' );
 
@@ -426,7 +436,7 @@ class DataQuality {
           }
           if ( $template != '' ) {
             $wgOut->addHTML( '<td><input type="button" id="verify' . $rowNum . '" title="Track that you verified this isn\'t an error and added sources as necessary to support the data" value="' . 
-                    wfMsgExt( 'verified', array( 'escape') ) . 
+                    (($row->dqi_verified_by=='') ? wfMsgExt( 'verified', array( 'escape') ) : wfMsgExt( 'verifiedagain', array( 'escape') )) . 
                     '" onClick="addVerifiedTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
                     $template . '\',\'' . urlencode($row->dqi_issue_desc) . '\')" /></td>' );
           }
@@ -443,7 +453,8 @@ class DataQuality {
         else {
           $wgOut->addHTML( '<td><input type="button" id="defer' . $rowNum . '" title="Mark this issue as deferred so that you can ignore it for now." value="' . 
                   wfMsgExt( 'deferissue', array( 'escape') ) . 
-                  '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\')" /></td>' );
+                  '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
+                  urlencode($row->dqi_issue_desc) . '\')" /></td>' );
         }      
       }
 			$wgOut->addHTML( "</tr>\n" );

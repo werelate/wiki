@@ -26,11 +26,11 @@ function addVerifiedTemplate(rowNum, pageId, ns, title, template, desc) {
 }
 
 /* Add a template to a Talk page to indicate that the user has defered resolution of issues on a Person/Family page for now. The Talk page will be created if it doesn't already exist. */
-function addDeferredTemplate(rowNum, pageId, ns, title) {
+function addDeferredTemplate(rowNum, pageId, ns, title, desc) {
   var comments = encodeURIComponent(prompt("Enter any comments you wish to leave on the Talk page", "none")); 
   // If user selected "cancel" (comments = 'null'), don't proceed with the template
   if ( comments !== 'null' ) {
-	  $.getJSON('/w/index.php?action=ajax&rs=wfAddDeferredTemplate&pid=' + pageId + '&ns=' + ns + '&title=' + title + '&comments=' + comments + '&callback=?', function(success) {
+	  $.getJSON('/w/index.php?action=ajax&rs=wfAddDeferredTemplate&pid=' + pageId + '&ns=' + ns + '&title=' + title + '&desc=' + desc + '&comments=' + comments + '&callback=?', function(success) {
       if (success) {
         $('#' + 'defer' + rowNum).replaceWith('<span class="attn">&nbsp;Deferred</span>');
       }
