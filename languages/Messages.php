@@ -2099,8 +2099,11 @@ Please confirm that really want to recreate this page.',
 # Data quality issues    // added Apr 2022 by Janet Bjorndahl
 'DQissues' => 'Data Quality Issues',
 'unusualsituations' => '(incomplete data, errors and unusual situations that should be reviewed)',
-'verified' => 'Verified by me',
-'deferissue' => 'Defer'
+'verified' => 'Verified',
+'verifiedagain' => 'Verified (again)',
+'deferissue' => 'Defer',
+'DQstatistics' => 'Data Quality Statistics',    // added Aug 2022 by Janet Bjorndahl
+'trackingDQprogress' => '(a way to measure the health of the data and track progress on addressing issues)',
 
 );
 

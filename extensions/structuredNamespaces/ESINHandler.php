@@ -178,8 +178,10 @@ class ESINHandler extends StructuredData {
    /**
     * Check for events out of order. This function returns true, false or a number (the number of years an event is too early or late), not the specific issue.
     * This only checks events on the person page, excluding marriage events, because the marriage page might be wrong and the user still needs to save the person page.  
-    * Created Nov 2021 by Janet Bjorndahl; modified Feb 2022 to return the number of years
+    * Created Nov 2021 by Janet Bjorndahl; modified Feb 2022 to return the number of years; modified Aug 2022 to allow Religion after death
     */
+    
+   // Note: Keep the rules in sync with similar rules in AnalyzeDataQuality.java (Data Quality Issues reporting) 
    public static function hasEventsOutOfOrder($person) {
       $xml = $person->xml;
       if (isset($xml->event_fact)) {
@@ -245,10 +247,11 @@ class ESINHandler extends StructuredData {
             // Ignore events without dates, as some of them automatically sort after the death event
             // Note that Will is excluded from this list because it is sometimes used for the date the will was presented to the court (before it was proved)
             // Property is excluded because it is sometimes used to note property disposition (or lack thereof) after death
+            // Religion is excluded because it is sometimes used to indicate when sainthood was conferred
             if ( ($hitDeathEvent || $hitBurialEvent) && $ef['date'] != '' && substr($ef['type'],0,3) != 'Alt' &&
                      $ef['type'] != 'Death' && $ef['type'] != 'Burial' && $ef['type'] != 'Obituary' && $ef['type'] != 'Funeral' && $ef['type'] != 'Cremation'  && 
                      $ef['type'] != 'Estate Inventory' && $ef['type'] != 'Probate' && $ef['type'] != 'Estate Settlement' && $ef['type'] != 'DNA' &&
-                     $ef['type'] != 'Other' && $ef['type'] != 'Cause of Death' && $ef['type'] != 'Will' && $ef['type'] != 'Property') {
+                     $ef['type'] != 'Other' && $ef['type'] != 'Cause of Death' && $ef['type'] != 'Will' && $ef['type'] != 'Property'  && $ef['type'] != 'Religion') {
                if ( DateHandler::getEffectiveYear($ef['date']) !== false ) {
                   if ( $deathLatestYear != -9999 ) {
                      return (int)DateHandler::getEffectiveYear($ef['date']) - $deathLatestYear;

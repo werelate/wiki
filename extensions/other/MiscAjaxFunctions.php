@@ -39,7 +39,7 @@ function wfRetrieveSource() {
   return $json;
 }
 
-// Add a template to a talk page to indicate that an anomaly has been verified, and update the DQ table accordingly.
+// Add a template to a talk page to indicate that an anomaly has been verified, and update the DQ table accordingly. Created May 2022 by Janet Bjorndahl
 function wfAddVerifiedTemplate() {
   global $wgRequest, $wgUser;
   
@@ -53,6 +53,14 @@ function wfAddVerifiedTemplate() {
   $addWatches = $wgUser->getOption( 'watchdefault' );
 
   $pageTitle = Title::newFromText($titleString, $namespace);
+  // Check to see if page renamed/merged since list was displayed; if so, get new title (added Aug 2022 by JB)
+  $revision = Revision::newFromTitle($pageTitle);
+  if ($revision) {
+    $redirectTitle = Title::newFromRedirect($revision->getText());
+    if ($redirectTitle) {
+      $pageTitle = $redirectTitle;
+    }
+  }
 	$article = new Article($pageTitle->getTalkPage(), 0);
   $success = false;
 	if ( $wgUser->isLoggedIn() && $article ) {
@@ -86,7 +94,7 @@ function wfAddVerifiedTemplate() {
   }
 }
 
-// Add a template to a talk page to indicate that the user doesn't want to see the Person/Family page on the DQ report for now, and update the DQ table accordingly.
+// Add a template to a talk page to indicate that the user has defered resolution of issues on this Person/Family page, and update the DQ table accordingly. Created May 2022 by Janet Bjorndahl
 function wfAddDeferredTemplate() {
   global $wgRequest, $wgUser;
   
@@ -95,10 +103,19 @@ function wfAddDeferredTemplate() {
   $templateName = "DeferredIssues";
   $pageId = $wgRequest->getVal('pid'); 
   $callback = $wgRequest->getVal('callback');
+  $desc = urldecode($wgRequest->getVal('desc'));
   $comments = urldecode($wgRequest->getVal('comments'));
   $addWatches = $wgUser->getOption( 'watchdefault' );
 
   $pageTitle = Title::newFromText($titleString, $namespace);
+  // Check to see if page renamed/merged since list was displayed; if so, get new title (added Aug 2022 by JB)
+  $revision = Revision::newFromTitle($pageTitle);
+  if ($revision) {
+    $redirectTitle = Title::newFromRedirect($revision->getText());
+    if ($redirectTitle) {
+      $pageTitle = $redirectTitle;
+    }
+  }
 	$article = new Article($pageTitle->getTalkPage(), 0);
   $success = false;
 	if ( $wgUser->isLoggedIn() && $article ) {
@@ -107,13 +124,13 @@ function wfAddDeferredTemplate() {
 			$targetTalkContents = rtrim($targetTalkContents) . "\n\n";
 		}
 		$success = $article->doEdit($targetTalkContents . '{{' . $templateName . '|' . date("j M Y") . '|[[User:' . $wgUser->getName() . '|' . $wgUser->getName() . ']]|' . 
-                $comments . '}}', "Add $templateName template");
+                $comments . '|' . $desc . '}}', "Add $templateName template");
     if ($success) {
 		  if ($addWatches) {
    		  StructuredData::addWatch($wgUser, $article, true);
 		  }
         
-      // Update the DQ table to indicate that the user wants to hide this page for now 
+      // Update the DQ table to indicate that the user has deferred resolution of issue(s) on this page 
    		$dbw =& wfGetDB( DB_MASTER );
       $dbw->safeQuery('UPDATE dq_page SET dq_viewed_by = IF(dq_viewed_by IS NULL, CONCAT("|", ?, "|"), CONCAT(dq_viewed_by, ?, "|")) ' . 
                       'WHERE dq_page_id=' . $pageId . ' AND dq_job_id = (SELECT MAX(dqs_job_id) FROM dq_stats)',
