@@ -79,11 +79,11 @@ class DQStats {
     $sql = 'SELECT MAX(dqs_date) as dqs_date FROM dq_stats;';
     $res = $dbr->query( $sql, $fname );
     if ( $row = $dbr->fetchObject( $res ) ) {
-      if ( substr($row->dqs_date,9,2) > "10" ) {
-        $earliest_day = substr($row->dqs_date,0,9) . substr($row->dqs_date,9,1) - 1 . substr($row->dqs_date,10,1);  // report last 10 days (within current month)
+      if ( substr($row->dqs_date,8,2) > "10" ) {
+        $earliest_day = substr($row->dqs_date,0,8) . substr($row->dqs_date,8,1) - 1 . substr($row->dqs_date,9,1);  // report last 10 days (within current month)
       }
       else {
-        $earliest_day = substr($row->dqs_date,0,9) . "00";
+        $earliest_day = substr($row->dqs_date,0,8) . "00";
       }
       $earliest_month = substr($row->dqs_date,0,4) - 1 . substr($row->dqs_date,4,3);  // report last 12 months
       $earliest_year =  substr($row->dqs_date,0,4) - 5;                               // report last 5 years
