@@ -80,7 +80,7 @@ class DQStats {
     $res = $dbr->query( $sql, $fname );
     if ( $row = $dbr->fetchObject( $res ) ) {
       if ( substr($row->dqs_date,8,2) > "10" ) {
-        $earliest_day = substr($row->dqs_date,0,8) . substr($row->dqs_date,8,1) - 1 . substr($row->dqs_date,9,1);  // report last 10 days (within current month)
+        $earliest_day = substr($row->dqs_date,0,8) . (substr($row->dqs_date,8,1) - 1) . substr($row->dqs_date,9,1);  // report last 10 days (within current month)
       }
       else {
         $earliest_day = substr($row->dqs_date,0,8) . "00";
