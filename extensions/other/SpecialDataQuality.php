@@ -215,6 +215,8 @@ class DataQuality {
 	 */
 	function showIssues( $limit, $fromOrder = '', $dir = 'next', $category = '', $verified = 'u', $byear = '', $tree = '', $watched = 'wu' ) {
 		global $wgOut, $wgUser;
+    global $wrSearchHost, $wrSearchPort, $wrSearchPath;
+   
 		$fname = 'DataQualityPage::showIssues';
 
 		$dbr =& wfGetDB( DB_SLAVE );
@@ -283,10 +285,10 @@ class DataQuality {
     }
     else {
       if ( $byear == 'bef1500' ) {
-        $byearCond = 'dq_actual_birth_year < 1500';
+        $byearCond = 'round((dq_earliest_birth_year + dq_latest_birth_year) / 2, 0) < 1500';
       }
       else {
-        $byearCond = 'dq_actual_birth_year between ' . $byear . '00 and ' . $byear . '99';
+        $byearCond = 'round((dq_earliest_birth_year + dq_latest_birth_year) / 2, 0) between ' . $byear . '00 and ' . $byear . '99';
       } 
     }      
         
@@ -325,7 +327,7 @@ class DataQuality {
 			$conds[] = $offsetCond;
 		}
     // Read page_title (and namespace) from the page table because it has the same charset and collation sequence as tables used for filters (allows matching on index)
-		$fields = array( 'dqi_order', 'dq_page_id', 'page_namespace', 'page_title', 'dq_actual_birth_year', 'dqi_category', 'dqi_issue_desc', 'dqi_verified_by', 'dq_viewed_by' );
+		$fields = array( 'dqi_order', 'dq_page_id', 'page_namespace', 'page_title', 'dq_earliest_birth_year', 'round((dq_earliest_birth_year + dq_latest_birth_year) / 2, 0) as dq_est_birth_year', 'dqi_category', 'dqi_issue_desc', 'dqi_verified_by', 'dq_viewed_by' );
  
 		$res = $dbr->select( array( 'dq_issue', 'dq_page', 'page' ), $fields, $conds, $fname, $options );
 
@@ -414,55 +416,150 @@ class DataQuality {
 			$link = $this->skin->makeKnownLinkObj( $nt, $pageTitle );
 			$wgOut->addHTML( '<tr><td>' . $link . '</td>' );
 
-			// Display birth year (if known), issue description and verification info
-      $wgOut->addHTML( '<td>' . (is_null($row->dq_actual_birth_year) ? ' ' : 'b.' . $row->dq_actual_birth_year) . '</td>' );
+			// Display birth year (if known and the same as earliest year) and issue description
+      $wgOut->addHTML( '<td>' . ((is_null($row->dq_est_birth_year) || $row->dq_est_birth_year != $row->dq_earliest_birth_year) ? ' ' : 'b.' . $row->dq_est_birth_year) . '</td>' );
   		$wgOut->addHTML( '<td>' . $row->dqi_issue_desc . '</td>' );
-      if ( $row->dqi_verified_by!='') {
-  		  $wgOut->addHTML( '<td>Verified by ' . $row->dqi_verified_by . '</td>' );
-      }
-      else {
-        $wgOut->addHTML( '<td></td>' );
-      }
-      
-      // If user is logged in, add verify button (if applicable) and deferred info/button
-      if ( $wgUser->isLoggedIn() ) {
-        if ( $row->dqi_category == "Anomaly" ) {
-          $template = '';
-          foreach ( array_keys(self::$DATA_QUALITY_TEMPLATES) as $partialIssueDesc ) {
-            if ( substr($row->dqi_issue_desc, 0, strlen($partialIssueDesc)) == $partialIssueDesc ) {
-              $template = urlencode(self::$DATA_QUALITY_TEMPLATES[$partialIssueDesc]);
-              break;  
+     
+      // Determine whether or not the issue has been fixed since the list was last produced - added Dec 2022
+      $outstanding = true;  // assume the issue still exists in case outstanding issues can't be determined
+      if ( $row->page_namespace == 108 ) {
+        $tagName = "person";
+      }        
+      else { 
+        $tagName = "family";
+      }        
+	    $structuredContent = $this->getStructuredContent($nt, $tagName);
+      if ( $structuredContent !== "" ) {
+        // Find outstanding issues for this page
+        if ( $tagName == "person" ) {
+          $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($structuredContent) . 
+                    '&ns=Person&ptitle=' . urlencode($row->page_title) . '&wt=php';
+          $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc, $tagName);
+          
+          // If issue not yet found, find outstanding issues in relation to the parents' page
+          if (!$outstanding) {
+            $parentInfo = $this->getParentInfo($structuredContent);
+            if ( $parentInfo['content'] != "" ) {
+//error_log("childtitle=" . urlencode($row->page_title) . "; parenttitle=" . urlencode($parentInfo['titlestring']) . "; content="  . urlencode($parentInfo['content']));        
+              $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($parentInfo['content']) . 
+                        '&ns=Family&ftitle=' . urlencode($parentInfo['titlestring']) . '&ctitle=' . urlencode($row->page_title) . '&wt=php';
+//error_log("response=" . file_get_contents($query));                        
+              $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc, $tagName);
             }
           }
-          if ( $template != '' ) {
-            $wgOut->addHTML( '<td><input type="button" id="verify' . $rowNum . '" title="Track that you verified this isn\'t an error and added sources as necessary to support the data" value="' . 
-                    (($row->dqi_verified_by=='') ? wfMsgExt( 'verified', array( 'escape') ) : wfMsgExt( 'verifiedagain', array( 'escape') )) . 
-                    '" onClick="addVerifiedTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
-                    $template . '\',\'' . urlencode($row->dqi_issue_desc) . '\')" /></td>' );
-          }
-          else {
-            $wgOut->addHTML( '<td></td>' );
-          }  
+        }
+        else {
+          $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($structuredContent) . 
+                    '&ns=Family&ftitle=' . urlencode($row->page_title) . '&ctitle=none' . '&wt=php';
+          $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc, $tagName);
+        }  
+      }
+      // If the issue has been fixed, display "Fixed" and nothing else on this line. 
+      if ( !$outstanding ) {   
+        $wgOut->addHTML( '<td><span class="attn">Fixed</span></td><td></td><td></td>' );
+      }
+      // If the issue is not fixed, display verification info.
+      else {
+        if ( $row->dqi_verified_by!='') {
+    		  $wgOut->addHTML( '<td>Verified by ' . $row->dqi_verified_by . '</td>' );
         }
         else {
           $wgOut->addHTML( '<td></td>' );
         }
-        if ( strpos($row->dq_viewed_by, '|' . $wgUser->getName() . '|') !== false ) {
-          $wgOut->addHTML( '<td><span class="attn">Deferred</span></td>');
-        }  
-        else {
-          $wgOut->addHTML( '<td><input type="button" id="defer' . $rowNum . '" title="Mark this issue as deferred so that you can ignore it for now." value="' . 
-                  wfMsgExt( 'deferissue', array( 'escape') ) . 
-                  '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
-                  urlencode($row->dqi_issue_desc) . '\')" /></td>' );
-        }      
-      }
-			$wgOut->addHTML( "</tr>\n" );
-		}
+      
+        // If the issue is not fixed and the user is logged in, add verify button (if applicable) and deferred info/button
+        if ( $wgUser->isLoggedIn() ) {
+          if ( $row->dqi_category == "Anomaly" ) {
+            $template = '';
+            foreach ( array_keys(self::$DATA_QUALITY_TEMPLATES) as $partialIssueDesc ) {
+              if ( substr($row->dqi_issue_desc, 0, strlen($partialIssueDesc)) == $partialIssueDesc ) {
+                $template = urlencode(self::$DATA_QUALITY_TEMPLATES[$partialIssueDesc]);
+                break;  
+              }
+            }
+            if ( $template != '' ) {
+              $wgOut->addHTML( '<td><input type="button" id="verify' . $rowNum . '" title="Track that you verified this isn\'t an error and added sources as necessary to support the data" value="' . 
+                      (($row->dqi_verified_by=='') ? wfMsgExt( 'verified', array( 'escape') ) : wfMsgExt( 'verifiedagain', array( 'escape') )) . 
+                      '" onClick="addVerifiedTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
+                      $template . '\',\'' . urlencode($row->dqi_issue_desc) . '\')" /></td>' );
+            }
+            else {
+              $wgOut->addHTML( '<td></td>' );
+            }  
+          }
+          else {
+            $wgOut->addHTML( '<td></td>' );
+          }
+          if ( strpos($row->dq_viewed_by, '|' . $wgUser->getName() . '|') !== false ) {
+            $wgOut->addHTML( '<td><span class="attn">Deferred</span></td>');
+          }  
+          else {
+            $wgOut->addHTML( '<td><input type="button" id="defer' . $rowNum . '" title="Mark this issue as deferred so that you can ignore it for now." value="' . 
+                    wfMsgExt( 'deferissue', array( 'escape') ) . 
+                    '" onClick="addDeferredTemplate(' . $rowNum . ',' . $row->dq_page_id . ',' . $row->page_namespace . ',\'' . $row->page_title . '\',\'' . 
+                    urlencode($row->dqi_issue_desc) . '\')" /></td>' );
+          }      
+        }
+		  	$wgOut->addHTML( "</tr>\n" );
+  		}
+    }
 		$wgOut->addHTML( "</table>\n" );
 
 		$wgOut->addHTML( $prevnext );
 	}
+ 
+  function getStructuredContent( $title, $tagName ) {
+   	$revision = StructuredData::getRevision($title);
+   	if ( $revision ) {
+      $text =& $revision->getText();
+     	$start = strpos($text, "<$tagName>");
+		  if ( $start !== false ) {
+        $end = strpos($text, "</$tagName>", $start);
+        if ( $end !== false ) {
+		      // We expect only one tag instance; ignore any extras
+		      return trim(substr($text, $start, $end + 3 + strlen($tagName) - $start));
+        }
+      }
+    }
+    return "";
+  }
+  
+  function getParentInfo( $content ) {
+    $parentInfo = array();
+    $parentInfo['titlestring'] = "";
+    $parentInfo['content'] = "";
+    
+    $start = strpos($content, '<child_of_family');    
+    if ( $start !== false ) {
+      $start = strpos($content, 'title="', $start);
+      if ( $start !== false ) {
+        $start = $start + 7;
+        $end = strpos($content, '"', $start);
+        if ( $end !== false ) {
+          $parentInfo['titlestring'] = trim(substr($content, $start, $end - $start));
+          $title = Title::makeTitle(110, $parentInfo['titlestring']);
+          $parentInfo['content'] = $this->getStructuredContent($title, 'family');
+        }
+      }  
+    }
+    return $parentInfo;
+  }
+  
+  // Determine if an issue is in the response string returned from a Java call
+  // Since invalid dates can show up on both Person and Family page, be sure to match issue on page type (tagName) as well as category and desc
+  function issueExists( $responseString, $category, $issueDesc, $tagName ) {
+    // extract results from response string
+    eval('$response = ' . $responseString . ';');
+    
+//error_log("issue 1: category=" . $response ['issue 1'][0] . "; issue=" . $response['issue 1'][1] . "; title=" . $response['issue 1'][2] . ":" . $response['issue 1'][3] . "/n");
+    for ( $i=1; $i<sizeof($response); $i++ ) {
+      if ( $response["issue $i"][0] == $category && $response["issue $i"][1] == $issueDesc && strtolower($response["issue $i"][2]) == $tagName) {
+        return true;
+        break;
+      }
+    }  
+    return false;
+  }
 
 	function makeSelfLink( $text, $query ) {
 		return $this->skin->makeKnownLinkObj( $this->selfTitle, $text, $query );
