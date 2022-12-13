@@ -437,15 +437,16 @@ class DataQuality {
           $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc, $tagName);
           
           // If issue not yet found, find outstanding issues in relation to the parents' page
-          if (!$outstanding) {
-            $parentInfo = $this->getParentInfo($structuredContent);
+          // Note that there may be multiple sets of parents - if so, check all because the issue could have been created for any of them
+          $remainingContent = $structuredContent;
+          while ( !$outstanding && strpos($remainingContent, '<child_of_family') !== false ) {
+            $parentInfo = $this->getParentInfo($remainingContent);
             if ( $parentInfo['content'] != "" ) {
-//error_log("childtitle=" . urlencode($row->page_title) . "; parenttitle=" . urlencode($parentInfo['titlestring']) . "; content="  . urlencode($parentInfo['content']));        
               $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($parentInfo['content']) . 
                         '&ns=Family&ftitle=' . urlencode($parentInfo['titlestring']) . '&ctitle=' . urlencode($row->page_title) . '&wt=php';
-//error_log("response=" . file_get_contents($query));                        
               $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc, $tagName);
             }
+            $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
           }
         }
         else {
@@ -536,9 +537,9 @@ class DataQuality {
         $start = $start + 7;
         $end = strpos($content, '"', $start);
         if ( $end !== false ) {
-          $parentInfo['titlestring'] = trim(substr($content, $start, $end - $start));
+          $parentInfo['titlestring'] = StructuredData::unescapeXml(trim(substr($content, $start, $end - $start)));
           $title = Title::makeTitle(110, $parentInfo['titlestring']);
-          $parentInfo['content'] = $this->getStructuredContent($title, 'family');
+          $parentInfo['content'] = StructuredData::unescapeXml($this->getStructuredContent($title, 'family'));
         }
       }  
     }
