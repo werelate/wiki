@@ -600,47 +600,56 @@ function wrValidateUser($user, &$errorMsg, $email) {
    }
 
    $needles = array(
-"163.com",
-"bali-traveller.com",
-"bestwrinklecreamnow.com",
-"brainboostingsupplements.org",
-"bursa303.win",
-"buygsalist.com",
-"captchaeu.info",
-"coloncleanse.club",
-"dietingadvise.club",
-"dynainbox.com",
-"eshreky.com",
-"geomenon.com",
-"get-bitcoins.club",
-"get-bitcoins.online",
-"gmx.com",
-"gsasearchengineranker.services",
-"gsasearchenginerankerhelp.com",
-"inbox.ru",
-"list.ru",
-"mail.ru",
-"missi.fun",
-"msgstart.com",
-"ropainterior-ck.com",
-"sazi.vn",
-"socialsergsasearchengineranker.com",
-"soleindotrade.id",
-"wirelax.com",
-"wp-viralclick.com",
-"yulua.com"
+".au",
+".nl",
+".uk",
+".us",
+".edu",
+".org",
+".net",
+"@frontier.com",
+"@googlemail.com",
+"@ovi.com",
+"@rogers.com",
+"@mailnesia.com",
+"@roadrunner.com",
+"@embarqmail.com",
+"@gmx.com",
+"@nokiamail.com",
+"@ymail.com",
+"@icloud.com",
+"@mac.com",
+"@me.com",
+"@bigpond.com",
+"@juno.com",
+"@btinternet.com",
+"@mail.com",
+"@live.com",
+"@msn.com",
+"@outlook.com",
+"@aol.com",
+"@hotmail.com",
+"@yahoo.com",
+"@gmail.com",
 );
-   foreach($needles as $needle) {
-      if ($email == '' || (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle)) {
-         $errorMsg = wfMsg( 'emailrequired' );
-         return false;
-      }
+   if (mb_strpos($user->getName(), '@') !== false) {
+      $errorMsg = wfMsg('invalidusername');
+      return false;
    }
    if (mb_strpos($user->getName(), '@') !== false) {
       $errorMsg = wfMsg('invalidusername');
       return false;
    }
-	return true;
+   if (mb_strpos($email, '@') === true) {
+       $email = mb_strtolower($email);
+       foreach($needles as $needle) {
+          if (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle) {
+             return true;
+          }
+       }
+   }
+   $errorMsg = wfMsg( 'emailrequired' );
+   return false;
 }
 
 function wrArticleSave(&$article, &$user, $text) {
