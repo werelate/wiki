@@ -257,7 +257,7 @@ class LoginForm {
 		}
 
         // WERELATE - add math captcha because google captcha doesn't seem to be enough
-		if ((int)$this->mMathEntry == (int)$this->mMathAnswer) {
+		if ((int)$this->mMathEntry != (int)$this->mMathAnswer) {
             $this->mainLoginForm( 'Please answer the math question' );
             return false;
         }
