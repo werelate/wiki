@@ -601,6 +601,7 @@ function wrValidateUser($user, &$errorMsg, $email) {
 
    $needles = array(
 ".au",
+".ca",
 ".nl",
 ".uk",
 ".us",
@@ -631,7 +632,10 @@ function wrValidateUser($user, &$errorMsg, $email) {
 "@hotmail.com",
 "@yahoo.com",
 "@gmail.com",
-);
+   );
+   $bad_needles = array(
+"gemmasmith.co.uk",
+   );
    if (mb_strpos($user->getName(), '@') !== false) {
       $errorMsg = wfMsg('invalidusername');
       return false;
@@ -642,6 +646,12 @@ function wrValidateUser($user, &$errorMsg, $email) {
    }
    if (mb_strpos($email, '@') !== false) {
        $email = mb_strtolower($email);
+       foreach($bad_needles as $needle) {
+          if (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle) {
+             $errorMsg = wfMsg( 'emailrequired' );
+             return false;
+          }
+       }
        foreach($needles as $needle) {
           if (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle) {
              return true;

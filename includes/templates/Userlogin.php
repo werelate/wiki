@@ -163,6 +163,28 @@ class UsercreateTemplate extends QuickTemplate {
 							value="<?php $this->text('realname') ?>" size='20' />
 					</td>
 			<?php } ?>
+				</tr>
+				<tr>
+				    <?php
+                        // WERELATE - add math captcha because google captcha doesn't seem to be enough
+                        $mathOne = rand( 1, 10 );
+                        $mathTwo = rand( 1, 10 );
+                        if ( rand( 0, 1 ) == 0 ) {
+                            $mathOp = "plus";
+                            $mathAnswer = $mathOne + $mathTwo;
+                        } else {
+                            $mathOp = "times";
+                            $mathAnswer = $mathOne * $mathTwo;
+                        }
+				    ?>
+					<td align='right'><label for='wpMath'>What is <?php echo "$mathOne $mathOp $mathTwo" ?> ?</label></td>
+					<td align='left'>
+						<input type='text' class='loginText' name="wpMathEntry" id="wpMathEntry"
+							value="" size='20' />
+                        <input type='hidden' name="wpMathAnswer" id="wpMathAnswer"
+                            value="<?php echo $mathAnswer ?>" />
+
+					</td>
 		</tr>
 <tr>
 <td></td><td align='left'>

@@ -42,6 +42,9 @@ class LoginForm {
 		$this->mPassword = $request->getText( 'wpPassword' );
 		$this->mRetype = $request->getText( 'wpRetype' );
 		$this->mDomain = $request->getText( 'wpDomain' );
+		// WERELATE - add math captcha because google captcha doesn't seem to be enough
+		$this->mMathEntry = $request->getText( 'wpMathEntry' );
+		$this->mMathAnswer = $request->getText( 'wpMathAnswer' );
 		$this->mReturnTo = $request->getVal( 'returnto' );
 		$this->mCookieCheck = $request->getVal( 'wpCookieCheck' );
 		$this->mPosted = $request->wasPosted();
@@ -252,6 +255,12 @@ class LoginForm {
 			$this->mainLoginForm( wfMsg( 'passwordtooshort', $wgMinimalPasswordLength ) );
 			return false;
 		}
+
+        // WERELATE - add math captcha because google captcha doesn't seem to be enough
+		if ((int)$this->mMathEntry == (int)$this->mMathAnswer) {
+            $this->mainLoginForm( 'Please answer the math question' );
+            return false;
+        }
 
 		if ( $wgAccountCreationThrottle ) {
 			$key = $wgDBname.':acctcreate:ip:'.$ip;
