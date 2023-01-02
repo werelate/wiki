@@ -46,8 +46,10 @@ class EmailForm {
 			$wgOut->showErrorPage( "nosuchspecialpage", "nospecialpagetext" );
 			return;
 		}
-	
-		if( !$wgUser->canSendEmail() ) {
+
+        // keep spammers from using WeRelate to spam people
+// 		if( !$wgUser->canSendEmail() ) {
+		if( true ) {
 			wfDebug( "User can't send.\n" );
 			$wgOut->showErrorPage( "mailnologin", "mailnologintext" );
 			return;
