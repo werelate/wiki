@@ -602,6 +602,8 @@ function wrValidateUser($user, &$errorMsg, $email) {
    $needles = array(
 ".au",
 ".ca",
+".de",
+".me",
 ".nl",
 ".uk",
 ".us",
