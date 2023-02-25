@@ -28,12 +28,20 @@ class PropagationManager {
    
    // action is propagatable if it is not found in the propagatedActions array
    public static function isPropagatableAction($pageTitle, $action, $objectPageTitle) {
+    if (!$pageTitle || !$objectPageTitle) {
+ 	    error_log("Null title: $pageTitle or object page title: $objectPageTitle");
+        return false;
+    }
    	$key = PropagationManager::getActionKey($pageTitle, $action, $objectPageTitle);
    	$result = @!PropagationManager::$propagatedActions[$key];
    	return $result;
    }
    
    public static function addPropagatedAction($pageTitle, $action, $objectPageTitle) {
+    if (!$pageTitle || !$objectPageTitle) {
+ 	    error_log("Null title: $pageTitle or object page title: $objectPageTitle");
+        return;
+    }
    	$key = PropagationManager::getActionKey($pageTitle, $action, $objectPageTitle);
    	if (@PropagationManager::$propagatedActions[$key]) {
    		error_log("Already propagated: $key");
