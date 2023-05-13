@@ -101,6 +101,7 @@ class Name extends StructuredData {
 	 * Create wiki text from xml property
 	 */
     protected function toWikiText($parser) {
+        global $wgTitle;
        $result = '';
 //		$result = '{| id="structuredData" border=1 class="floatright" cellpadding=4 cellspacing=0 width=40%'."\n";
 //		$result = "<div class=\"infobox-header\">Related Names</div>\n{|\n";
@@ -111,11 +112,24 @@ class Name extends StructuredData {
 //	            $result .= "|-\n|[[$this->tagName:{$related['name']}|{$related['name']}]]||{$related['source']}\n";
 //	        }
 //            $result .= "|}\n";
-         $names = '';
-         foreach ($this->xml->related as $related) {
-            $names .= "<li>[[{$this->tagName}:{$related['name']}|{$related['name']}]]";
-         }
-         $result = "<div class=\"wr-infobox wr-infobox-name\"><div class=\"wr-infobox-heading\">Related Names</div><ul>$names</ul></div>";
+//          $names = '';
+//          foreach ($this->xml->related as $related) {
+//             $names .= "<li>[[{$this->tagName}:{$related['name']}|{$related['name']}]]";
+//          }
+//          $result = "<div class=\"wr-infobox wr-infobox-name\"><div class=\"wr-infobox-heading\">Related Names</div><ul>$names</ul></div>";
+            $tagAbbrev = '';
+            if ($this->tagName == 'surname') {
+                $tagAbbrev = 's';
+            } else {
+                $tagAbbrev = 'g';
+            }
+            $title = urlencode($wgTitle->getText());
+            $links = "<li>[https://www.werelate.org/wiki/Special:Names?type=".$tagAbbrev."&name=".$title." Variant names project]</li>";
+            $links .= "<li>[https://www.werelate.org/wiki/Special:Search?".$tagAbbrev."=".$title." Search All]</li>";
+            if ($this->tagName == 'surname') {
+                $links .= "<li>[https://www.werelate.org/wiki/Special:Search?ns=Source&".$tagAbbrev."=".$title." Search Sources]</li>";
+            }
+            $result = "<div class=\"wr-infobox wr-infobox-name\"><div class=\"wr-infobox-heading\">Auto-Links</div><ul>$links</ul></div>";
       }
 //   	$result .= $this->showWatchers();
 //		$result .= "|}\n";
