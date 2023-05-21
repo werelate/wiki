@@ -1,7 +1,15 @@
 var map;
 var markersArray = [];
 
-function showPlaceMap() {
+function isLoaded(map) {
+   return new Promise((resolve, reject) => {
+      google.maps.event.addListenerOnce(map, 'idle', () => {
+            resolve();
+      });
+   });
+}
+
+async function showPlaceMap() {
    var size = getSize();
    // get map data
    var placeData = getPlaceData();
@@ -31,25 +39,22 @@ function showPlaceMap() {
     if (size === 1) {
         opts.mapTypeControl = true;
         opts.overviewMapControl = true;
-        opts.zoomControlOptions = { style: google.maps.ZoomControlStyle.LARGE };
     }
     else {
-        opts.zoomControlOptions = { style: google.maps.ZoomControlStyle.SMALL };
+        opts.controlSize = 16;
     }
     map = new google.maps.Map(document.getElementById("placemap"), opts);
+    await isLoaded(map);
 
-   google.maps.event.addListener(map, 'bounds_changed', function() {
-       console.log('bounds_changed');
-       for (var i = defaultZoom-1; i >= 0; i--) {
-           var bounds = map.getBounds();
-           if (bounds.contains(pointsBounds.getNorthEast()) && bounds.contains(pointsBounds.getSouthWest())) {
-           	break;
-           }
-           console.log('setZoom', i);
-           map.setZoom(i);
+   for (var i = defaultZoom-1; i >= 0; i--) {
+       var bounds = map.getBounds();
+       if (bounds.contains(pointsBounds.getNorthEast()) && bounds.contains(pointsBounds.getSouthWest())) {
+        break;
        }
-       google.maps.event.clearListeners(map, 'bounds_changed');
-   });
+       console.log('setZoom', i);
+       map.setZoom(i);
+   }
+
    if (size == 1) {
        google.maps.event.addListener(map, 'click', function(overlay, point) {
 			if (point || (overlay && (overlay instanceof google.maps.Marker))) {

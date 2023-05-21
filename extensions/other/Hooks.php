@@ -634,6 +634,8 @@ function wrValidateUser($user, &$errorMsg, $email) {
 "@hotmail.com",
 "@yahoo.com",
 "@gmail.com",
+"@q.com",
+"@rocketmail.com",
    );
    $bad_needles = array(
 "gemmasmith.co.uk",

@@ -83,10 +83,10 @@ class SpecialPlaceMap {
 		
       $mapData = str_replace("'", "\'", $mapData);
 		return 
-			"<script type=\"text/javascript\" src=\"$wgScriptPath/placemap.9.js\"></script>".
-			"<script async defer src=\"//maps.googleapis.com/maps/api/js?key=$wgGoogleMapKey&callback=showPlaceMap\"></script>".
 			"<script type=\"text/javascript\">/*<![CDATA[*/function getSize() { return $size; }/*]]>*/</script>".
-			"<script type=\"text/javascript\">/*<![CDATA[*/function getPlaceData() { return '<places>$mapData</places>'; }/*]]>*/</script>";
+			"<script type=\"text/javascript\">/*<![CDATA[*/function getPlaceData() { return '<places>$mapData</places>'; }/*]]>*/</script>".
+			"<script type=\"text/javascript\" src=\"$wgScriptPath/placemap.10.js\"></script>".
+			"<script async src=\"//maps.googleapis.com/maps/api/js?key=$wgGoogleMapKey&callback=showPlaceMap\"></script>";
 	}
 	
    public static function getSelfMapData($title, $xml) {
