@@ -6,6 +6,8 @@
 require_once("$IP/extensions/structuredNamespaces/StructuredData.php");
 require_once("$IP/extensions/structuredNamespaces/PropagationManager.php");
 require_once("$IP/extensions/structuredNamespaces/ESINHandler.php");
+require_once("$IP/extensions/structuredNamespaces/DateHandler.php");
+require_once("$IP/extensions/structuredNamespaces/DQHandler.php");
 require_once("$IP/extensions/structuredNamespaces/TipManager.php");
 require_once("$IP/extensions/other/PlaceSearcher.php");
 require_once("$IP/extensions/Mobile_Detect.php");
@@ -23,7 +25,7 @@ function wfPersonExtensionSetup() {
 	# Register hooks for edit UI, request handling, and save features
 	$wgHooks['ArticleEditShow'][] = 'renderPersonEditFields';
 	$wgHooks['ImportEditFormDataComplete'][] = 'importPersonEditData';
-	$wgHooks['EditFilter'][] = 'validatePerson';
+  $wgHooks['EditFilter'][] = 'validatePerson';
 	$wgHooks['ArticleSave'][] = 'propagatePersonEdit';
 	$wgHooks['TitleMoveComplete'][] = 'propagatePersonMove';
 	$wgHooks['ArticleDeleteComplete'][] = 'propagatePersonDelete';
@@ -785,6 +787,13 @@ END;
 			$result .= $wgESINHandler->addSourcesImagesNotes($this, $parser, $marriageEvents);
 
             // $result .= $this->getMyHeritageAd($birthDate, $birthPlace, $deathDate, $deathPlace, $gender, $fullname);
+            
+      // add data quality issue messages (only on current version of the page - otherwise, the logic to remove verified issues is more complex)
+      $revision = Revision::newFromId($parser->pRevisionId);
+      if ( $revision && $revision->isCurrent() ) {
+ 	      $issues = DQHandler::getUnverifiedIssues($parser->getTitle(), "person");
+        $result .= DQHandler::addIssues($issues, "person");
+      }
 
 			// add categories
 			$surnames = array();

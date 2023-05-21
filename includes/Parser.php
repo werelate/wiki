@@ -113,6 +113,8 @@ class Parser
 		                // multiple SQL queries for the same string
 	    $mTemplatePath;	// stores an unsorted hash of all the templates already loaded
 		                // in this path. Used for loop detection.
+// WeRelate custom variables NOT set up as magic variables.                                    
+  var $pRevisionId; // revision id that persists through multiple parser passes (added May 2023 by Janet Bjorndahl)                                    
 
 	# Temporary
 	# These are variables reset at least once per parse regardless of $clearState
@@ -210,6 +212,7 @@ class Parser
 			'titles' => array()
 		);
 		$this->mRevisionId = null;
+    $this->pRevisionId = null;  // added May 2023 by Janet Bjorndahl
 
 		/**
 		 * Prefix for temporary replacement strings for the multipass parser.
@@ -264,6 +267,7 @@ class Parser
 
 		if ( $clearState ) {
 			$this->clearState();
+      $this->pRevisionId = $revid;    // added May 2023 by Janet Bjorndahl
 		}
 
 		$this->mOptions = $options;

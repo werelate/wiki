@@ -79,8 +79,10 @@ class DQStats {
     $sql = 'SELECT MAX(dqs_date) as dqs_date FROM dq_stats;';
     $res = $dbr->query( $sql, $fname );
     if ( $row = $dbr->fetchObject( $res ) ) {
-      if ( substr($row->dqs_date,8,2) > "10" ) {
-        $earliest_day = substr($row->dqs_date,0,8) . (substr($row->dqs_date,8,1) - 1) . substr($row->dqs_date,9,1);  // report last 10 days (within current month)
+//      if ( substr($row->dqs_date,8,2) > "10" ) {
+//        $earliest_day = substr($row->dqs_date,0,8) . (substr($row->dqs_date,8,1) - 1) . substr($row->dqs_date,9,1);  // report last 10 days (within current month)
+      if ( substr($row->dqs_date,8,2) > "05" ) {
+        $earliest_day = substr($row->dqs_date,0,8) . (str_pad(substr($row->dqs_date,8,2) - 5,2,"0",STR_PAD_LEFT));  // report last 5 days (within current month)
       }
       else {
         $earliest_day = substr($row->dqs_date,0,8) . "00";
@@ -116,7 +118,7 @@ class DQStats {
     // Current month (daily)
  		$res = $dbr->query( $select . $dailyCond . $order, $fname );
 		if ( $dbr->numRows( $res ) ) {
-      $wgOut->addHTML('<h3>Current Month (last 10 days)</h3>');
+      $wgOut->addHTML('<h3>Current Month (last 5 days)</h3>');
   		$wgOut->addHTML( "\n<table border=1 id=\"current_impact_stats\">" );
       $wgOut->addHTML( "<tr><td>As of</td><td>Person pages impacted</td><td>Total person pages</td><td>Percentage</td>
                   <td>Family pages impacted</td><td>Total family pages</td><td>Percentage</td></tr>" );
