@@ -6,6 +6,8 @@
 require_once("$IP/extensions/structuredNamespaces/StructuredData.php");
 require_once("$IP/extensions/structuredNamespaces/PropagationManager.php");
 require_once("$IP/extensions/structuredNamespaces/ESINHandler.php");
+require_once("$IP/extensions/structuredNamespaces/DateHandler.php");
+require_once("$IP/extensions/structuredNamespaces/DQHandler.php");
 require_once("$IP/extensions/structuredNamespaces/TipManager.php");
 require_once("$IP/extensions/other/PlaceSearcher.php");
 
@@ -474,7 +476,14 @@ END;
 END;
 			// add source citations, images, notes
 			$result .= $wgESINHandler->addSourcesImagesNotes($this, $parser);
-
+            
+      // add data quality issue messages (only on current version of the page - otherwise, the logic to remove verified issues is more complex)
+      $revision = Revision::newFromId($parser->pRevisionId);
+      if ( $revision && $revision->isCurrent() ) {
+   	    $issues = DQHandler::getUnverifiedIssues($parser->getTitle(), "family");
+        $result .= DQHandler::addIssues($issues, "family");
+      }
+      
 			// add categories
 			$surnames = array();
 			foreach ($this->xml->husband as $husband) {

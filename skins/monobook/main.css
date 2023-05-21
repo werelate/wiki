@@ -1170,6 +1170,12 @@ span.newpage, span.minor, span.searchmatch, span.attn /* attn added Sep 2020 by 
 	font-weight: bold;
 }
 
+span.large-attn /* added May 2023 by Janet Bjorndahl */
+{
+  font-weight: bold;
+  font-size: larger;
+}
+
 span.unpatrolled
 {
 	font-weight: bold;
@@ -3710,6 +3716,18 @@ div.exhibit-pedigree-lens-padding {
    display: none;
 }
 
+/* wr-infobox-dataquality - added May 2023 by Janet Bjorndahl */
+.wr-infobox-dataquality {
+   min-height: 20px;
+   margin-top: 30px;
+   padding: 3px 10px 0px 10px;
+   background-color: #fff7f8 !important;
+}  
+
+.wr-infobox-dataquality-person {
+   margin-right: 250px;
+}  
+  
 /* wr-timelineevents, wr-timeline */
 .wr-timelineevents td {
    vertical-align: top;

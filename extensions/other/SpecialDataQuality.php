@@ -4,6 +4,7 @@
  * @package MediaWiki
  * @subpackage SpecialPage
  */
+require_once("$IP/extensions/structuredNamespaces/DQHandler.php");
 
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfDataQualitySetup";
@@ -54,21 +55,6 @@ class DataQuality {
      '1900s' => '19',
      '2000s' => '20'
    );  
-   
-   private static $DATA_QUALITY_TEMPLATES = array(
-     'Wife younger than' => 'UnusuallyYoungWife',
-     'Husband younger than' => 'UnusuallyYoungHusband',
-     'Wife older than' => 'UnusuallyOldWife',
-     'Husband older than' => 'UnusuallyOldHusband',
-     "Born before parents' marriage" => 'BirthBeforeParentsMarriage',
-     'Born over' => 'BirthLongAfterParentsMarriage',
-     'Born before mother was' => 'UnusuallyYoungMother',
-     'Born before father was' => 'UnusuallyYoungFather',
-     'Born after mother was' => 'UnusuallyOldMother',
-     'Born after father was' => 'UnusuallyOldFather',
-     'Christened/baptized after mother died' => 'BaptismAfterMothersDeath',
-     'Christened/baptized more than 1 year after father died' => 'BaptismWellAfterFathersDeath'
-   );
 
 	function DataQuality( &$request ) {
 		global $wgUser;
@@ -215,7 +201,6 @@ class DataQuality {
 	 */
 	function showIssues( $limit, $fromOrder = '', $dir = 'next', $category = '', $verified = 'u', $byear = '', $tree = '', $watched = 'wu' ) {
 		global $wgOut, $wgUser;
-    global $wrSearchHost, $wrSearchPort, $wrSearchPath;
    
 		$fname = 'DataQualityPage::showIssues';
 
@@ -421,44 +406,14 @@ class DataQuality {
   		$wgOut->addHTML( '<td>' . $row->dqi_issue_desc . '</td>' );
      
       // Determine whether or not the issue has been fixed since the list was last produced - added Dec 2022
-      $outstanding = true;  // assume the issue still exists in case outstanding issues can't be determined
       if ( $row->page_namespace == 108 ) {
         $tagName = "person";
       }        
       else { 
         $tagName = "family";
-      }        
-	    $structuredContent = $this->getStructuredContent($nt, $tagName);
-      if ( $structuredContent !== "" ) {
-        // Find outstanding issues for this page
-        if ( $tagName == "person" ) {
-          $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($structuredContent) . 
-                   '&ns=Person&ptitle=' . urlencode($nt->getText()) . '&wt=php';
-          $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc);
-          
-          // If issue not yet found, find outstanding issues in relation to the parents' page
-          // Note that there may be multiple sets of parents - if so, check all because the issue could have been created for any of them
-          $remainingContent = $structuredContent;
-          while ( !$outstanding && strpos($remainingContent, '<child_of_family') !== false ) {
-            $parentInfo = $this->getParentInfo($remainingContent);
-            if ( $parentInfo['content'] != "" ) {
-  
-              // Get issues specific to this child. This is done for performance reasons and also because getting issues for all children in the family
-              // requires selecting only appropriate issues on the return. This is problematic because special characters (from other languages)
-              // are not always returned coded the same way they are sent.    
-              $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($parentInfo['content']) . 
-                       '&ns=Family&ftitle=' . urlencode($parentInfo['titlestring']) . '&ctitle=' . urlencode($nt->getText()) . '&wt=php';
-              $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc);
-            }
-            $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
-          }
-        }
-        else {
-          $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($structuredContent) . 
-                   '&ns=Family&ftitle=' . urlencode($nt->getText()) . '&ctitle=none' . '&wt=php';
-          $outstanding = $this->issueExists(file_get_contents($query), $row->dqi_category, $row->dqi_issue_desc);
-        }  
-      }
+      } 
+      $outstanding = DQHandler::determineIssueStatus($nt, $tagName, $row->dqi_category, $row->dqi_issue_desc);     
+
       // If the issue has been fixed, display "Fixed" and nothing else on this line. 
       if ( !$outstanding ) {   
         $wgOut->addHTML( '<td><span class="attn">Fixed</span></td><td></td><td></td>' );
@@ -476,9 +431,9 @@ class DataQuality {
         if ( $wgUser->isLoggedIn() ) {
           if ( $row->dqi_category == "Anomaly" ) {
             $template = '';
-            foreach ( array_keys(self::$DATA_QUALITY_TEMPLATES) as $partialIssueDesc ) {
+            foreach ( array_keys(DQHandler::$DATA_QUALITY_TEMPLATES) as $partialIssueDesc ) {
               if ( substr($row->dqi_issue_desc, 0, strlen($partialIssueDesc)) == $partialIssueDesc ) {
-                $template = urlencode(self::$DATA_QUALITY_TEMPLATES[$partialIssueDesc]);
+                $template = urlencode(DQHandler::$DATA_QUALITY_TEMPLATES[$partialIssueDesc]);
                 break;  
               }
             }
@@ -513,144 +468,6 @@ class DataQuality {
 		$wgOut->addHTML( $prevnext );
 	}
  
-  function getStructuredContent( $title, $tagName ) {
-   	$revision = StructuredData::getRevision($title, true);
-   	if ( $revision ) {
-      $text =& $revision->getText();
-     	$start = strpos($text, "<$tagName>");
-      // We expect only one tag instance; ignore any extras
-		  if ( $start !== false ) {
-        $end = strpos($text, "</$tagName>", $start);
-        if ( $end !== false ) {
-          // Strip out extraneous tags and attributes to keep the XML from exceeding the call string size limit (about 6400 bytes)
-		      return $this->stripExtraneous(trim(substr($text, $start, $end + 3 + strlen($tagName) - $start)));
-        }
-      }
-    }
-    return "";
-  }
-  
-  // Strip out source citations, notes, place names and event descriptions to keep the XML relatively small
-  function stripExtraneous( $structuredContent ) {
-    $srcTag = 'source_citation';
-    $noteTag = 'note';
-    $placeAtt = 'place';
-    $descAtt = 'desc';
-    
-    $strippedContent = $structuredContent;
-    
-    // Strip out source citations. They can end with either "/>" or "</source_citation>".
-    while ( strpos($strippedContent, "<$srcTag") !== false ) {
-      $start = strpos($strippedContent, "<$srcTag");
-      // Find end of this source citation - the first occurrence of either possibility
-      $end1 = strpos($strippedContent, "/>", $start);
-      $end2 = strpos($strippedContent, "</$srcTag>", $start);
-      if ( $end1 !== false ) {
-        if ( $end2 !== false && $end2 < $end1 ) {
-          $end = $end2;
-          $endSkip = strlen("</$srcTag>");
-        }
-        else {
-          $end = $end1;
-          $endSkip = strlen("/>");
-        }
-      }
-      else {
-        if ( $end2 !== false ) {
-          $end = $end2;
-          $endSkip = strlen("</$srcTag>");
-        }
-        else {
-          break;  // ill-formed XML - the source citation doesn't have a proper end
-        }
-      }
-      $strippedContent = substr($strippedContent, 0, $start) . substr($strippedContent, $end + $endSkip);
-    }
-           
-    // Strip out notes. Because they always have text, they have to end with "</note>"
-    while ( strpos($strippedContent, "<$noteTag") !== false ) {
-      $start = strpos($strippedContent, "<$noteTag");
-      $end = strpos($strippedContent, "</$noteTag>", $start);
-      $endSkip = strlen("</note>");
-      if ( $end !== false ) {
-        $strippedContent = substr($strippedContent, 0, $start) . substr($strippedContent, $end + $endSkip);
-      }
-      else {
-        break;  // ill-formed XML - the note doesn't have a proper end
-      }
-    }
-    
-    // By this point, sources and notes are gone, so the only places left should be in event tags and in spouse and child tags of family pages.
-
-    //Strip out place names. Note that the place attribute is prefixed with "birth", "chr", "death" or "burial" within spouse and child tags of family pages. For events, there is no prefix. 
-    while ( strpos($strippedContent, "$placeAtt=\"") !== false ) {
-      $start = strpos($strippedContent, "$placeAtt=\"");
-      $end = strpos($strippedContent, '"', $start+strlen($placeAtt)+2);
-      if ( $end === false) {
-        break;  // ill-formed XML - the place attribute doesn't have an ending quotation mark
-      }
-      if ( substr($strippedContent, $start-5, 5) == "birth" || substr($strippedContent, $start-5, 5) == "death" ) {
-        $start -= 5;
-      } 
-      if ( substr($strippedContent, $start-3, 3) == "chr" ) {
-        $start -= 3;
-      } 
-      if ( substr($strippedContent, $start-6, 6) == "burial" ) {
-        $start -= 6;
-      } 
-      $strippedContent = substr($strippedContent, 0, $start) . substr($strippedContent, $end+1);
-    }        
-
-    //Strip out descriptions. 
-    while ( strpos($strippedContent, "$descAtt=\"") !== false ) {
-      $start = strpos($strippedContent, "$descAtt=\"");
-      $end = strpos($strippedContent, '"', $start+strlen($descAtt)+2);
-      $strippedContent = substr($strippedContent, 0, $start) . substr($strippedContent, $end+1);
-    }        
-    
-    return $strippedContent;
-  }
-  
-  function getParentInfo( $content ) {
-    $parentInfo = array();
-    $parentInfo['titlestring'] = "";
-    $parentInfo['content'] = "";
-    
-    $start = strpos($content, '<child_of_family');    
-    if ( $start !== false ) {
-      $start = strpos($content, 'title="', $start);
-      if ( $start !== false ) {
-        $start = $start + 7;
-        $end = strpos($content, '"', $start);
-        if ( $end !== false ) {
-          $parentInfo['titlestring'] = StructuredData::unescapeXml(trim(substr($content, $start, $end - $start)));  // unescape the parent title in order to get content 
-          $title = Title::makeTitle(110, $parentInfo['titlestring']);
-          $parentInfo['content'] = $this->getStructuredContent($title, 'family');  // do NOT unescape the parent content since doing so can break the XML
-        }
-      }  
-    }
-    return $parentInfo;
-  }
-  
-  // Determine if an issue is in the response string returned from a Java call
-  function issueExists( $responseString, $category, $issueDesc ) {
-    // extract results from response string
-    if ( $responseString ) {
-      eval('$response = ' . $responseString . ';');
-      for ( $i=1; $i<sizeof($response); $i++ ) {
-        if ( $response["issue $i"][0] == $category && $response["issue $i"][1] == $issueDesc ) {
-          return true;
-          break;
-        }
-      }
-    }
-    // if no response string (call to Java failed) assume that the issue still exists
-    else {
-      return true;
-    }  
-    return false;
-  }
-
 	function makeSelfLink( $text, $query ) {
 		return $this->skin->makeKnownLinkObj( $this->selfTitle, $text, $query );
 	}
