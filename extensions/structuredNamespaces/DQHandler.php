@@ -50,8 +50,8 @@ abstract class DQHandler {
           else {
             $outstanding = true;               // If issue retrieval failed, assume the issue is still outstanding
           }
-          $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
         }
+        $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
       }
     }
     return $outstanding;
@@ -62,7 +62,7 @@ abstract class DQHandler {
    */
   function getUnverifiedIssues($title, $tagName) {
     $issues = array();
-
+    
     // Get issues on the page itself
  	  $structuredContent = self::getStructuredContent($title, $tagName);
     $namedIssues = self::getIssues($tagName, $structuredContent, $title->getText(), "all");
@@ -87,8 +87,8 @@ abstract class DQHandler {
           for ($i=0; $i<sizeof($namedIssues)-1; $i++) {
             $issues[$numIssues+$i] = $namedIssues['issue ' . ($i+1)];
           }
-          $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
         }
+        $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
       }
     }
 
@@ -351,7 +351,7 @@ abstract class DQHandler {
     $parentInfo['content'] = "";
     $parentInfo['titlestring'] = "";
     
-    $start = strpos($content, '<child_of_family');    
+    $start = strpos($content, '<child_of_family');
     if ( $start !== false ) {
       $start = strpos($content, 'title="', $start);
       if ( $start !== false ) {
