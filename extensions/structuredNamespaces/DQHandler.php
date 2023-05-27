@@ -116,7 +116,7 @@ abstract class DQHandler {
           $childTitleString = $issues[$i][3];
           self::removeVerifiedIssues(Title::newFromText($childTitleString, NS_PERSON), $issues, "person");
           if ( $i > sizeof($issues)-1 ) {  
-            $i = sizeof($issues)-1;
+            $i = sizeof($issues);          // note: the "for" loop will immediately reduce $1 by 1
           }
         }
       }
