@@ -660,7 +660,7 @@ END;
                if ($mainPage) {
                   if ($wgUser->getOption('wrnoads') < $now) {
                ?><div id="mh_ad" style="margin: 32px 0 0 16px"><a href="https://www.myheritage.com/?utm_source=partner_werelate&utm_medium=partner&utm_campaign=werelate_homepageweb&tr_funnel=web">
-                  <img src="/w/skins/common/images/mh_ad_100x300.png"/>
+                  <img src="/w/skins/common/images/mh_ad_100x300-2023.png"/>
                </a></div><?php
                   }
                ?><div id="awards"><?php
