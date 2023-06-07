@@ -659,7 +659,7 @@ END;
                <?php
                if ($mainPage) {
                   if ($wgUser->getOption('wrnoads') < $now) {
-               ?><div id="mh_ad" style="margin: 32px 0 0 16px"><a href="https://www.myheritage.com/search-records?utm_source=partner_werelate&utm_medium=partner&utm_campaign=werelate_hpSmall2020&tr_funnel=supersearch">
+               ?><div id="mh_ad" style="margin: 32px 0 0 16px"><a href="https://www.myheritage.com/?utm_source=partner_werelate&utm_medium=partner&utm_campaign=werelate_homepageweb&tr_funnel=web">
                   <img src="/w/skins/common/images/mh_ad_100x300.png"/>
                </a></div><?php
                   }
@@ -724,7 +724,25 @@ if ($wgTitle->getNamespace() == NS_PERSON) {
   if (count($namePieces) > 1 && $namePieces[1] != "Unknown" && substr($namePieces[1], 0, 1) != "(") {
     $lastName = urlencode($namePieces[1]);
   }
-  echo '<div style="margin-top: 20px"><iframe height="600" width="300" src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=Mixed_Records_300x600&widget=tree&width=300&height=600&onSitePlacement=Mixed_Records_300x600&tr_ifid=werelate_281825853&firstName='.$firstName.'&lastName='.$lastName.'&tr_device="></iframe></div>';
+//  echo '<div style="margin-top: 20px"><iframe height="600" width="300" src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=Mixed_Records_300x600&widget=tree&width=300&height=600&onSitePlacement=Mixed_Records_300x600&tr_ifid=werelate_281825853&firstName='.$firstName.'&lastName='.$lastName.'&tr_device="></iframe></div>';
+  echo <<<EOL
+<div style="margin-top: 20px">
+<ins class='dcmads' style='display:inline-block; width:300px; height:600px'
+    data-dcm-placement='N217801.2353305WERELATE.ORG/B9799048.368900133'
+    data-dcm-rendering-mode='iframe'
+    data-dcm-https-only
+    data-dcm-api-frameworks='[APIFRAMEWORKS]'
+    data-dcm-omid-partner='[OMIDPARTNER]'
+    data-dcm-gdpr-applies='gdpr=${GDPR}'
+    data-dcm-gdpr-consent='gdpr_consent=${GDPR_CONSENT_755}'
+    data-dcm-addtl-consent='addtl_consent=${ADDTL_CONSENT}'
+    data-dcm-ltd='false'
+    data-dcm-resettable-device-id=''
+    data-dcm-app-id=''>
+  <script src='https://www.googletagservices.com/dcm/dcmads.js'></script>
+</ins>
+</div>
+EOL;
 ?>
 <?php
 } else {
