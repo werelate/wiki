@@ -296,6 +296,7 @@ $normalizeMessage
 <input type="hidden" name="type" value="$type"/>
 <input type="hidden" name="update" value="true"/>
 <table id="namesupdateform" class="namesupdateform" cellspacing="15">
+<tr><td colspan=4>If you make changes, don&apos;t forget to click the <strong>Save</strong> button at the bottom.</td></tr>
 <tr>
 <td width="25%" valign="top">
 <h3>Non variants</h3>
