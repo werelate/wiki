@@ -480,8 +480,8 @@ END;
       // add data quality issue messages (only on current version of the page - otherwise, the logic to remove verified issues is more complex)
       $revision = Revision::newFromId($parser->pRevisionId);
       if ( $revision && $revision->isCurrent() ) {
-   	    $issues = DQHandler::getUnverifiedIssues($parser->getTitle(), "family");
-        $result .= DQHandler::addIssues($issues, "family");
+   	    $issues = DQHandler::getUnverifiedIssues($revision->getText(), $parser->getTitle(), "family", "all");  // include messages for children
+        $result .= DQHandler::addQuestionableInfoIssues($issues, "family");
       }
       
 			// add categories
@@ -700,36 +700,23 @@ END;
       $this->addRequestMembers('ht', $husbands);
       $this->addRequestMembers('wt', $wives);
       $this->addRequestMembers('ct', $children);
+      
+     // Added Jul 2023 as part of refactoring; redundant code removed below
+     $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "family", "none");    // only messages for the family page itself (not the children)
+     $result .= DQHandler::addEditIssues($issues);
 
 	   if (!$this->isGedcomPage && !StructuredData::titleStringHasId($this->titleString)) {
 	      $result .= "<p><font color=red>The page title does not have an ID; please create a page with an ID using <a href='/wiki/Special:AddPage/Family'>Add page</a></font></p>";
 	   }
-	   if (StructuredData::titlesOverlap($husbands,$wives)) {
-	   	$result .= "<p><font color=red>The same person cannot be both husband and wife</font></p>";
-	   	$husbandStyle = $invalidStyle;
-	   	$wifeStyle = $invalidStyle;
-	   }
-	   if (StructuredData::titlesOverlap($husbands,$children)) {
-	   	$result .= "<p><font color=red>The same person cannot be both husband and child</font></p>";
-	   	$husbandStyle = $invalidStyle;
-	   }
-	   if (StructuredData::titlesOverlap($wives,$children)) {
-	   	$result .= "<p><font color=red>The same person cannot be both wife and child</font></p>";
-	   	$wifeStyle = $invalidStyle;
-	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($husbands) || !StructuredData::titlesExist(NS_PERSON, $husbands))) {
-	   		$result .= "<p><font color=red>Husband page not found; please click remove and add a new one</font></p>";
+	   		$result .= "<p><font color=red>Please fix this issue: Husband page not found; please click remove and add a new one</font></p>";
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($wives) || !StructuredData::titlesExist(NS_PERSON, $wives))) {
-	   		$result .= "<p><font color=red>Wife page not found; please click remove and add a new one</font></p>";
+	   		$result .= "<p><font color=red>Please fix this issue: Wife page not found; please click remove and add a new one</font></p>";
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($children) || !StructuredData::titlesExist(NS_PERSON, $children))) {
-	   		$result .= "<p><font color=red>Child page not found; please click remove and add a new one</font></p>";
+	   		$result .= "<p><font color=red>Please fix this issue: Child page not found; please click remove and add a new one</font></p>";
 	   }
-//   Message for all date errors (not just ambiguous ones) - changed Nov 2021 by Janet Bjorndahl
-     if (ESINHandler::hasInvalidDates($this->xml)) {
-       $result .= "<p><font color=red>Please correct invalid dates. Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).</font></p>";
-     }
      if (ESINHandler::hasReformatedDates($this->xml)) {                                              // added Nov 2021 by Janet Bjorndahl
        $result .= "<p><font color=red>One or more dates was changed to WeRelate standard. Please compare to original value to ensure no loss of meaning. If the standard date is OK, no further action is required - you may save the page.</font></p>";
      }
@@ -954,17 +941,12 @@ END;
  	  if (!StructuredData::titleStringHasId($this->titleString)) {
 	  	return false;
 	  }
-//   All date errors (not just ambiguous dates) have to be fixed - changed Nov 2021 by Janet Bjorndahl
-    if (ESINHandler::hasInvalidDates($this->xml)) {
-        return false;
-    }
 		if (!StructuredData::isRedirect($textbox1)) {
 			$husbands = StructuredData::getTitlesAsArray($this->xml->husband);
 			$wives = StructuredData::getTitlesAsArray($this->xml->wife);
 			$children = StructuredData::getTitlesAsArray($this->xml->child);
-			return (!StructuredData::titlesOverlap($husbands,$wives) &&
-					  !StructuredData::titlesOverlap($husbands,$children) &&
-					  !StructuredData::titlesOverlap($wives,$children) &&
+	    $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "family", "none");     // added Jul 2023 as part of refactoring
+			return (!DQHandler::hasSevereIssues($issues) &&                                            // added Jul 2023 as part of refactoring
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($husbands)) &&
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($wives)) &&
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($children)) &&

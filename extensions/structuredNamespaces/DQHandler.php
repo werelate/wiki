@@ -18,13 +18,18 @@ abstract class DQHandler {
      'Christened/baptized more than 1 year after father died' => 'BaptismWellAfterFathersDeath'
    );
 
+   // Message to display when in edit mode instead of the issue description that displays in other contexts. Only needed for a few issue types.  
+   private static $DATA_QUALITY_EDIT_MESSAGE = array(
+      "Invalid date(s)" => "Invalid date(s). Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft)."
+   );
+
   /**
    * Determine whether an issue (found by a batch job) is still outstanding (not fixed)
    */
   function determineIssueStatus($title, $tagName, $category, $issueDesc) {
 
     // See if the issue exists on the page itself
- 	  $structuredContent = self::getStructuredContent($title, $tagName);
+ 	  $structuredContent = self::getStructuredContent(self::getpageContent($title), $tagName);
     $issues = self::getIssues($tagName, $structuredContent, $title->getText(), "none");
     if ( $issues["status"][0] == "success" ) { 
       $outstanding = self::issueExists($issues, $category, $issueDesc);
@@ -60,18 +65,19 @@ abstract class DQHandler {
   /**
    * Get the list of Data Quality issues (not verified) for a person or family, including issues in relation to other family members
    */
-  function getUnverifiedIssues($title, $tagName) {
+  function getUnverifiedIssues($pageContent, $title, $tagName, $scope="none") {
     $issues = array();
     
     // Get issues on the page itself
- 	  $structuredContent = self::getStructuredContent($title, $tagName);
-    $namedIssues = self::getIssues($tagName, $structuredContent, $title->getText(), "all");
+ 	  $structuredContent = self::getStructuredContent($pageContent, $tagName);
+    $namedIssues = self::getIssues($tagName, $structuredContent, $title->getText(), $scope);
     
     // Once retrieved, copy to a new table using a numeric index rather than named keys. Easier to manage in the remaining code (especially when removing verified issues).
     // While copying, drop the last entry, which is the status of retrieval.
     for ( $i=0; $i<sizeof($namedIssues)-1; $i++ ) {
       $issues[$i] = $namedIssues['issue ' . ($i+1)];
     }
+//error_log($title->getText() . ": num issues1=" . sizeof($issues));    
     
     // If this is a Person page, get issues in relation to the parents' Family page(s).
     if ( $tagName == "person" ) {
@@ -91,14 +97,7 @@ abstract class DQHandler {
         $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
       }
     }
-
-    // Remove issues other than errors and anomalies (e.g., missing data), so they don't cause the "questionable information" heading to display.
-    // Check the array from the end to the beginning so that no entries are skipped when entries are removed.
-    for ( $i=sizeof($issues)-1; $i>=0; $i-- ) {
-      if ( $issues[$i][0] != 'Error' && $issues[$i][0] != 'Anomaly' ) {
-        array_splice($issues,$i,1);
-      }
-    }
+//error_log($title->getText() . ": num issues2=" . sizeof($issues));    
     
     // Remove verified anomalies
     // Note that for a Family page, this will only remove the anomalies whose templates are on the Family or Family Talk page.
@@ -121,6 +120,8 @@ abstract class DQHandler {
         }
       }
     }
+//error_log($title->getText() . ": num issues3=" . sizeof($issues));  
+//error_log  ($title->getText() . ": issue1 =" . $issues[0][1] . "; issue2 =" . $issues[1][1]);
     return $issues;
   }
 
@@ -128,7 +129,7 @@ abstract class DQHandler {
   function removeVerifiedIssues($title, &$issues, $tagName) {
     if ( sizeof($issues) > 0 ) {
       
-      // Firstly, based on templates on this Person or Family page
+      // Firstly, based on templates on this Person or Family page (as stored in the database)
       self::removeVerIssues($title, $issues, $tagName);
       
       // Secondly, based on templates on the corresponding Talk page. Don't bother if all issues were already removed.
@@ -173,9 +174,18 @@ abstract class DQHandler {
   }  
   
   /**
-   * Create the WikiText to display issues on a Person or Family page
+   * Create the WikiText to display issues on a Person or Family page as "Questionable Information"
    */
-  function addIssues($issues, $tagname) {
+  function addQuestionableInfoIssues($issues, $tagname) {
+  
+    // Remove issues other than errors and anomalies (e.g., missing data), so they don't cause the "questionable information" heading to display.
+    // Check the array from the end to the beginning so that no entries are skipped when entries are removed.
+    for ( $i=sizeof($issues)-1; $i>=0; $i-- ) {
+      if ( $issues[$i][0] != 'Error' && $issues[$i][0] != 'Anomaly' ) {
+        array_splice($issues,$i,1);
+      }
+    }
+    
     $result = "";
     
     // Display errors first, then anomalies (as warnings)
@@ -199,6 +209,45 @@ abstract class DQHandler {
       $result .= "</table></div>";
     }
   return $result; 
+  }
+  
+  /**
+   * Create the WikiText to display warning and error messages when editing a Person or Family page
+   */
+  function addEditIssues($issues) {
+    $result = "";
+    
+    for ( $i=0; $i<sizeof($issues); $i++ ) {
+      // By default, use the issue description in the warning or error message. 
+      $msg = $issues[$i][1];
+      
+      // But use a different message as appropriate.
+      foreach ( array_keys(self::$DATA_QUALITY_EDIT_MESSAGE) as $partialIssueDesc ) {
+        if ( substr($issues[$i][1], 0, strlen($partialIssueDesc)) == $partialIssueDesc ) {
+          $msg = self::$DATA_QUALITY_EDIT_MESSAGE[$partialIssueDesc];
+          break;  
+        }
+      }
+      if ( $issues[$i][4] == "yes" ) {
+    	  $result .= "<p><font color=red>Please fix this issue: $msg</font></p>";
+      }
+      else {
+  	    $result .= "<p><font color=red>Warning: $msg</font></p>";
+      }
+    }
+  return $result; 
+  }
+  
+  /**
+   * Determine whether the page has issues that must be fixed before saving
+   */
+  function hasSevereIssues($issues) {
+    for ( $i=0; $i<sizeof($issues); $i++ ) {
+      if ( $issues[$i][4] == "yes" ) {
+    	  return true;
+      } 
+    }
+  return false; 
   }
    
   /** 
@@ -242,21 +291,30 @@ abstract class DQHandler {
     return false;
   }
 
-  /**
-   * Get the structured content of a page to pass to Java code on the Java server
+  /** 
+   * Get the current content of a page, based on the page title
    */
-  function getStructuredContent( $title, $tagName ) {
+  function getPageContent( $title ) {
    	$revision = StructuredData::getRevision($title, true);
    	if ( $revision ) {
-      $text =& $revision->getText();
-     	$start = strpos($text, "<$tagName>");
-      // We expect only one tag instance; ignore any extras
-		  if ( $start !== false ) {
-        $end = strpos($text, "</$tagName>", $start);
-        if ( $end !== false ) {
-          // Strip out extraneous tags and attributes to keep the XML from exceeding the call string size limit (about 6400 bytes)
-		      return self::stripExtraneous(trim(substr($text, $start, $end + 3 + strlen($tagName) - $start)));
-        }
+      return $revision->getText();
+    }
+    else {
+      return "";
+    }
+  }
+  
+  /**
+   * Extract the minimal structured content from page contents to pass to Java code on the Java server
+   */
+  function getStructuredContent( $content, $tagName ) {
+   	$start = strpos($content, "<$tagName>");
+    // We expect only one tag instance; ignore any extras
+    if ( $start !== false ) {
+      $end = strpos($content, "</$tagName>", $start);
+      if ( $end !== false ) {
+        // Strip out extraneous tags and attributes to keep the XML from exceeding the call string size limit (about 6400 bytes)
+	      return self::stripExtraneous(trim(substr($content, $start, $end + 3 + strlen($tagName) - $start)));
       }
     }
     return "";
@@ -360,7 +418,7 @@ abstract class DQHandler {
         if ( $end !== false ) {
           $parentInfo['titlestring'] = StructuredData::unescapeXml(trim(substr($content, $start, $end - $start)));  // unescape the parent title in order to get content 
           $title = Title::makeTitle(110, $parentInfo['titlestring']);
-          $parentInfo['content'] = self::getStructuredContent($title, 'family');  // do NOT unescape the parent content since doing so can break the XML
+          $parentInfo['content'] = self::getStructuredContent(self::getPageContent($title), 'family');  // do NOT unescape the parent content since doing so can break the XML
         }
       }  
     }
