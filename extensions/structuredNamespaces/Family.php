@@ -345,7 +345,7 @@ END;
          if (isset($xml->event_fact)) {
             foreach ($xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Marriage') {
-                  $marriageDate = DateHandler::formatDate((string)@$eventFact['date'],true);    // formatDate call added Mar 2021 by Janet Bjorndahl
+                  $marriageDate = DateHandler::formatDate((string)@$eventFact['date'],'Marriage');    // formatDate call added Mar 2021, chged Apr 2024 by Janet Bjorndahl
                   $marriagePlace = (string)@$eventFact['place'];
                }
             }
@@ -452,7 +452,7 @@ END;
             foreach ($this->xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Marriage') {
                   $marriageFound = true;
-                  $marriageDate = DateHandler::formatDate((string)$eventFact['date'],true);    // formatDate call added Mar 2021 by Janet Bjorndahl
+                  $marriageDate = DateHandler::formatDate((string)$eventFact['date'],'Marriage');    // formatDate call added Mar 2021, chged Apr 2024 by Janet Bjorndahl
                   $marriagePlace = $this->getPlace($eventFact);
                }
             }

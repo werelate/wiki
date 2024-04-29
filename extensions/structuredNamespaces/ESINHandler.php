@@ -42,13 +42,6 @@ class ESINHandler extends StructuredData {
 		'Secondary' => '2',
 		'Primary' => '3'
 	);
-
-  // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl ('Census', 'Obituary', 'Estate Settlement' removed Mar 2021 by Janet Bjorndahl)
-  // ('Probate' removed and marriage events added Mar 2021 by Janet Bjorndahl)
-  public static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
-      'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
-      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Ordination', 'Stillborn', 'Will', 'Estate Inventory',
-      'Marriage', 'Alt Marriage', 'Marriage License', 'Marriage Bond', 'Marriage Contract', 'Divorce Filing', 'Divorce', 'Annulment'); 
       
   // Event type arrays added (to support event sorting) Oct 2020 by Janet Bjorndahl 
   private static $PERSON_EVENT_TYPES = array('Birth'=>'0010', 'Alt Birth'=>'0020', 'Christening'=>'0030',  'Alt Christening'=>'0040', 
@@ -133,13 +126,13 @@ class ESINHandler extends StructuredData {
          Famous people are exempt from the living persons rule. */
       $formatedDate = $languageDate = '';
       if ( stripos($deathDate,'aft')===false && stripos($deathDate,'est')===false ) {
-         if ( DateHandler::editDate($deathDate, $formatedDate, $languageDate, true, false) === true && 
+         if ( DateHandler::editDate($deathDate, $formatedDate, $languageDate, 'Death', false) === true && 
                $formatedDate!='' && (stripos($formatedDate, '(')!==0 || stripos($formatedDate,'(in infancy)')!==false || stripos($formatedDate,'(young)')!==false) ) {
             return false;
          }
       }
       if ( stripos($burDate,'aft')===false && stripos($burDate,'est')===false ) {
-         if ( DateHandler::editDate($burDate, $formatedDate, $languageDate, true, false) === true &&
+         if ( DateHandler::editDate($burDate, $formatedDate, $languageDate, 'Burial', false) === true &&
                $formatedDate!='' && stripos($formatedDate, '(')!==0 ) {
             return false;
          }
@@ -167,7 +160,7 @@ class ESINHandler extends StructuredData {
     if (isset($xml->event_fact)) {
       foreach ($xml->event_fact as $ef) {
         $date = (string)$ef['date'];
-        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array((string)$ef['type'], ESINHandler::$DISCRETE_EVENT), true);        
+        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, (string)$ef['type'], true);        
         if ( $dateStatus === 'Significant reformat' ) {                                                                                                         
           return true;
         }
@@ -250,22 +243,22 @@ class ESINHandler extends StructuredData {
       $birthDate = $birthPlace = $deathDate = $deathPlace = '';
       if ((string)$p['birthdate'] || (string)$p['birthplace']) {
          $birthLabel = 'b. ';
-         $birthDate = DateHandler::formatDate((string)$p['birthdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $birthDate = DateHandler::formatDate((string)$p['birthdate'],'Birth');        // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $birthPlace = (string)$p['birthplace'];
       }
       else if ((string)$p['chrdate'] || (string)$p['chrplace']) {
          $birthLabel = 'chr. ';
-         $birthDate = DateHandler::formatDate((string)$p['chrdate'],true);          // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $birthDate = DateHandler::formatDate((string)$p['chrdate'],'Christening');    // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $birthPlace = (string)$p['chrplace'];
       }
       if ((string)$p['deathdate'] || (string)$p['deathplace']) {
          $deathLabel = 'd. ';
-         $deathDate = DateHandler::formatDate((string)$p['deathdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $deathDate = DateHandler::formatDate((string)$p['deathdate'],'Death');        // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $deathPlace = (string)$p['deathplace'];
       }
       else if ((string)$p['burialdate'] || (string)$p['burialplace']) {
          $deathLabel = 'bur. ';
-         $deathDate = DateHandler::formatDate((string)$p['burialdate'],true);       // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $deathDate = DateHandler::formatDate((string)$p['burialdate'],'Burial');      // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $deathPlace = (string)$p['burialplace'];
       }
       if ($birthPlace) $birthPlace = '[[Place:' . StructuredData::addBarToTitle($birthPlace) . ']]';
@@ -780,7 +773,7 @@ END;
 //      $notes = StructuredData::formatAsLinks((string)@$eventFact['notes']);
 //      $images = StructuredData::formatAsLinks((string)@$eventFact['images']);
       $type = (string)$eventFact['type'];
-      $date = DateHandler::formatDate((string)$eventFact['date'], in_array($type, ESINHandler::$DISCRETE_EVENT));         // added Nov 2020 by Janet Bjorndahl; discrete parm added Mar 2021 JB
+      $date = DateHandler::formatDate((string)$eventFact['date'], $type);         // added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
       $place = (string)$eventFact['place'];
       if ($place) {
          $place = '[[Place:' . StructuredData::addBarToTitle($place) . ']]';
@@ -1142,8 +1135,8 @@ END;
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
       // If the date passes date editing but is not in standard format, replace it with the properly formated version
-      // added Oct 2020; changed Mar 2021 by Janet Bjorndahl 
-      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT), true);
+      // added Oct 2020; changed Mar 2021 by Janet Bjorndahl; changed Apr 2024 
+      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, $typeString, true);
       if ( $dateStatus === 'Significant reformat' ) {              // Display in yellow with prev date below if parser had to do a significant reformat
           $prevDate = $date;
           $dateStyle = ' style="background-color:#ffff99;"';
@@ -1514,8 +1507,8 @@ END;
 		$result = '';
    
 		$date = $request->getVal("date$num");
-    // Format the date. If successful and no significant reformating was required, replace the date with the formated date. Added Nov 2020; Changed Mar 2021 by Janet Bjorndahl
-    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($type, ESINHandler::$DISCRETE_EVENT), true);
+    // Format the date. If successful and no significant reformating was required, replace the date with the formated date. Added Nov 2020; Changed Mar 2021, Apr 2024 by Janet Bjorndahl
+    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, $type, true);
     if ( $dateStatus === true ) {
       $date = $formatedDate;
     }
