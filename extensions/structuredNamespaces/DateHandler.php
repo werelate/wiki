@@ -189,7 +189,9 @@ abstract class DateHandler {
       }
       return true;
     }  
-    // Ignore editing (and assume success) if there was no response.
+    // If there was no response, ignore editing (assume success) and set return fields to the original date for display.
+    $formatedDate = $date;
+    $languageDate = $date;
     return true;
   }
 
