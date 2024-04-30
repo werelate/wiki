@@ -178,7 +178,6 @@ class Person extends StructuredData {
 		'Male' => 'M',
 		'Unknown' => '?',
 	);
-  protected static $EVENTS_OUT_OF_ORDER_THRESHOLD = 9; 
 
   // Estate Inventory and Estate Settlement moved from African American sub-list to main list Nov 2021 by Janet Bjorndahl
 	protected static $OTHER_EVENT_TYPES = array(
@@ -296,7 +295,7 @@ class Person extends StructuredData {
       $hdPlace = '';
       if ($date) {
          $hdDate = '<meta itemprop="startDate" content="'.
-                   htmlspecialchars(DateHandler::getIsoDate(DateHandler::getDateKey($date))).'"/>';  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
+                   htmlspecialchars(DateHandler::getIsoDate($date)).'"/>';  // changed to DateHandler function Oct 2020 by Janet Bjorndahl; chged parm Apr 2024
       }
       if ($place) {
          $pos = mb_strpos($place, '|');
@@ -371,8 +370,8 @@ class Person extends StructuredData {
          if (!$fullname) $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
          $link = "[[Person:$title|$fullname]]";
          $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
-         $beginYear = DateHandler::getYear($birthDate, true, true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB 
-         $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], true, true);   // 3rd parm added Mar 2021 JB
+         $beginYear = DateHandler::getYear($birthDate, 'Birth', true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB 
+         $endYear = DateHandler::getYear((string)$member['deathdate'] ? (string)$member['deathdate'] : (string)$member['burialdate'], 'Death', true);   // 3rd parm added Mar 2021 JB
          if ($beginYear || $endYear) {
             $yearrange = "<span class=\"wr-infobox-yearrange\">$beginYear - $endYear</span>";
          }
@@ -463,7 +462,7 @@ class Person extends StructuredData {
             if (isset($familyXml->event_fact)) {
                foreach ($familyXml->event_fact as $eventFact) {
                   if ((string)$eventFact['type'] == 'Marriage') {
-                     $marriageDate = DateHandler::formatDate((string)$eventFact['date'], true);    // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
+                     $marriageDate = DateHandler::formatDate((string)$eventFact['date'], 'Marriage');    // formatDate added Nov 2020 by Janet Bjorndahl; chged Apr 2024 JB
                      $marriageKey = DateHandler::getDateKey($marriageDate, true);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
                      $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span></div>";
                   }
@@ -670,24 +669,24 @@ END;
             foreach ($this->xml->event_fact as $eventFact) {
                if ($eventFact['type'] == 'Birth') {
                   $birthFound = true;
-                  $birthDate = DateHandler::formatDate((string)$eventFact['date'],true);        // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
+                  $birthDate = DateHandler::formatDate((string)$eventFact['date'],'Birth');        // formatDate call added Nov 2020 by Janet Bjorndahl; chged Apr 2024 JB
                   $birthPlace = (string)$eventFact['place'];
                   $birthSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Christening' || $eventFact['type'] == 'Baptism') {
                   $chrFound = true;
-                  $chrDate = DateHandler::formatDate((string)$eventFact['date'],true);          // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
+                  $chrDate = DateHandler::formatDate((string)$eventFact['date'],'Christening');    // formatDate call added Nov 2020 by Janet Bjorndahl; chged Apr 2024 JB
                   $chrPlace = (string)$eventFact['place'];
                }
                else if ($eventFact['type'] == 'Death') {
                   $deathFound = true;
-                  $deathDate = DateHandler::formatDate((string)$eventFact['date'],true);        // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
+                  $deathDate = DateHandler::formatDate((string)$eventFact['date'],'Death');        // formatDate call added Nov 2020 by Janet Bjorndahl; chged Apr 2024 JB
                   $deathPlace = (string)$eventFact['place'];
                   $deathSource = (string)$eventFact['sources'];
                }
                else if ($eventFact['type'] == 'Burial') {
                   $burFound = true;
-                  $burDate = DateHandler::formatDate((string)$eventFact['date'],true);          // formatDate call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 JB
+                  $burDate = DateHandler::formatDate((string)$eventFact['date'],'Burial');         // formatDate call added Nov 2020 by Janet Bjorndahl; chged Apr 2024 JB
                   $burPlace = (string)$eventFact['place'];
                }
             }
@@ -791,8 +790,8 @@ END;
       // add data quality issue messages (only on current version of the page - otherwise, the logic to remove verified issues is more complex)
       $revision = Revision::newFromId($parser->pRevisionId);
       if ( $revision && $revision->isCurrent() ) {
- 	      $issues = DQHandler::getUnverifiedIssues($parser->getTitle(), "person");
-        $result .= DQHandler::addIssues($issues, "person");
+ 	      $issues = DQHandler::getUnverifiedIssues($revision->getText(), $parser->getTitle(), "person");
+        $result .= DQHandler::addQuestionableInfoIssues($issues, "person");
       }
 
 			// add categories
@@ -1340,6 +1339,10 @@ END;
       $this->addRequestMembers('pf', $childOfFamilies);
       $this->addRequestMembers('sf', $spouseOfFamilies);
 
+    // Added Jul 2023 as part of refactoring; redundant code removed below
+ 	  $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "person");
+    $result .= DQHandler::addEditIssues($issues);
+
 		if (ESINHandler::isLiving($this->xml)) {
 		   $result .= "<p><font color=red>This person was born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be entered into WeRelate.org.</font></p>";
 		}
@@ -1347,36 +1350,17 @@ END;
 	      $result .= "<p><font color=red>The page title does not have an ID; please create a page with an ID using <a href='/wiki/Special:AddPage/Person'>Add page</a></font></p>";
 	   }
      if (StructuredData::hasUnknownNameValues($this->xml)) {                                         // added Nov 2020 by Janet Bjorndahl
-	   		$result .= "<p><font color=red>WeRelate standard is for unknown names to be blank. Please remove text that implies unknown name.</font></p>";
+	   		$result .= "<p><font color=red>Please fix this issue: WeRelate standard is for unknown names to be blank. Please remove text that implies unknown name.</font></p>";
      }       
 	   if ($exists && !$genderString) {
-	   	$result .= "<p><font color=red>You must select a gender</font></p>";
 	   	$genderStyle = $invalidStyle;
 	   }
-	   if (StructuredData::titlesOverlap($childOfFamilies,$spouseOfFamilies)) {
-	   	$result .= "<p><font color=red>This person cannot be a child of and a spouse of the same family</font></p>";
-	   	$childOfFamilyStyle = $invalidStyle;
-	   	$spouseOfFamilyStyle = $invalidStyle;
-	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($childOfFamilies) || !StructuredData::titlesExist(NS_FAMILY, $childOfFamilies))) {
-	   		$result .= "<p><font color=red>Parents family page not found; please remove it, save this page, then add a new one</font></p>";
+	   		$result .= "<p><font color=red>Please fix this issue: Parents family page not found; please click remove and add a new one.</font></p>";
 	   }
 	   if (!$this->isGedcomPage && (StructuredData::titlesMissingId($spouseOfFamilies) || !StructuredData::titlesExist(NS_FAMILY, $spouseOfFamilies))) {
-   		$result .= "<p><font color=red>Spouse family page not found; please remove it, save this page, then add a new one</font></p>";
+   		$result .= "<p><font color=red>Please fix this issue: Spouse family page not found; please click remove and add a new one.</font></p>";
 	   }
-//   Message for all date errors (not just ambiguous ones) - changed Nov 2021 by Janet Bjorndahl
-     if (ESINHandler::hasInvalidDates($this->xml)) {
-       $result .= "<p><font color=red>Please correct invalid dates. Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).</font></p>";
-     }
-     $eventsOutOfOrder = ESINHandler::hasEventsOutOfOrder($this);                                    // added Nov 2021 by Janet Bjorndahl (modifed Feb 2022)
-     if ($eventsOutOfOrder > self::$EVENTS_OUT_OF_ORDER_THRESHOLD) {                                       // added Feb 2022 by Janet Bjorndahl            
-       $result .= "<p><font color=red>Events are out of order. Please correct date(s) before saving.</font></p>";
-     }
-     else {
-       if ($eventsOutOfOrder !== false) {
-         $result .= "<p><font color=red>Warning: Events are out of order. Please correct date(s) if you can.</font></p>";
-       }
-     }
      if (ESINHandler::hasReformatedDates($this->xml)) {                                              // added Nov 2020 by Janet Bjorndahl
        $result .= "<p><font color=red>One or more dates was changed to WeRelate standard. Please compare to original value to ensure no loss of meaning. If the standard date is OK, no further action is required - you may save the page.</font></p>";
      }
@@ -1562,20 +1546,12 @@ END;
 		 if (!StructuredData::titleStringHasId($this->titleString)) {
 		 	return false;
 		 }
-     // All date errors (not just ambiguous dates) have to be fixed - changed Nov 2021 by Janet Bjorndahl
-     if (ESINHandler::hasInvalidDates($this->xml)) {
-        return false;
-     }
-     // Events out of order by more than a specified number of years have to be fixed - added Feb 2022 by Janet Bjorndahl 
-     if (ESINHandler::hasEventsOutOfOrder($this) > self::$EVENTS_OUT_OF_ORDER_THRESHOLD) {
-        return false;
-     }
      if (!StructuredData::isRedirect($textbox1)) {
    	 	 $parentFamilies = StructuredData::getTitlesAsArray($this->xml->child_of_family);
    		 $spouseFamilies = StructuredData::getTitlesAsArray($this->xml->spouse_of_family);
+	     $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "person");                // added Jul 2023 as part of refactoring
    		 return (!ESINHandler::isLiving($this->xml)
-   		         && strlen((string)$this->xml->gender) > 0
-   		         && !StructuredData::titlesOverlap($parentFamilies, $spouseFamilies)
+               && !DQHandler::hasSevereIssues($issues)                                             // added Jul 2023 as part of refactoring
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($parentFamilies))
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($spouseFamilies))
                && !StructuredData::hasUnknownNameValues($this->xml)                                // added Nov 2020 by Janet Bjorndahl

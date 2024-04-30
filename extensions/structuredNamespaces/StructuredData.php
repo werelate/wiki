@@ -1293,23 +1293,6 @@ abstract class StructuredData {
 		}
 		return $result;
 	}
-
-	/**
-	 * return true if titles having IDs overlap
-	 *
-	 * @param array(string) $titlesA
-	 * @param array(string) $titlesB
-	 * @return boolean
-	 */
-	public static function titlesOverlap($titlesA, $titlesB) {
-	   $intersection = array_intersect($titlesA, $titlesB);
-	   foreach ($intersection as $title) {
-	      if (StructuredData::titleStringHasId($title)) {
-	         return true;
-	      }
-	   }
-	   return false;
-	}
 	
 	public static function titlesMissingId($titleArray) {
 	   foreach ($titleArray as $t) {

@@ -42,13 +42,6 @@ class ESINHandler extends StructuredData {
 		'Secondary' => '2',
 		'Primary' => '3'
 	);
-
-  // DISCRETE_EVENT added (to support date editing) Oct 2020 by Janet Bjorndahl ('Census', 'Obituary', 'Estate Settlement' removed Mar 2021 by Janet Bjorndahl)
-  // ('Probate' removed and marriage events added Mar 2021 by Janet Bjorndahl)
-  public static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
-      'Adoption', 'Baptism', 'Bar Mitzvah', 'Bat Mitzvah', 'Blessing', 'Confirmation', 'Cremation', 'Degree', 'Emigration',
-      'First Communion', 'Funeral', 'Graduation', 'Immigration', 'Naturalization', 'Ordination', 'Stillborn', 'Will', 'Estate Inventory',
-      'Marriage', 'Alt Marriage', 'Marriage License', 'Marriage Bond', 'Marriage Contract', 'Divorce Filing', 'Divorce', 'Annulment'); 
       
   // Event type arrays added (to support event sorting) Oct 2020 by Janet Bjorndahl 
   private static $PERSON_EVENT_TYPES = array('Birth'=>'0010', 'Alt Birth'=>'0020', 'Christening'=>'0030',  'Alt Christening'=>'0040', 
@@ -133,13 +126,13 @@ class ESINHandler extends StructuredData {
          Famous people are exempt from the living persons rule. */
       $formatedDate = $languageDate = '';
       if ( stripos($deathDate,'aft')===false && stripos($deathDate,'est')===false ) {
-         if ( DateHandler::editDate($deathDate, $formatedDate, $languageDate, true, false) === true && 
+         if ( DateHandler::editDate($deathDate, $formatedDate, $languageDate, 'Death', false) === true && 
                $formatedDate!='' && (stripos($formatedDate, '(')!==0 || stripos($formatedDate,'(in infancy)')!==false || stripos($formatedDate,'(young)')!==false) ) {
             return false;
          }
       }
       if ( stripos($burDate,'aft')===false && stripos($burDate,'est')===false ) {
-         if ( DateHandler::editDate($burDate, $formatedDate, $languageDate, true, false) === true &&
+         if ( DateHandler::editDate($burDate, $formatedDate, $languageDate, 'Burial', false) === true &&
                $formatedDate!='' && stripos($formatedDate, '(')!==0 ) {
             return false;
          }
@@ -160,116 +153,6 @@ class ESINHandler extends StructuredData {
       }
       return false;
    }
-
-   // Created Nov 2021 by Janet Bjorndahl (to replace hasAmbiguousDates)
-   public static function hasInvalidDates($xml) {
-     $formatedDate = $languageDate = '';
-      if (isset($xml->event_fact)) {
-         foreach ($xml->event_fact as $ef) {
-            $date = (string)$ef['date'];
-            if ( DateHandler::editDate($date, $formatedDate, $languageDate) !== true ) {        
-               return true;
-            }
-         }
-      }
-      return false;
-   }
-   
-   /**
-    * Check for events out of order. This function returns true, false or a number (the number of years an event is too early or late), not the specific issue.
-    * This only checks events on the person page, excluding marriage events, because the marriage page might be wrong and the user still needs to save the person page.  
-    * Created Nov 2021 by Janet Bjorndahl; modified Feb 2022 to return the number of years; modified Aug 2022 to allow Religion after death
-    */
-    
-   // Note: Keep the rules in sync with similar rules in AnalyzeDataQuality.java (Data Quality Issues reporting) 
-   public static function hasEventsOutOfOrder($person) {
-      $xml = $person->xml;
-      if (isset($xml->event_fact)) {
-         $sortedEvents = ESINHandler::sortEvents($xml);   // first, sort events
-         
-         // A first pass to determine whether birth and/or death events exist, and get years for birth, death and burial
-         $hasBirthEvent = $hasDeathEvent = false;
-         $birthEarliestYear = $deathEarliestYear = $deathLatestYear = $burialLatestYear = -9999;
-         foreach ($sortedEvents as $ef) {
-            if ( $ef['type'] == 'Birth' ) {
-               $hasBirthEvent = true;
-               if ( DateHandler::getEffectiveFirstYear($ef['date']) !== false ) {
-                  $birthEarliestYear = DateHandler::getEffectiveFirstYear($ef['date']);
-               }
-            }
-            if ( $ef['type'] == 'Death' ) {
-               $hasDeathEvent = true;
-               if ( DateHandler::getEffectiveYear($ef['date']) !== false ) {
-                  $deathEarliestYear = DateHandler::getEffectiveFirstYear($ef['date']);
-                  $deathLatestYear = DateHandler::getEffectiveYear($ef['date']);
-               }
-            }
-            if ( $ef['type'] == 'Burial' ) {
-               if ( DateHandler::getEffectiveYear($ef['date']) !== false ) {
-                  $burialLatestYear = DateHandler::getEffectiveYear($ef['date']);
-               }
-            }
-         }
-         
-         // A second pass to determine whether any events occur before/after birth, death and burial events when they shouldn't
-         $hitBirthEvent = $hitDeathEvent = $hitBurialEvent = false;
-         foreach ($sortedEvents as $ef) {
-            if ( $ef['type'] == 'Birth' ) {
-               $hitBirthEvent = true;
-            }
-            if ( $ef['type'] == 'Death' ) {
-               $hitDeathEvent = true;
-            }
-            if ( $ef['type'] == 'Burial' ) {
-               $hitBurialEvent = true;
-            }
-            // Event (other than Alt event) occurs before birth date
-            if ( $hasBirthEvent && !$hitBirthEvent && substr($ef['type'],0,3) != 'Alt' ) {
-               if ( DateHandler::getEffectiveFirstYear($ef['date']) !== false && $birthEarliestYear != -9999 ) {
-                  return $birthEarliestYear - (int)DateHandler::getEffectiveFirstYear($ef['date']);
-               }   
-               else {
-                  return true;
-               }
-            }
-            // Event that can only occur after death occurs before death date
-            if ( $hasDeathEvent && !$hitDeathEvent && 
-                    ($ef['type'] == 'Burial' || $ef['type'] == 'Obituary' || $ef['type'] == 'Funeral' || $ef['type'] == 'Cremation' || $ef['type'] == 'Cause of Death' || 
-                     $ef['type'] == 'Estate Inventory' || $ef['type'] == 'Probate' || $ef['type'] == 'Estate Settlement') ) {
-               if ( DateHandler::getEffectiveFirstYear($ef['date']) !== false && $deathEarliestYear != -9999 ) {
-                  return $deathEarliestYear - (int)DateHandler::getEffectiveFirstYear($ef['date']);
-               }   
-               else {
-                  return true;
-               }
-            }                     
-            // Event (other than Alt event) that should never occur after death occurs after death or burial date
-            // Ignore events without dates, as some of them automatically sort after the death event
-            // Note that Will is excluded from this list because it is sometimes used for the date the will was presented to the court (before it was proved)
-            // Property is excluded because it is sometimes used to note property disposition (or lack thereof) after death
-            // Religion is excluded because it is sometimes used to indicate when sainthood was conferred
-            if ( ($hitDeathEvent || $hitBurialEvent) && $ef['date'] != '' && substr($ef['type'],0,3) != 'Alt' &&
-                     $ef['type'] != 'Death' && $ef['type'] != 'Burial' && $ef['type'] != 'Obituary' && $ef['type'] != 'Funeral' && $ef['type'] != 'Cremation'  && 
-                     $ef['type'] != 'Estate Inventory' && $ef['type'] != 'Probate' && $ef['type'] != 'Estate Settlement' && $ef['type'] != 'DNA' &&
-                     $ef['type'] != 'Other' && $ef['type'] != 'Cause of Death' && $ef['type'] != 'Will' && $ef['type'] != 'Property'  && $ef['type'] != 'Religion') {
-               if ( DateHandler::getEffectiveYear($ef['date']) !== false ) {
-                  if ( $deathLatestYear != -9999 ) {
-                     return (int)DateHandler::getEffectiveYear($ef['date']) - $deathLatestYear;
-                  }
-                  else {
-                     if ( $burialLatestYear != -9999 ) {
-                        return (int)DateHandler::getEffectiveYear($ef['date']) - $burialLatestYear;
-                     }
-                  }
-               }      
-               else {   
-                  return true;
-               }   
-            }                     
-         }
-      }
-   return false;
-   }
   
   // Created Nov 2020 by Janet Bjorndahl; changed Mar 2021 to return true only if significant reformating
   public static function hasReformatedDates($xml) {
@@ -277,7 +160,7 @@ class ESINHandler extends StructuredData {
     if (isset($xml->event_fact)) {
       foreach ($xml->event_fact as $ef) {
         $date = (string)$ef['date'];
-        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array((string)$ef['type'], ESINHandler::$DISCRETE_EVENT), true);        
+        $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, (string)$ef['type'], true);        
         if ( $dateStatus === 'Significant reformat' ) {                                                                                                         
           return true;
         }
@@ -360,22 +243,22 @@ class ESINHandler extends StructuredData {
       $birthDate = $birthPlace = $deathDate = $deathPlace = '';
       if ((string)$p['birthdate'] || (string)$p['birthplace']) {
          $birthLabel = 'b. ';
-         $birthDate = DateHandler::formatDate((string)$p['birthdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $birthDate = DateHandler::formatDate((string)$p['birthdate'],'Birth');        // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $birthPlace = (string)$p['birthplace'];
       }
       else if ((string)$p['chrdate'] || (string)$p['chrplace']) {
          $birthLabel = 'chr. ';
-         $birthDate = DateHandler::formatDate((string)$p['chrdate'],true);          // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $birthDate = DateHandler::formatDate((string)$p['chrdate'],'Christening');    // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $birthPlace = (string)$p['chrplace'];
       }
       if ((string)$p['deathdate'] || (string)$p['deathplace']) {
          $deathLabel = 'd. ';
-         $deathDate = DateHandler::formatDate((string)$p['deathdate'],true);        // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $deathDate = DateHandler::formatDate((string)$p['deathdate'],'Death');        // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $deathPlace = (string)$p['deathplace'];
       }
       else if ((string)$p['burialdate'] || (string)$p['burialplace']) {
          $deathLabel = 'bur. ';
-         $deathDate = DateHandler::formatDate((string)$p['burialdate'],true);       // formating call added Nov 2020 by Janet Bjorndahl; true added Mar 2021 by JB
+         $deathDate = DateHandler::formatDate((string)$p['burialdate'],'Burial');      // formating call added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
          $deathPlace = (string)$p['burialplace'];
       }
       if ($birthPlace) $birthPlace = '[[Place:' . StructuredData::addBarToTitle($birthPlace) . ']]';
@@ -890,7 +773,7 @@ END;
 //      $notes = StructuredData::formatAsLinks((string)@$eventFact['notes']);
 //      $images = StructuredData::formatAsLinks((string)@$eventFact['images']);
       $type = (string)$eventFact['type'];
-      $date = DateHandler::formatDate((string)$eventFact['date'], in_array($type, ESINHandler::$DISCRETE_EVENT));         // added Nov 2020 by Janet Bjorndahl; discrete parm added Mar 2021 JB
+      $date = DateHandler::formatDate((string)$eventFact['date'], $type);         // added Nov 2020 by Janet Bjorndahl; 2nd parm changed Apr 2024 by JB
       $place = (string)$eventFact['place'];
       if ($place) {
          $place = '[[Place:' . StructuredData::addBarToTitle($place) . ']]';
@@ -1252,8 +1135,8 @@ END;
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
       // If the date passes date editing but is not in standard format, replace it with the properly formated version
-      // added Oct 2020; changed Mar 2021 by Janet Bjorndahl 
-      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($typeString, ESINHandler::$DISCRETE_EVENT), true);
+      // added Oct 2020; changed Mar 2021 by Janet Bjorndahl; changed Apr 2024 
+      $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, $typeString, true);
       if ( $dateStatus === 'Significant reformat' ) {              // Display in yellow with prev date below if parser had to do a significant reformat
           $prevDate = $date;
           $dateStyle = ' style="background-color:#ffff99;"';
@@ -1624,8 +1507,8 @@ END;
 		$result = '';
    
 		$date = $request->getVal("date$num");
-    // Format the date. If successful and no significant reformating was required, replace the date with the formated date. Added Nov 2020; Changed Mar 2021 by Janet Bjorndahl
-    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, in_array($type, ESINHandler::$DISCRETE_EVENT), true);
+    // Format the date. If successful and no significant reformating was required, replace the date with the formated date. Added Nov 2020; Changed Mar 2021, Apr 2024 by Janet Bjorndahl
+    $dateStatus = DateHandler::editDate($date, $formatedDate, $languageDate, $type, true);
     if ( $dateStatus === true ) {
       $date = $formatedDate;
     }

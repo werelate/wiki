@@ -75,7 +75,7 @@ class PlaceSearcher {
 	   global $wrSearchHost, $wrSearchPort, $wrSearchPath;
 		$query = implode('|', $placesQuery);
 		list($code, $result) = PlaceSearcher::postRequest($wrSearchHost, $wrSearchPort, "$wrSearchPath/$resultFunction", $query);
-		if ($code != 200) {
+		if ($code != 200 && $code != 400) {
 		   die("search server returned bad response: $code for function: $resultFunction\n");
 		}
       return $result;
