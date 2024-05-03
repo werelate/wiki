@@ -20,7 +20,9 @@ abstract class DQHandler {
 
    // Message to display when in edit mode instead of the issue description that displays in other contexts. Only needed for a few issue types.  
    private static $DATA_QUALITY_EDIT_MESSAGE = array(
-      "Invalid date(s)" => "Invalid date(s). Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft)."
+      "Invalid date(s)" => "Invalid date(s). Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).",
+      "Considered living" => "This person was born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be entered into WeRelate.org.",
+      "Potentially living" => "This person may have been born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be entered into WeRelate.org."
    );
 
   /**
@@ -229,7 +231,7 @@ abstract class DQHandler {
         }
       }
       if ( $issues[$i][4] == "yes" ) {
-    	  $result .= "<p><font color=red>Please fix this issue: $msg</font></p>";
+        $result .= "<p><font color=red>" . ($issues[$i][0] == "Living" ? "" : "Please fix this issue: ") . $msg . "</font></p>";
       }
       else {
   	    $result .= "<p><font color=red>Warning: $msg</font></p>";
@@ -391,11 +393,20 @@ abstract class DQHandler {
       $strippedContent = substr($strippedContent, 0, $start) . substr($strippedContent, $end+1);
     }        
 
-    //Strip out descriptions. 
-    while ( strpos($strippedContent, "$descAtt=\"") !== false ) {
-      $start = strpos($strippedContent, "$descAtt=\"");
+    //Strip out descriptions except for those including templates (which might be needed).
+    $start = 0;
+    // Look for desc attribute tag in the portion of strippedContent that is beyond what has already been examined (which might include a kept desc attribute).
+    while ( strpos(substr($strippedContent, $start), "$descAtt=\"") !== false ) {
+      // Calculate start relative to the full strippedContent.
+      $start = $start + strpos(substr($strippedContent, $start), "$descAtt=\"");
       $end = strpos($strippedContent, '"', $start+strlen($descAtt)+2);
-      $strippedContent = substr($strippedContent, 0, $start) . substr($strippedContent, $end+1);
+      // If the desc attribute doesn't include a template, remove it from strippedContent; otherwise, skip over the desc attribute tag for the next loop.
+      if ( strpos(substr($strippedContent, $start, $end-$start), "{{") === false ) {
+        $strippedContent = substr($strippedContent, 0, $start) . substr($strippedContent, $end+1);
+      }
+      else {
+        $start += strlen($descAtt)+2;
+      }
     }        
     
     return $strippedContent;

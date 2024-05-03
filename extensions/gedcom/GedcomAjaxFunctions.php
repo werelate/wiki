@@ -1008,7 +1008,6 @@ function wfAddPagesToTree($args) {
  */
 function wfAddPage($args) {
 	global $wgUser, $wgAjaxCachePolicy, $wgArticle, $wgTitle, $wgLang;
-
    // set cache policy
 	$wgAjaxCachePolicy->setPolicy(0);
 	$status = GE_SUCCESS;
@@ -1036,7 +1035,7 @@ function wfAddPage($args) {
          $title = Title::newFromText($titleString, $ns);
       }
 		else if ($ns == NS_PERSON) {
-         if (ESINHandler::isLivingDates($args['bd'], null, $args['dd'], $args['dp'])) {
+         if (isLivingDates($args['bd'], $args['dd'])) {
             $error = 'Living people cannot be added to WeRelate. People born in the last 110 years must have a death date';
          }
          // All invalid dates must be fixed (not just ambiguous ones); changed Nov 2021 by Janet Bjorndahl
@@ -1626,4 +1625,22 @@ function fgReviewNeeded($gedcomId, $filename, $dbw) {
 // 	wfDebug("fgReviewGedcom gedcomId=$gedcomId reason=$reason\n");
  	return $reason;
 }
+
+/**
+  * Check to see if a person is considered to be living when only the birth and death dates are available (when adding but not editing a page).
+  */
+function isLivingDates($birthDate, $deathDate=null) {
+      /* To establish that a person is deceased requires a valid death date not using the "aft"  or "est" modifier
+         and not completely within parentheses unless "(in infancy)" or "(young)". */
+      $formatedDate = $languageDate = '';
+      if ( stripos($deathDate,'aft')===false && stripos($deathDate,'est')===false ) {
+         if ( DateHandler::editDate($deathDate, $formatedDate, $languageDate, 'Death', false) === true && 
+               $formatedDate!='' && (stripos($formatedDate, '(')!==0 || stripos($formatedDate,'(in infancy)')!==false || stripos($formatedDate,'(young)')!==false) ) {
+            return false;
+         }
+      }
+           
+      $birthYear = DateHandler::getEffectiveYear($birthDate);       // changed to new DateHandler function Oct 2020 by Janet Bjorndahl
+      return ($birthYear && (int)date("Y") - (int)$birthYear < 110);
+   }
 
