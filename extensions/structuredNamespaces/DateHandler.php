@@ -13,7 +13,7 @@ abstract class DateHandler {
     * @param string $date
     * @param string $eventType (optional)
     */
-  public static function formatDate($date, $eventType) {
+  public static function formatDate($date, $eventType=null) {
     $formatedDate = $languageDate = '';
     if ( self::editDate($date, $formatedDate, $languageDate, $eventType) === true ) {
       return $languageDate;
@@ -28,7 +28,7 @@ abstract class DateHandler {
     * @param string $date
     * @param string $eventType (optional)
     */
-  public static function formatDateEnglish($date, $eventType) {
+  public static function formatDateEnglish($date, $eventType=null) {
     $formatedDate = $languageDate = '';
     if ( self::editDate($date, $formatedDate, $languageDate, $eventType) === true ) {
       return $formatedDate;
@@ -46,7 +46,7 @@ abstract class DateHandler {
     *    if true, returns the year or year range, with modifiers
     *    if false, returns the end year in the date, without modifiers
     */
-	public static function getYear($date, $eventType, $includeModifiers=false) {
+	public static function getYear($date, $eventType=null, $includeModifiers=false) {
     $year = null;
     if ( $includeModifiers ) {
       $formatedDate = $languageDate = '';
@@ -131,14 +131,15 @@ abstract class DateHandler {
     *    if true and the date passed edit rules but significant reformating was required, return a message to indicate significant reformating
     *    if false, return the error message from the edit if it failed, or success status if the edit passed
     */
-  public static function editDate($date, &$formatedDate, &$languageDate, $eventType, $reformatDetails=false) {    // reformatDetails added Mar 2021 by Janet Bjorndahl
+  public static function editDate($date, &$formatedDate, &$languageDate, $eventType=null, $reformatDetails=false) {    // reformatDetails added Mar 2021 by Janet Bjorndahl
     global $wrSearchHost, $wrSearchPort, $wrSearchPath;
 
     $parsedDate = array();
     $formatedDate = '';
     $languageDate = '';
 
-    $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/eventdate?edit=yes&date=" . urlencode($date) . "&type=" . urlencode($eventType) . "&wt=php";
+    $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/eventdate?edit=yes&date=" . urlencode($date) . 
+          (isset($eventType) ? ("&type=" . urlencode($eventType)) : "") . "&wt=php";
     if ( file_get_contents($query) ) {
       eval('$response = ' . file_get_contents($query) . ';');
       $formatedDate = $response['formatedDate'];
@@ -189,7 +190,9 @@ abstract class DateHandler {
       }
       return true;
     }  
-    // Ignore editing (and assume success) if there was no response.
+    // If there was no response, ignore editing (assume success) and set return fields to the original date for display.
+    $formatedDate = $date;
+    $languageDate = $date;
     return true;
   }
 

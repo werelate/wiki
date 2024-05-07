@@ -1336,17 +1336,14 @@ END;
 			$childOfFamilies = StructuredData::getTitlesAsArray($this->xml->child_of_family);
 			$spouseOfFamilies = StructuredData::getTitlesAsArray($this->xml->spouse_of_family);
 		}
-      $this->addRequestMembers('pf', $childOfFamilies);
-      $this->addRequestMembers('sf', $spouseOfFamilies);
+    $this->addRequestMembers('pf', $childOfFamilies);
+    $this->addRequestMembers('sf', $spouseOfFamilies);
 
     // Added Jul 2023 as part of refactoring; redundant code removed below
- 	  $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "person");
+ 	  $issues = DQHandler::getUnverifiedIssues($exists ? $textbox1 : $oldText, $this->title, "person");
     $result .= DQHandler::addEditIssues($issues);
 
-		if (ESINHandler::isLiving($this->xml)) {
-		   $result .= "<p><font color=red>This person was born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be entered into WeRelate.org.</font></p>";
-		}
-	   else if (!$this->isGedcomPage && !StructuredData::titleStringHasId($this->titleString)) {
+     if (!$this->isGedcomPage && !StructuredData::titleStringHasId($this->titleString)) {
 	      $result .= "<p><font color=red>The page title does not have an ID; please create a page with an ID using <a href='/wiki/Special:AddPage/Person'>Add page</a></font></p>";
 	   }
      if (StructuredData::hasUnknownNameValues($this->xml)) {                                         // added Nov 2020 by Janet Bjorndahl
@@ -1550,8 +1547,7 @@ END;
    	 	 $parentFamilies = StructuredData::getTitlesAsArray($this->xml->child_of_family);
    		 $spouseFamilies = StructuredData::getTitlesAsArray($this->xml->spouse_of_family);
 	     $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "person");                // added Jul 2023 as part of refactoring
-   		 return (!ESINHandler::isLiving($this->xml)
-               && !DQHandler::hasSevereIssues($issues)                                             // added Jul 2023 as part of refactoring
+   		 return (!DQHandler::hasSevereIssues($issues)                                                // added Jul 2023 as part of refactoring
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($parentFamilies))
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($spouseFamilies))
                && !StructuredData::hasUnknownNameValues($this->xml)                                // added Nov 2020 by Janet Bjorndahl
