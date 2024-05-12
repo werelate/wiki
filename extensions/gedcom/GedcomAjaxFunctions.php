@@ -999,7 +999,7 @@ function wfAddPagesToTree($args) {
 }
 
 /**
- * Create family tree page
+ * Create family tree page without an immediate edit mode
  *
  * This is also called by search.js
  *
@@ -1008,197 +1008,217 @@ function wfAddPagesToTree($args) {
  */
 function wfAddPage($args) {
 	global $wgUser, $wgAjaxCachePolicy, $wgArticle, $wgTitle, $wgLang;
-   // set cache policy
+ 
+	// Message to display when attempting to add a page instead of the issue description that displays in other contexts. Only needed for a few issue types.
+	// Note that there is a similar list in DQHandler. Some messages should be kept in sync (but do not use special formating in these messages). 
+	$DATA_QUALITY_ADD_MESSAGE = array(
+		"Invalid date(s)" => "Invalid date(s). Dates should be in D MMM YYYY format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).",
+		"Considered living" => "This person was born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be added to WeRelate.",
+		"Potentially living" => "This person may have been born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be added to WeRelate.",
+		"Missing gender" => "You must select a gender (right-click and select 'Back' if necessary)"
+ 	);
+
+	// set cache policy
 	$wgAjaxCachePolicy->setPolicy(0);
 	$status = GE_SUCCESS;
-   $title = null;
+	$title = null;
 	$titleString = null;
 	$error = '';
-   $args = AjaxUtil::getArgs($args);
-   $ns = $wgLang->getNsIndex($args['ns']);
-   $titleString = @$args['title'];
-   $update = ($args['update'] == 'true');
+	$args = AjaxUtil::getArgs($args);
+	$ns = $wgLang->getNsIndex($args['ns']);
+	$titleString = @$args['title'];
+	$update = ($args['update'] == 'true');
 	if (!$wgUser->isLoggedIn()) {
-      $status = GE_NOT_LOGGED_IN;
-   }
-   else if ($wgUser->isBlocked() || wfReadOnly()) {
-      $status = GE_NOT_AUTHORIZED;
-   }
+    	$status = GE_NOT_LOGGED_IN;
+	}
+	else if ($wgUser->isBlocked() || wfReadOnly()) {
+    	$status = GE_NOT_AUTHORIZED;
+	}
 	if ($status == GE_SUCCESS) {
-      $dbw =& wfGetDB( DB_MASTER );
-      $dbw->ignoreErrors(true);
-      $dbw->begin();
-      $text = '';
+    	$dbw =& wfGetDB( DB_MASTER );
+    	$dbw->ignoreErrors(true);
+    	$dbw->begin();
+    	$text = '';
 
-      if ($titleString) {
-         // user passed in existing title; just add to watchlist and trees
-         $title = Title::newFromText($titleString, $ns);
-      }
-		else if ($ns == NS_PERSON) {
-         if (isLivingDates($args['bd'], $args['dd'])) {
-            $error = 'Living people cannot be added to WeRelate. People born in the last 110 years must have a death date';
-         }
-         // All invalid dates must be fixed (not just ambiguous ones); changed Nov 2021 by Janet Bjorndahl
-         else if (ESINHandler::isInvalidDate($args['bd']) || ESINHandler::isInvalidDate($args['dd'])) {
-            $error = "Please correct date(s); they should be in D MMM YYYY format.";
-         }
-         else if ($args['gnd']=='') {                                                          // added Apr 2022 by Janet Bjorndahl
-            $error = "You must select a gender (right-click and select 'Back' if necessary)";
-         }
-         else {
-            if (!$title) $title = StructuredData::constructPersonTitle($args['g'], $args['s']);
-            if ($title) {
-            	if ($args['bt'] == 'chr') {
-						$bird = '';
-						$birp = '';
-						$chrd = $args['bd'];
-						$chrp = $args['bp'];
-            	}
-            	else {
-						$bird = $args['bd'];
-						$birp = $args['bp'];
-						$chrd = '';
-						$chrp = '';
-            	}
-            	if ($args['dt'] == 'bur') {
-						$dead = '';
-						$deap = '';
-						$burd = $args['dd'];
-						$burp = $args['dp'];
-            	}
-            	else {
-						$dead = $args['dd'];
-						$deap = $args['dp'];
-						$burd = '';
-						$burp = '';
-            	}
-
-               $text = Person::getPageText($args['g'], $args['s'], $args['gnd'], $bird, $birp, $dead, $deap,
+    	if ($titleString) {
+        // user passed in existing title; just add to watchlist and trees
+        $title = Title::newFromText($titleString, $ns);
+    	}
+			else if ($ns == NS_PERSON) {
+				if (!$title) $title = StructuredData::constructPersonTitle($args['g'], $args['s']);
+				if ($title) {
+					if ($args['bt'] == 'chr') {
+								$bird = '';
+								$birp = '';
+								$chrd = $args['bd'];
+								$chrp = $args['bp'];
+					}
+					else {
+								$bird = $args['bd'];
+								$birp = $args['bp'];
+								$chrd = '';
+								$chrp = '';
+					}
+					if ($args['dt'] == 'bur') {
+								$dead = '';
+								$deap = '';
+								$burd = $args['dd'];
+								$burp = $args['dp'];
+					}
+					else {
+								$dead = $args['dd'];
+								$deap = $args['dp'];
+								$burd = '';
+								$burp = '';
+					}
+					$text = Person::getPageText($args['g'], $args['s'], $args['gnd'], $bird, $birp, $dead, $deap,
                                            $title->getText(), null, @$args['pf'], @$args['sf'],
                                            $chrd, $chrp, $burd, $burp);
-            }
-         }
-		}
-		else if ($ns == NS_FAMILY) {
-         // All invalid dates must be fixed (not just ambiguous ones); changed Nov 2021 by Janet Bjorndahl
-         if (ESINHandler::isInvalidDate($args['md'])) {
-            $error = "Please correct date; it should be in D MMM YYYY format.";
-         }
-         else {
-            $title = StructuredData::constructFamilyTitle($args['hg'], $args['hs'], $args['wg'], $args['ws']);
-            if ($title) {
-               $text = 	Family::getPageText($args['md'], $args['mp'],
-                                            $title->getText(), null, @$args['ht'], @$args['wt'], @$args['ct']);
-            }
-         }
-		}
-		else if ($ns == NS_SOURCE) {
-			$title = StructuredData::constructSourceTitle($args['sty'], $args['st'], $args['a'], $args['p'], $args['pi'], $args['pu']);
-			if ($title) {
-				$text = Source::getPageText($args['sty'], $args['st'], $args['a'], $args['p'], $args['pi'], $args['pu']);
+					// Get issues and see if any are serious enough to prevent the page from being created.
+					// Note that only some types of issues can be found at this point. Detecting issues in relation to other family members 
+					// relies on the family page being linked to their pages (which it isn't yet).
+					$issues = DQHandler::getUnverifiedIssues($text, $title, 'person');
+					for ($i=0; $i<sizeof($issues); $i++) {
+						if ($issues[$i][0] != "Anomaly") {
+							$status = GE_INVALID_ARG;
+							// By default, use the issue description in the error message. 
+							$msg = $issues[$i][1];
+													 
+							// But use a different message as appropriate.
+							foreach ( array_keys($DATA_QUALITY_ADD_MESSAGE) as $partialIssueDesc ) {
+								if ( substr($issues[$i][1], 0, strlen($partialIssueDesc)) == $partialIssueDesc ) {
+									$msg = $DATA_QUALITY_ADD_MESSAGE[$partialIssueDesc];
+									break;  
+								}
+							}
+							$error = ($issues[$i][0] == "Error" ? "Please correct this error: " : "") . $msg;
+							break;
+						}
+					}
+				}
 			}
-			else {
-				$error = 'Required source fields are missing; please press the Back button on your browser to enter the required fields.';
+			else if ($ns == NS_FAMILY) {
+				// The only error that can be detected when adding a new family page is an invalid marriage date.
+				// Detecting issues in relation to family members relies on the family page being saved (which it isn't yet).
+				if (ESINHandler::isInvalidDate($args['md'])) {
+					$status = GE_INVALID_ARG;
+					$error = "Please correct this error: " . $DATA_QUALITY_ADD_MESSAGE["Invalid date(s)"];
+				}
+				else {
+					$title = StructuredData::constructFamilyTitle($args['hg'], $args['hs'], $args['wg'], $args['ws']);
+					if ($title) {
+						$text = Family::getPageText($args['md'], $args['mp'],
+										$title->getText(), null, @$args['ht'], @$args['wt'], @$args['ct']);
+					}
+				}
 			}
-		}
-		else if ($ns == NS_MYSOURCE) {
-			$t = $args['t'];
-			if (mb_strpos($t, $wgUser->getName().'/') != 0) {
-				$t = $wgUser->getName().'/'.$t;
+			else if ($ns == NS_SOURCE) {
+				$title = StructuredData::constructSourceTitle($args['sty'], $args['st'], $args['a'], $args['p'], $args['pi'], $args['pu']);
+				if ($title) {
+					$text = Source::getPageText($args['sty'], $args['st'], $args['a'], $args['p'], $args['pi'], $args['pu']);
+				}
+				else {
+					$error = 'Required source fields are missing; please press the Back button on your browser to enter the required fields.';
+				}
 			}
-			$title = Title::newFromText($t, NS_MYSOURCE);
-			if ($title) {
-				$text = MySource::getPageText($args['a'], $args['p'], $args['s']);
+			else if ($ns == NS_MYSOURCE) {
+				$t = $args['t'];
+				if (mb_strpos($t, $wgUser->getName().'/') != 0) {
+					$t = $wgUser->getName().'/'.$t;
+				}
+				$title = Title::newFromText($t, NS_MYSOURCE);
+				if ($title) {
+					$text = MySource::getPageText($args['a'], $args['p'], $args['s']);
+				}
 			}
-		}
-		else if ($ns == NS_PLACE) {
-			$title = StructuredData::constructPlaceTitle($args['pn'], $args['li']);
-			$text = Place::getPageText();
-         // check existing located-in, not root
-         $titleText = $title->getFullText();
-         $pos = mb_strpos($titleText, ',');
-         if ($pos === false) {
-            $title = null;
-            $error = 'You need to fill in the country';
-         }
-         else {
-            $locatedIn = Title::newFromText(trim(mb_substr($titleText, $pos+1)), NS_PLACE);
-            if (!$locatedIn->exists()) {
-               $title = null;
-               $error = 'Before you can add this place, you must first add '.$locatedIn->getFullText();
-            }
-         }
-		}
-		
-		if ($status == GE_SUCCESS && $title == null) {
-	   	$status = GE_INVALID_ARG;
-	   	if (!$error) $error = 'Invalid page title; unable to create page';
-		}
-      // don't update in the case of the user passing in a non-existing titleString
-      if ($update && !($titleString && !$title->exists())) {
-         if ($status == GE_SUCCESS) {
-            $article = new Article($title, 0);
-            // don't set the global article and title to this; we don't need to propagate -- but we do for  places
-            // NOTE: This doesn't execute the code in FamilyTreePropagator to update familytree_page and add page to tree, but we don't want that to be called
-            // because we add the page to the tree below
-            if ($title->exists()) { // don't update the page if it already exists, except to add a spouse-family
-               if ($ns == NS_PERSON && @$args['sf']) {
-                  $content =& $article->fetchContent();
-                  $updated = false;
-                  Person::updateFamilyLink('spouse_of_family', '', $args['sf'], $content, $updated);
-                  if ($updated) {
-                     $article->doEdit($content, 'Add spouse family: [[Family:'.$args['sf'].']]', EDIT_UPDATE);
-                     StructuredData::purgeTitle($title, +1); // purge person with a fudge factor so family link will be blue
-                  }
-               }
-               $revid = 0;  // ok for revid to be 0 if page exists because we no longer use revid
-            }
-            else {
-               if (!$article->doEdit($text, '')) {
-                  $status = GE_WIKI_ERROR;
-               }
-               else {
-                  $revid = $article->mRevIdEdited;
-               }
-            }
-         }
+			else if ($ns == NS_PLACE) {
+				$title = StructuredData::constructPlaceTitle($args['pn'], $args['li']);
+				$text = Place::getPageText();
+				// check existing located-in, not root
+				$titleText = $title->getFullText();
+				$pos = mb_strpos($titleText, ',');
+				if ($pos === false) {
+					$title = null;
+					$error = 'You need to fill in the country';
+        }
+        else {
+					$locatedIn = Title::newFromText(trim(mb_substr($titleText, $pos+1)), NS_PLACE);
+					if (!$locatedIn->exists()) {
+            		$title = null;
+            		$error = 'Before you can add this place, you must first add '.$locatedIn->getFullText();
+            	}
+				}
+			}
 
-         if ($status == GE_SUCCESS) {
-            // add the page to the trees (or to no trees)
-            $allTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName());
-            $trees = explode('|',@$args['tree']);
-            $checkedTreeIds = array();
-            foreach ($allTrees as $tree) {
-               if (in_array(FamilyTreeUtil::toInputName($tree['name']), $trees)) {
-                  $checkedTreeIds[] = $tree['id'];
+			if ($status == GE_SUCCESS && $title == null) {
+	  	 	$status = GE_INVALID_ARG;
+	   		if (!$error) $error = 'Invalid page title; unable to create page';
+			}
+    	// don't update in the case of the user passing in a non-existing titleString
+    	if ($update && !($titleString && !$title->exists())) {
+        	if ($status == GE_SUCCESS) {
+        		$article = new Article($title, 0);
+            	// don't set the global article and title to this; we don't need to propagate -- but we do for  places
+            	// NOTE: This doesn't execute the code in FamilyTreePropagator to update familytree_page and add page to tree, but we don't want that to be called
+            	// because we add the page to the tree below
+            	if ($title->exists()) { // don't update the page if it already exists, except to add a spouse-family
+            		if ($ns == NS_PERSON && @$args['sf']) {
+                		$content =& $article->fetchContent();
+                		$updated = false;
+                		Person::updateFamilyLink('spouse_of_family', '', $args['sf'], $content, $updated);
+                		if ($updated) {
+                    		$article->doEdit($content, 'Add spouse family: [[Family:'.$args['sf'].']]', EDIT_UPDATE);
+                    		StructuredData::purgeTitle($title, +1); // purge person with a fudge factor so family link will be blue
+                		}
+            		}
+            		$revid = 0;  // ok for revid to be 0 if page exists because we no longer use revid
+        		}
+            	else {
+            		if (!$article->doEdit($text, '')) {
+                		$status = GE_WIKI_ERROR;
+            		}
+            		else {
+                		$revid = $article->mRevIdEdited;
+            		}
+            	}
+        	}
+
+        	if ($status == GE_SUCCESS) {
+            	// add the page to the trees (or to no trees)
+            	$allTrees = FamilyTreeUtil::getFamilyTrees($wgUser->getName());
+            	$trees = explode('|',@$args['tree']);
+            	$checkedTreeIds = array();
+            	foreach ($allTrees as $tree) {
+            		if (in_array(FamilyTreeUtil::toInputName($tree['name']), $trees)) {
+                		$checkedTreeIds[] = $tree['id'];
 //                  if (!FamilyTreeUtil::addPage($dbw, $wgUser, $tree['id'], $title, $revid, 0)) {
 //                     $status = GE_DB_ERROR;
 //                  }
-               }
-            }
-            // update which trees are checked
-            FamilyTreeUtil::updateTrees($dbw, $title, $revid, $allTrees, array(), $checkedTreeIds);
-         }
+            		}
+            	}
+            	// update which trees are checked
+            	FamilyTreeUtil::updateTrees($dbw, $title, $revid, $allTrees, array(), $checkedTreeIds);
+        	}
 
-         // watch the page
-         if ($status == GE_SUCCESS) {
-            StructuredData::addWatch($wgUser, $article, true);
-         }
-      }
+        	// watch the page
+        	if ($status == GE_SUCCESS) {
+        		StructuredData::addWatch($wgUser, $article, true);
+        	}
+    	}
 
-	   if ($status == GE_SUCCESS) {
-     	   $dbw->commit();
-     	}
+		if ($status == GE_SUCCESS) {
+     		$dbw->commit();
+    	}
      	else {
-     	   $dbw->rollback();
-         if (!$error) $error = 'Unable to create page';
+     		$dbw->rollback();
+        	if (!$error) $error = 'Unable to create page';
      	}
-   }
+	}
 
 	// return status
 	$titleString = '';
 	if ($title) {
-	   $titleString = StructuredData::escapeXml($title->getText());
+		$titleString = StructuredData::escapeXml($title->getText());
 	}
   	return "<addpage status=\"$status\" title=\"$titleString\" error=\"$error\"></addpage>";
 }
@@ -1625,22 +1645,4 @@ function fgReviewNeeded($gedcomId, $filename, $dbw) {
 // 	wfDebug("fgReviewGedcom gedcomId=$gedcomId reason=$reason\n");
  	return $reason;
 }
-
-/**
-  * Check to see if a person is considered to be living when only the birth and death dates are available (when adding but not editing a page).
-  */
-function isLivingDates($birthDate, $deathDate=null) {
-      /* To establish that a person is deceased requires a valid death date not using the "aft"  or "est" modifier
-         and not completely within parentheses unless "(in infancy)" or "(young)". */
-      $formatedDate = $languageDate = '';
-      if ( stripos($deathDate,'aft')===false && stripos($deathDate,'est')===false ) {
-         if ( DateHandler::editDate($deathDate, $formatedDate, $languageDate, 'Death', false) === true && 
-               $formatedDate!='' && (stripos($formatedDate, '(')!==0 || stripos($formatedDate,'(in infancy)')!==false || stripos($formatedDate,'(young)')!==false) ) {
-            return false;
-         }
-      }
-           
-      $birthYear = DateHandler::getEffectiveYear($birthDate);       // changed to new DateHandler function Oct 2020 by Janet Bjorndahl
-      return ($birthYear && (int)date("Y") - (int)$birthYear < 110);
-   }
 
