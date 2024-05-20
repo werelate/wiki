@@ -244,7 +244,6 @@ abstract class DateHandler {
   public static function getDateKey($date, $getNumericKey=false) {
     $pd = array();
     $fields = array();
-    $result = '';
     
     $pd=self::parseDate($date);
     
@@ -257,7 +256,7 @@ abstract class DateHandler {
         $i = 0;
       }
       else {
-        return $result;
+        return '';
       }
     }
     
@@ -268,16 +267,17 @@ abstract class DateHandler {
     // Note that when returning a string, BC dates are not handled since the context might not be able to handle them. An empty string is returned instead.
     if ( !$getNumericKey ) {
       if ( isset($pd['suffix'][$i]) && $pd['suffix'][$i] === 'BC' ) {
-        return $result;
+        return '';
       }
-      $result = str_pad($pd['effyear'][$i],4,'0',STR_PAD_LEFT) . 
+      return str_pad($pd['effyear'][$i],4,'0',STR_PAD_LEFT) . 
                 (isset($pd['month'][$i]) ? 
                   str_pad($monthNum,2,'0',STR_PAD_LEFT) . (isset($pd['day'][$i]) ? str_pad($pd['day'][$i],2,'0',STR_PAD_LEFT) : '' ) :
                   '' );
-      return $result;
     }
     
     // The remainder of the code is for numeric keys.
+    // Note that since BC dates are negative, adding the month and day portion will be like subtracting from a positive number.
+    // While the result might not appear to be correct, it will result in correct sorting.
     
     // Handle situation where year, month and day are all present.
     if ( isset($pd['month'][$i]) && isset($pd['day'][$i]) ) {
@@ -288,10 +288,8 @@ abstract class DateHandler {
       if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/i", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the day 
         $jd += 1;
       }
-      // TO DO - handle reversing days and months if negative year (BC)
       preg_match_all('#-?\d+#', jdtogregorian($jd), $fields, PREG_SET_ORDER);
-      $result = $fields[2][0] . str_pad($fields[0][0],2,'0',STR_PAD_LEFT) . str_pad ($fields[1][0],2,'0',STR_PAD_LEFT);
-      return (int)$result;
+      return (int)$fields[2][0] * 10000 + (int)$fields[0][0] * 100 + (int)$fields[1][0];
     }
     
     // Handle situation where only year and month are present.
@@ -314,8 +312,7 @@ abstract class DateHandler {
           $monthNum += 1;
         }
       } 
-      $result = $pd['effyear'][$i] . str_pad($monthNum,2,'0',STR_PAD_LEFT) . '00';
-      return (int)$result;
+      return (int)$pd['effyear'][$i] * 10000 + $monthNum * 100;
     }
     
     // Handle situation where only year is present.
@@ -325,8 +322,7 @@ abstract class DateHandler {
     if ( isset($pd['modifier'][$i]) && preg_match("/\b(Aft|Bet|From)\b/i", $pd['modifier'][$i]) ) {        // For these modifiers, add 1 to the year
       $pd['effyear'][$i] += 1;
     } 
-    $result = $pd['effyear'][$i] . '0000';
-    return (int)$result;
+    return (int)$pd['effyear'][$i] * 10000;
   }
   
   // This function returns the year of a date. If the date has a range and modifiers are to be included, it returns the year range.
@@ -417,7 +413,6 @@ abstract class DateHandler {
     // Prepare: lower case; remove leading and trailing whitespace, and reduce internal strings of whitespace to one space each.
     // Original date (minus any text portion removed above) is retained in case it needs to be returned in the text portion
     $date = mb_strtolower(trim(preg_replace('!\s+!', ' ', $originalDate)));
-//    $date = str_replace("\u2014", "-", $date);  // This code, to replace long dashes with short dashes, doesn't work in this version of PHP.
     
     // Special cases (several added Mar 2021 by Janet Bjorndahl)
     switch ( $date ) {
