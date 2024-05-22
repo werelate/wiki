@@ -105,7 +105,7 @@ abstract class DQHandler {
           for ($i=0; $i<sizeof($namedIssues)-1; $i++) {
             $issues[$numIssues+$i] = $namedIssues['issue ' . ($i+1)];
           }
-          
+
           // Refine the Person's latest birth year based on what was determined from dates of parents and siblings.
           self::$latestBirth = self::minVal(self::$latestBirth, self::$cLatestBirth);
         }
@@ -123,7 +123,8 @@ abstract class DQHandler {
             $marriageInfo = self::getMarriageInfo($remainingContent);
             if ( $marriageInfo['content'] != "" ) {
               // Get birth year range based on dates of marriages, spouses, and children. 
-              self::getIssues("family", $marriageInfo['content'], $marriageInfo['titlestring'], "none");      
+              self::getIssues("family", $marriageInfo['content'], $marriageInfo['titlestring'], "none"); 
+                   
               // Refine the Person's latest birth year based on what was determined from dates of marriages, spouses, and children.
               if ( $gender == 'M' ) {
                 self::$latestBirth = self::minVal(self::$latestBirth, self::$hLatestBirth);
