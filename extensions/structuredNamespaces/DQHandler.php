@@ -107,7 +107,7 @@ abstract class DQHandler {
           }
           
           // Refine the Person's latest birth year based on what was determined from dates of parents and siblings.
-          self::$latestBirth = minVal(self::$latestBirth, self::$cLatestBirth);
+          self::$latestBirth = self::minVal(self::$latestBirth, self::$cLatestBirth);
         }
         $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
       }
@@ -126,10 +126,10 @@ abstract class DQHandler {
               self::getIssues("family", $marriageInfo['content'], $marriageInfo['titlestring'], "none");      
               // Refine the Person's latest birth year based on what was determined from dates of marriages, spouses, and children.
               if ( $gender == 'M' ) {
-                self::$latestBirth = minVal(self::$latestBirth, self::$hLatestBirth);
+                self::$latestBirth = self::minVal(self::$latestBirth, self::$hLatestBirth);
               }
               else {
-                self::$latestBirth = minVal(self::$latestBirth, self::$wLatestBirth);
+                self::$latestBirth = self::minVal(self::$latestBirth, self::$wLatestBirth);
               }
             }
             $remainingContent = substr($remainingContent, strpos($remainingContent, '<spouse_of_family')+17);
