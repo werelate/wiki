@@ -78,6 +78,7 @@ abstract class DQHandler {
   
   /**
    * Get the list of Data Quality issues (not verified) for a person or family, including issues in relation to other family members
+   * Note that similar logic exists in werelate-gedcom/Person.java.
    */
   function getUnverifiedIssues($pageContent, $title, $tagName, $scope="none") {
     $issues = array();
@@ -111,7 +112,6 @@ abstract class DQHandler {
         }
         $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
       }
-      
       // If the person might be living, refine their birth year range based on dates of marriages, spouses, and children.
       $livingCutoff = (int)date("Y") - self::$usualLongestLife;
       if ( self::$isDeadOrExempt == 0 && (self::$latestBirth == null || self::$latestBirth > $livingCutoff) ) {
@@ -137,6 +137,7 @@ abstract class DQHandler {
           }
         }
       }
+      
       // Create issue if the person is considered living or potentially living. 
       // Due to the wording of the messsages and the number of assumptions made in determining earliest and latest birth year, 
       // the person is considered living only if that could be determined from the Person page.
