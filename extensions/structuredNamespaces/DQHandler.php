@@ -78,6 +78,7 @@ abstract class DQHandler {
   
   /**
    * Get the list of Data Quality issues (not verified) for a person or family, including issues in relation to other family members
+   * Note that similar logic exists in werelate-gedcom/Person.java.
    */
   function getUnverifiedIssues($pageContent, $title, $tagName, $scope="none") {
     $issues = array();
@@ -105,15 +106,12 @@ abstract class DQHandler {
           for ($i=0; $i<sizeof($namedIssues)-1; $i++) {
             $issues[$numIssues+$i] = $namedIssues['issue ' . ($i+1)];
           }
-          
+
           // Refine the Person's latest birth year based on what was determined from dates of parents and siblings.
-          if ( self::$cLatestBirth != null && (self::$latestBirth == null || self::$cLatestBirth < self::$latestBirth) ) {
-            self::$latestBirth = self::$cLatestBirth;
-          }
+          self::$latestBirth = self::minVal(self::$latestBirth, self::$cLatestBirth);
         }
         $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
       }
-      
       // If the person might be living, refine their birth year range based on dates of marriages, spouses, and children.
       $livingCutoff = (int)date("Y") - self::$usualLongestLife;
       if ( self::$isDeadOrExempt == 0 && (self::$latestBirth == null || self::$latestBirth > $livingCutoff) ) {
@@ -125,23 +123,21 @@ abstract class DQHandler {
             $marriageInfo = self::getMarriageInfo($remainingContent);
             if ( $marriageInfo['content'] != "" ) {
               // Get birth year range based on dates of marriages, spouses, and children. 
-              self::getIssues("family", $marriageInfo['content'], $marriageInfo['titlestring'], "none");      
+              self::getIssues("family", $marriageInfo['content'], $marriageInfo['titlestring'], "none"); 
+                   
               // Refine the Person's latest birth year based on what was determined from dates of marriages, spouses, and children.
               if ( $gender == 'M' ) {
-                if ( self::$hLatestBirth != null && (self::$latestBirth == null || self::$hLatestBirth < self::$latestBirth) ) {
-                  self::$latestBirth = self::$hLatestBirth;
-                }
+                self::$latestBirth = self::minVal(self::$latestBirth, self::$hLatestBirth);
               }
               else {
-                if ( self::$wLatestBirth != null && (self::$latestBirth == null || self::$wLatestBirth < self::$latestBirth) ) {
-                  self::$latestBirth = self::$wLatestBirth;
-                }
+                self::$latestBirth = self::minVal(self::$latestBirth, self::$wLatestBirth);
               }
             }
             $remainingContent = substr($remainingContent, strpos($remainingContent, '<spouse_of_family')+17);
           }
         }
       }
+      
       // Create issue if the person is considered living or potentially living. 
       // Due to the wording of the messsages and the number of assumptions made in determining earliest and latest birth year, 
       // the person is considered living only if that could be determined from the Person page.
@@ -538,7 +534,7 @@ abstract class DQHandler {
   }
   
   /**
-   * Get the structured content of the Family page of the marriage identified on a Person page
+   * Get the person's gender
    */
   function getGender( $content ) {
     $start = strpos($content, '<gender>');
@@ -550,6 +546,32 @@ abstract class DQHandler {
     }
     return 'U';
   }
+
+  /* 
+   *Return the minimum of 2 variables, either or both of which can be null (credit Code Commander at stackoverflow)
+   */
+  function minVal($var1, $var2) {
+    if($var1 === null) { 
+      return $var2; 
+    } 
+    if($var2 === null) { 
+      return $var1; 
+    } 
+    return min($var1, $var2); 
+  }    
+
+  /* 
+   *Return the maximum of 2 variables, either or both of which can be null (credit Code Commander at stackoverflow)
+   */
+  function maxVal($var1, $var2) {
+    if($var1 === null) { 
+      return $var2; 
+    } 
+    if($var2 === null) { 
+      return $var1; 
+    } 
+    return max($var1, $var2); 
+  } 
 }
 
 ?>
