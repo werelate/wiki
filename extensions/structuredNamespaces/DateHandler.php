@@ -46,6 +46,8 @@ abstract class DateHandler {
                                            'ansl'=>'Est','anslat'=>'Est','voor'=>'Bef','vóór'=>'Bef','før'=>'Bef','avant'=>'Bef',
                                            'na'=>'Aft','ett'=>'Aft','etter'=>'Aft','van'=>'From','tot'=>'to');
                                            
+  private static $SUPPLEMENTAL_MODIFIERS = array('abt', 'cal', 'est');
+                                           
   private static $ORDINAL_SUFFIXES = array('st', 'nd', 'rd', 'th');            // added Feb 2021 by Janet Bjorndahl  
   
   public static $DISCRETE_EVENT = array ('Birth', 'Christening', 'Death', 'Burial', 'Alt Birth', 'Alt Christening', 'Alt Death', 'Alt Burial',
@@ -79,6 +81,7 @@ abstract class DateHandler {
     $languageDate = '';
 
     $parsedDate=self::parseDate($date);
+    
     // Check for some overall errors and do a few fixes before dealing with each part of the parsed date
     if ( isset($parsedDate['message']) ) {                             // if parsing was unsuccessful, return the message
       return $parsedDate['message'];
@@ -111,7 +114,7 @@ abstract class DateHandler {
         }
       }
     }
-
+    
     // Edit and format each part of the parsed date
     for ($i=1; $i>=0; $i--) {
       if ( isset($parsedDate['modifier'][$i]) || isset($parsedDate['year'][$i]) || isset($parsedDate['month'][$i]) || isset($parsedDate['day'][$i]) || isset($parsedDate['suffix'][$i]) ) {
@@ -136,8 +139,33 @@ abstract class DateHandler {
           $languageDate = '';
           return 'Split year valid only for Jan-Mar';
         } 
+        // error if "supplemental" modifier is not a valid supplemental modifier (abt, est, cal) or
+        // if there is a "supplemental" modifier and the modifier it follows is also a "supplemental" modifier
+        if ( isset($parsedDate['suppmodifier'][$i]) ) {
+          if ( !self::isSupplementalModifier($parsedDate['suppmodifier'][$i]) ) {
+            if ( self::isSupplementalModifier($parsedDate['modifier'][$i]) ) {
+              $formatedDate = '';
+              $languageDate = '';
+              return 'Modifier order not supported';
+            }
+            else {
+              $formatedDate = '';
+              $languageDate = '';
+              return 'Invalid combination of modifiers';
+            }            
+          }
+          else {
+            if ( self::isSupplementalModifier($parsedDate['modifier'][$i]) ) {
+              $formatedDate = '';
+              $languageDate = '';
+              return 'Invalid combination of modifiers';
+            }
+          }
+        }
+        
         $formatedDate .= ($formatedDate ? ' ' : '') . 
                          (isset($parsedDate['modifier'][$i]) ? $parsedDate['modifier'][$i] . ' ' : '') . 
+                         (isset($parsedDate['suppmodifier'][$i]) ? $parsedDate['suppmodifier'][$i] . ' ' : '') . 
                          (isset($parsedDate['day'][$i]) ? $parsedDate['day'][$i] . ' ' : '') . 
                          (isset($parsedDate['month'][$i]) ? $parsedDate['month'][$i] . ' ' : '') . 
                          (isset($parsedDate['year'][$i]) ? $parsedDate['year'][$i] : '') .
@@ -148,6 +176,12 @@ abstract class DateHandler {
 //        $languageModifier = wfMsg(strtolower($parsedDate['modifier'][$i]));
 //        if ( substr($languageModifier,0,4) == '&lt;' || substr($languageModifier,0,1) == '<' ) {  // modifier not found in user's preferred language - use English
 //          $languageModifier = $parsedDate['modifier'][$i];
+        }
+        if ( isset($parsedDate['suppmodifier'][$i]) ) {
+          $suppLanguageModifier = $parsedDate['suppmodifier'][$i];  
+//        $suppLanguageModifier = wfMsg(strtolower($parsedDate['suppmodifier'][$i]));
+//        if ( substr($suppLanguageModifier,0,4) == '&lt;' || substr($suppLanguageModifier,0,1) == '<' ) {  // modifier not found in user's preferred language - use English
+//          $suppLanguageModifier = $parsedDate['suppmodifier'][$i];
 //        }                      
         }
 
@@ -159,11 +193,12 @@ abstract class DateHandler {
         }
         $languageDate .= ($languageDate ? ' ' : '') . 
                          (isset($parsedDate['modifier'][$i]) ? $languageModifier . ' ' : '') . 
+                         (isset($parsedDate['suppmodifier'][$i]) ? $suppLanguageModifier . ' ' : '') . 
                          (isset($parsedDate['day'][$i]) ? $parsedDate['day'][$i] . ' ' : '') . 
                          (isset($parsedDate['month'][$i]) ? $languageMonth . ' ' : '') . 
                          (isset($parsedDate['year'][$i]) ? $parsedDate['year'][$i] : '') .
                          (isset($parsedDate['suffix'][$i]) ? ' ' . $parsedDate['suffix'][$i] : '');
-      }
+     }
     }
     
     // Check for invalid date range (added Feb 2021 by Janet Bjorndahl, switched to effyear Mar 2021 by Janet Bjorndahl)
@@ -347,10 +382,12 @@ abstract class DateHandler {
         if ( isset($parsedDate['modifier'][0]) && !isset($parsedDate['year'][1]) && $parsedDate['modifier'][0] === 'to' ) {
           $parsedDate['modifier'][0] = 'To';                           // "to" can be used on its own - if so, capitalize (added Feb 2021)
         }
-        return ($includeModifiers && isset($parsedDate['modifier'][1]) ? $parsedDate['modifier'][1] . " " : "") .    // Changed to include BC Apr 2021 - JB
+        return ($includeModifiers && isset($parsedDate['modifier'][1]) ? $parsedDate['modifier'][1] . " " : "") .
+                ($includeModifiers && isset($parsedDate['suppmodifier'][1]) ? $parsedDate['suppmodifier'][1] . " " : "") .  // include supplemental modifiers added May 2024 - JB
                 ($includeModifiers && isset($parsedDate['year'][1]) ? $parsedDate['year'][1] . " " : "") .
-                ($includeModifiers && isset($parsedDate['suffix'][1]) ? $parsedDate['suffix'][1] . " " : "") .
+                ($includeModifiers && isset($parsedDate['suffix'][1]) ? $parsedDate['suffix'][1] . " " : "") .       // include BC added Apr 2021 - JB
                 ($includeModifiers && isset($parsedDate['modifier'][0]) ? ($parsedDate['modifier'][0] == 'and' ? "&" : $parsedDate['modifier'][0]) . " " : "") .
+                ($includeModifiers && isset($parsedDate['suppmodifier'][0]) ? $parsedDate['suppmodifier'][0] . " " : "") .
                 $parsedDate['year'][0] .
                 (isset($parsedDate['suffix'][0]) ? " " . $parsedDate['suffix'][0] : "");
       }
@@ -368,24 +405,6 @@ abstract class DateHandler {
     }
     else {
       return false;
-    }
-  }
-
-  // This function returns the first year in the date. If it is a split year, it returns the effective year (e.g., 1624 for 1623/24).
-  public static function getEffectiveFirstYear($date) {
-    $parsedDate = array();
-    
-    $parsedDate=self::parseDate($date);
-    if ( isset($parsedDate['effyear'][1]) ) {
-      return $parsedDate['effyear'][1];
-    }
-    else {
-      if ( isset($parsedDate['effyear'][0]) ) {
-        return $parsedDate['effyear'][0];
-      }
-      else {
-        return false;
-      }
     }
   }
     
@@ -686,8 +705,14 @@ abstract class DateHandler {
                 }
               }
               else {
+                // If both this and the field before it are modifiers, capture this as a "supplemental" modifier (and make lower case).
                 if ( $q = self::getModifier($field) ) {
-                  $parsedDate['modifier'][$dateIndex++] = $q;
+                  if ( $i>0 && self::getModifier($fields[$i-1][1]) ) {
+                    $parsedDate['suppmodifier'][$dateIndex] = strtolower($q);
+                  }
+                  else {
+                    $parsedDate['modifier'][$dateIndex++] = $q;
+                  }
                 }
                 else { 
                   if ( $field === '?' ) {                              // if there is a question mark, capture it in a text field (too important to drop)
@@ -787,7 +812,12 @@ abstract class DateHandler {
 
   private static function getModifier($q) {
     return @self::$GEDCOM_MODIFIERS[$q];
-  }    
+  }
+  
+  private static function isSupplementalModifier($q) {
+    if ( @array_search(strtolower($q), self::$SUPPLEMENTAL_MODIFIERS) !== false ) return true;
+    else return false;
+  }
    
   private static function editSplitYear($firstPart, &$secondPart) {  // firstPart is an unknown field; secondPart qualifies as a valid year (numeric string without leading zeros)
     $num = $firstPart + 0;                     // force conversion to number
