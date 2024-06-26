@@ -3716,6 +3716,15 @@ div.exhibit-pedigree-lens-padding {
    display: none;
 }
 
+/* wr-infobox-help - added Jun 2024 by Janet Bjorndahl */
+.wr-infobox-help {
+   min-height: 20px;
+   line-height: 1.6; 
+   padding: 3px 10px 0px 10px;
+   margin-left: 17px;
+   margin-right: 17px;
+}
+
 /* wr-infobox-dataquality - added May 2023 by Janet Bjorndahl */
 .wr-infobox-dataquality {
    min-height: 20px;
