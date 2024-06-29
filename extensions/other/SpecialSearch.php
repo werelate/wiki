@@ -296,7 +296,7 @@ class SearchForm {
 
    private static function removeSelf($selfTitle, $familyTitle) {
       list ($selfGiven, $selfSurname) = StructuredData::parsePersonTitle($selfTitle);
-      $titles = explode(', ', $familyTitle);
+      $titles = explode('; ', $familyTitle);
       $results = array();
       foreach ($titles as $t) {
          list ($hg, $hs, $wg, $ws) = StructuredData::parseFamilyTitle($t);
@@ -310,16 +310,16 @@ class SearchForm {
             $results[] = $t;
          }
       }
-      return join(', ', $results);
+      return join('; ', $results);
    }
 
    private static function removeId($titleString) {
-      $titles = explode(', ', $titleString);
+      $titles = explode('; ', $titleString);
       $results = array();
       foreach ($titles as $t) {
          $results[] = trim(preg_replace('/\(\d+\)$/', '', $t));
       }
-      return join(', ', $results);
+      return join('; ', $results);
    }
 
    private function setPersonMatchVars($gedcomData) {
