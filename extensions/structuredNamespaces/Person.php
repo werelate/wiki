@@ -1476,10 +1476,10 @@ END;
 				if (!$primaryNameFound && ($i == 0 || $type == PERSON::$ALT_NAME_TAG)) {
 					$primaryNameFound = true;
 					$result .= $this->addMultiAttrFieldToXml(array(
-							'given' => $given,
-							'surname' => $surname,
-							'title_prefix' => $titlePrefix,
-							'title_suffix' => $titleSuffix,
+							'given' => trim($given),                // added trim Jul 2024 - Janet Bjorndahl
+							'surname' => trim($surname),
+							'title_prefix' => trim($titlePrefix),
+							'title_suffix' => trim($titleSuffix),
 							'sources' => $sources,
 							'notes' => $notes),
 						'name');
@@ -1487,10 +1487,10 @@ END;
 				else {
 					$result .= $this->addMultiAttrFieldToXml(array(
 							'type' => $type,
-							'given' => $given,
-							'surname' => $surname,
-							'title_prefix' => $titlePrefix,
-							'title_suffix' => $titleSuffix,
+							'given' => trim($given),
+							'surname' => trim($surname),
+							'title_prefix' => trim($titlePrefix),
+							'title_suffix' => trim($titleSuffix),
 							'sources' => $sources,
 							'notes' => $notes),
 						'alt_name');
