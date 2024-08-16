@@ -52,7 +52,7 @@ function addName(nameTypes) {
 	var row=tbl.insertRow(rowNum);
 	var nameNum=rowNum-1;
 	var cell=row.insertCell(0);
-	var sel='<select class="n_select" tabindex="1" name="alt_name'+nameNum+'"><option value="Unknown" selected="selected">Type of name</option>';
+	var sel='<select class="n_select" tabindex="1" name="alt_name'+nameNum+'"><option value="Alt Name" selected="selected">Type of name</option>';
 	for (var i=0;i<nameTypes.length;i++) {
 		sel+='<option value="'+nameTypes[i]+'">'+nameTypes[i]+'</option>';
 	}

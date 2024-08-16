@@ -204,8 +204,8 @@ class Person extends StructuredData {
 	':Sale',
 	':Slave List',
 	'Other');
-	// keep $NAME_TYPES in sync with GedcomExporter
-	protected static $NAME_TYPES = array('Alt Name', 'Baptismal Name', 'Immigrant Name', 'Married Name', 'Religious Name');
+	// keep $NAME_TYPES in sync with GedcomExporter (Note: Alt Name and Commonly Used Name exported as aka)
+	protected static $NAME_TYPES = array('Alt Name', 'Commonly Used Name', 'Baptismal Name', 'Immigrant Name', 'Married Name', 'Religious Name');
 	public static $ALT_NAME_TAG = 'Alt Name';
 	protected $historicalData;
 
@@ -1063,13 +1063,14 @@ END;
     }
 		$result = '<tr>';
 		if ($nameNum == 0) {
-			$result .= "<td><span style=\"display:$display\">Preferred name</span></td>";
+			$result .= "<td><span style=\"display:$display\">Primary name</span></td>";
 		}
 		else {
-			$result .= "<td><select class=\"n_select\" tabindex=\"1\" name=\"alt_name$nameNum\">" .
-			'<option value="Unknown"' . (empty($typeString) || $typeString == 'Unknown' ? ' selected="selected"' : '') . '>Type of name</option>';
-			foreach (self::$NAME_TYPES as $nameType) {
-				$result .= '<option value="'.$nameType.'"'.($typeString == $nameType ? ' selected="selected"' : '').'>'.$nameType.'</option>';
+			$result .= "<td><select class=\"n_select\" tabindex=\"1\" name=\"alt_name$nameNum\">" . '<option value="Alt Name">Type of name</option>';
+      for ($i=0; $i<sizeof(self::$NAME_TYPES); $i++) {
+				$result .= '<option value="' . self::$NAME_TYPES[$i].'"'.
+            (($typeString == self::$NAME_TYPES[$i] || ($i==0 && (empty($typeString) || $typeString == 'Unknown'))) ? ' selected="selected"' : '').'>' .
+            self::$NAME_TYPES[$i].'</option>';
 			}
 			$result .= '</select></td>';
 		}
@@ -1309,7 +1310,7 @@ END;
 
 		// add javascript functions
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/jquery.tablednd_0_5.yui.1.js\"></script>");
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.39.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/personfamily.40.js\"></script>");
 		$wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/autocomplete.11.js\"></script>");
 
 		$tm = new TipManager();
