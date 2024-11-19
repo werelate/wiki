@@ -32,7 +32,7 @@ function wrClearRecentChanges() {
  */
 function wfSpecialSearch( $par=NULL, $specialPage ) {
 	global $wgOut, $wgRequest, $wgScriptPath, $wrSidebarHtml, $wgUser;
-	
+ 
 	$searchForm = new SearchForm();
 
 	// read query parameters into variables
@@ -188,6 +188,7 @@ class SearchForm {
 	private $personStateFacet;
 	private $personCenturyFacet;
 	private $personDecadeFacet;
+  private $surnameIndexFacet;
    private $sub;
    private $sup;
 	private $personGender;
@@ -264,7 +265,7 @@ class SearchForm {
 
    public static $SORT_OPTIONS = array(
       'Relevance' => 'score',
-      'Page title' => 'title',
+      'Name' => 'title',
       'Date last modified' => 'date'
    );
 
@@ -493,16 +494,17 @@ class SearchForm {
 		      $this->personGender = trim($wgRequest->getVal('gnd'));
 		      $this->birthType = trim($wgRequest->getVal('bt'));
 		      $this->deathType = trim($wgRequest->getVal('dt'));
-            $this->parentFamily = trim($wgRequest->getVal('pf'));
-            $this->spouseFamily = trim($wgRequest->getVal('sf'));
-            $this->wifeGivenname = trim($wgRequest->getVal('wg')); // if we're adding a father, remember the mother's name
-            $this->wifeSurname = trim($wgRequest->getVal('ws'));
-				$this->personSurnameFacet = $wgRequest->getVal('psf');
-				$this->personGivennameFacet = $wgRequest->getVal('pgf');
-				$this->personCountryFacet = $wgRequest->getVal('pcof');
-				$this->personStateFacet = $wgRequest->getVal('pstf');
-				$this->personCenturyFacet = $wgRequest->getVal('pcf');
-				$this->personDecadeFacet = $wgRequest->getVal('pdf');
+          $this->parentFamily = trim($wgRequest->getVal('pf'));
+          $this->spouseFamily = trim($wgRequest->getVal('sf'));
+          $this->wifeGivenname = trim($wgRequest->getVal('wg')); // if we're adding a father, remember the mother's name
+          $this->wifeSurname = trim($wgRequest->getVal('ws'));
+				  $this->personSurnameFacet = $wgRequest->getVal('psf');
+				  $this->personGivennameFacet = $wgRequest->getVal('pgf');
+				  $this->personCountryFacet = $wgRequest->getVal('pcof');
+				  $this->personStateFacet = $wgRequest->getVal('pstf');
+				  $this->personCenturyFacet = $wgRequest->getVal('pcf');
+				  $this->personDecadeFacet = $wgRequest->getVal('pdf');
+          $this->surnameIndexFacet = $wgRequest->getVal('sif');
       	}
       }
       if ($ns == 'Family') {
@@ -524,6 +526,7 @@ class SearchForm {
             $this->childTitle = trim($wgRequest->getVal('ct'));
             $this->husbandTitle = trim($wgRequest->getVal('ht'));
             $this->wifeTitle = trim($wgRequest->getVal('wt'));
+          $this->surnameIndexFacet = $wgRequest->getVal('sif');
       	}
       }
       if ($ns == 'Place') {
@@ -869,6 +872,9 @@ class SearchForm {
 		if ($this->personDecadeFacet) {
 			$filters .= '&fq=' . urlencode('PersonDecadeFacet:' . $this->addQuotes($this->personDecadeFacet));
 		}
+		if ($this->surnameIndexFacet) {
+			$filters .= '&fq=' . urlencode('SurnameIndexFacet:' . $this->addQuotes($this->surnameIndexFacet));
+		}
 
 		if ($query) {
 			if ($this->sort == 'title') {
@@ -887,6 +893,7 @@ class SearchForm {
 			$facets = ($this->namespace ? '' : '&facet.field=Namespace') .
 						 ($wgUser->isLoggedIn() && $this->watch == "wu" ? '&facet.query='.urlencode('User:'.$this->addQuotes($wgUser->getName())) : '') .
 						 ($this->sort == 'title' && !$this->titleLetter ? '&facet.field=TitleFirstLetter' : '') .
+             ($this->sort == 'title' && ($this->namespace == 'Person' || $this->namespace = 'Family') && !$this->surnameIndexFacet ? '&facet.field=SurnameIndexFacet' : '') .
 						 ($this->namespace == 'Person' && !$this->personSurnameFacet   ? '&facet.field=PersonSurnameFacet&f.PersonSurnameFacet.facet.limit=10' : '') .
 						 ($this->namespace == 'Person' && !$this->personGivennameFacet ? '&facet.field=PersonGivennameFacet&f.PersonGivennameFacet.facet.limit=10' : '') .
 						 ($this->namespace == 'Person' && !$this->personCountryFacet   ? '&facet.field=PersonCountryFacet&f.PersonCountryFacet.facet.limit=10' : '') .
@@ -962,6 +969,7 @@ class SearchForm {
          .($this->personStateFacet ? '&pstf=' . urlencode($this->personStateFacet) : '')
          .($this->personCenturyFacet ? '&pcf=' . urlencode($this->personCenturyFacet) : '')
          .($this->personDecadeFacet ? '&pdf=' . urlencode($this->personDecadeFacet) : '')
+         .($this->surnameIndexFacet ? '&sif=' . urlencode($this->surnameIndexFacet) : '')
          .($this->author ? '&a=' . urlencode($this->author) : '')
          .($this->sourceType ? '&sty=' . urlencode($this->sourceType) : '')
          .($this->sourceTitle ? '&st=' . urlencode($this->sourceTitle) : '')
@@ -1135,15 +1143,7 @@ class SearchForm {
          }
       }
       $displayTitle = '';
-      if ($ns == 'Family') {
-         if (@$hl['TitleStored']) {
-            $displayTitle = SearchForm::removeId($hl['TitleStored'][0]);
-         }
-         else {
-            $displayTitle = SearchForm::removeId($titleString);
-         }
-      }
-      else if ($ns == 'Person') {
+      if ($ns == 'Family' || $ns == 'Family talk' || $ns == 'Person' || $ns == 'Person talk') {
          if (@$hl['FullnameStored'][0] && mb_strpos($hl['FullnameStored'][0], ' ') !== false) {
             $displayTitle = $hl['FullnameStored'][0];
          }
@@ -1160,7 +1160,7 @@ class SearchForm {
       else {
          $displayTitle = $titleString;
       }
-
+      
       $titleText = $this->prepareValue(($ns ? $ns.':' : '').$displayTitle, 200);
       $result = '<tr><td class="searchresult" colspan=2>'
          . ($this->addSelectButtons() ? $this->getSelectButton($ns, $titleString) : '' )
@@ -1173,11 +1173,12 @@ class SearchForm {
       // $pos is -1 for recent contribs
       if ($pos >= 0 && !$condensed) {
          $result .= '<tr><td '.($imageURL ? 'width="55%"' : 'colspan=2 width="70%"').'><table width="100%">'
-//			. $this->formatValue('Name', @$hl['FullnameStored'][0])
+  			 . $this->formatValue('AKA', @$hl['AltnameStored'][0])
          . $this->formatValue('Birth', $birth)
          . (!$birth && $chr ? $this->formatValue('Chr/Bap', $chr) : '')
          . $this->formatValue('Death', $death)
          . (!$death && $burial ? $this->formatValue('Burial', $burial) : '')
+         . ($this->personGender ? $this->formatValue('Gender', @$hl['PersonGender'][0]) : '')   // display gender only if included in search criteria
          . $this->formatValue('Parents', SearchForm::removeId(@$hl['ParentFamilyTitle'][0]))
          . $this->formatValue('Spouse', SearchForm::removeSelf($titleString, SearchForm::removeId(@$hl['SpouseFamilyTitle'][0])))
          . ($husbandBirth || $husbandDeath ? $this->formatValue('Husband', "$husbandBirth - $husbandDeath") : '')
@@ -1199,7 +1200,7 @@ class SearchForm {
          . "<td width=\"24%\" align=\"right\"><table>"
          . ($this->ecp == 'e' ? '' : $this->formatValue('', $this->getStarsImage($doc['score']), false, false))
          . $this->formatValue('Watching',$this->makeUserLinks(@$hl['UserStored'][0]), false, false)
-         . $this->formatValue('Modified', @$doc['LastModDate'] ? date('j M Y',wfTimestamp(TS_UNIX, $doc['LastModDate'].'000000')) : '')
+         . $this->formatValue('Modified', @$doc['LastModDate'] ? date('j M Y',wfTimestamp(TS_UNIX, $doc['LastModDate'])) : '')
          . "</table></td></tr>\n";
       }
       return $result;
@@ -1461,7 +1462,7 @@ END;
 	}
 
 	private function getPersonFacetHtml($response, $selfQuery, $heading, $facet, $abbrev, $allLabel, $facetLabel, $facetStart = 0) {
-		if ($this->namespace != 'Person') {
+		if ($this->namespace != 'Person' && $this->namespace != 'Family') {
 			return '';
 		}
 
@@ -1484,6 +1485,10 @@ END;
 		}
 
 		return $result;
+	}
+
+	private function getIndexFacetHtml($response, $selfQuery, $numFound) {
+		return $this->getPersonFacetHtml($response, $selfQuery, 'Surname Index', $this->surnameIndexFacet, 'sif', 'All Surnames', 'SurnameIndexFacet');
 	}
 
 	private function getSurnameFacetHtml($response, $selfQuery, $numFound) {
@@ -1721,7 +1726,8 @@ END;
 					  $this->getStateFacetHtml($response, $facetSelfQuery, $numFound) .
 					  $this->getCenturyFacetHtml($response, $facetSelfQuery, $numFound) .
 					  $this->getDecadeFacetHtml($response, $facetSelfQuery, $numFound) .
-					  $this->getTitleLetterFacetHtml($response, $facetSelfQuery);
+            (($this->namespace == 'Person' || $this->namespace == 'Family') ? $this->getIndexFacetHtml($response, $facetSelfQuery, $numFound) :    
+					                                 $this->getTitleLetterFacetHtml($response, $facetSelfQuery));
 
 		// get results
       $start = @$response['response']['start'];
