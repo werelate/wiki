@@ -893,7 +893,7 @@ class SearchForm {
 			$facets = ($this->namespace ? '' : '&facet.field=Namespace') .
 						 ($wgUser->isLoggedIn() && $this->watch == "wu" ? '&facet.query='.urlencode('User:'.$this->addQuotes($wgUser->getName())) : '') .
 						 ($this->sort == 'title' && !$this->titleLetter ? '&facet.field=TitleFirstLetter' : '') .
-             ($this->sort == 'title' && ($this->namespace == 'Person' || $this->namespace = 'Family') && !$this->surnameIndexFacet ? '&facet.field=SurnameIndexFacet' : '') .
+             ($this->sort == 'title' && ($this->namespace == 'Person' || $this->namespace == 'Family') && !$this->surnameIndexFacet ? '&facet.field=SurnameIndexFacet' : '') .
 						 ($this->namespace == 'Person' && !$this->personSurnameFacet   ? '&facet.field=PersonSurnameFacet&f.PersonSurnameFacet.facet.limit=10' : '') .
 						 ($this->namespace == 'Person' && !$this->personGivennameFacet ? '&facet.field=PersonGivennameFacet&f.PersonGivennameFacet.facet.limit=10' : '') .
 						 ($this->namespace == 'Person' && !$this->personCountryFacet   ? '&facet.field=PersonCountryFacet&f.PersonCountryFacet.facet.limit=10' : '') .
