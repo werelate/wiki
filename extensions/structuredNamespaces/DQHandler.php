@@ -328,8 +328,9 @@ abstract class DQHandler {
         $query = "http://$wrSearchHost:$wrSearchPort$wrSearchPath/dqfind?data=" . urlencode($structuredContent) . 
                  '&ns=Family&ftitle=' . urlencode($titleString) . '&ctitle=' . urlencode($childTitleString) . '&wt=php';
       }
-      if ( file_get_contents($query) ) {
-        eval('$issues = ' . file_get_contents($query) . ';');
+		  $responseString = file_get_contents($query);
+		  if ( $responseString ) {
+        eval("$issues = $responseString;");
         array_splice($issues, 0, 1);          // remove first element, which is the response header (status and time)
 
         // Get variables needed to determine if a person might be living.
