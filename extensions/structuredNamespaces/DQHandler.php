@@ -330,7 +330,7 @@ abstract class DQHandler {
       }
 		  $responseString = file_get_contents($query);
 		  if ( $responseString ) {
-        eval("$issues = $responseString;");
+        eval('$issues = ' . $responseString . ';');
         array_splice($issues, 0, 1);          // remove first element, which is the response header (status and time)
 
         // Get variables needed to determine if a person might be living.
