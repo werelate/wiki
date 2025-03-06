@@ -882,7 +882,7 @@ END;
 //                     ($target == 'gedcom' ? ' and save the page' : ', save the page, then close this window').
 //                    ".</font></p>";
 //      }
-      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/jquery.multiSelect.yui.1.js\"></script>");
+      $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/jquery.multiselect2.yui.1.js\"></script>");
       $wgOut->addScript("<script type=\"text/javascript\" src=\"$wgScriptPath/source.18.js\"></script>");
 
 		$tm = new TipManager();
