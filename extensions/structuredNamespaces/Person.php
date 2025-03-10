@@ -208,6 +208,7 @@ class Person extends StructuredData {
 	protected static $NAME_TYPES = array('Alt Name', 'Commonly Used Name', 'Baptismal Name', 'Immigrant Name', 'Married Name', 'Religious Name');
 	public static $ALT_NAME_TAG = 'Alt Name';
 	protected $historicalData;
+  private static $dataValidated = false;
 
 	/**
 	 * get spouse tag (husband or wife) from gender
@@ -789,7 +790,7 @@ END;
             
       // add data quality issue messages (only on current version of the page - otherwise, the logic to remove verified issues is more complex)
       $revision = Revision::newFromId($parser->pRevisionId);
-      if ( $revision && $revision->isCurrent() ) {
+      if ( $revision && $revision->isCurrent() && !self::$dataValidated ) {
  	      $issues = DQHandler::getUnverifiedIssues($revision->getText(), $parser->getTitle(), "person");
         $result .= DQHandler::addQuestionableInfoIssues($issues, "person");
       }
@@ -1548,6 +1549,7 @@ END;
    	 	 $parentFamilies = StructuredData::getTitlesAsArray($this->xml->child_of_family);
    		 $spouseFamilies = StructuredData::getTitlesAsArray($this->xml->spouse_of_family);
 	     $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "person");                // added Jul 2023 as part of refactoring
+       self::$dataValidated = true;
    		 return (!DQHandler::hasSevereIssues($issues)                                                // added Jul 2023 as part of refactoring
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($parentFamilies))
    		         && ($this->isGedcomPage || !StructuredData::titlesMissingId($spouseFamilies))
