@@ -39,9 +39,15 @@ abstract class DQHandler {
 
   /**
    * Determine whether an issue (found by a batch job) is still outstanding (not fixed)
+   * NOTE: This is only done if the user is logged in, to prevent calls to the java server for bots. Issues are NOT displayed for users not logged in. 
    */
   function determineIssueStatus($title, $tagName, $category, $issueDesc) {
+    global $wgUser;
 
+    if (!$wgUser->isLoggedIn()) {
+      return true;
+    }
+    
     // See if the issue exists on the page itself
  	  $structuredContent = self::getStructuredContent(self::getpageContent($title), $tagName);
     $issues = self::getIssues($tagName, $structuredContent, $title->getText(), "none");
