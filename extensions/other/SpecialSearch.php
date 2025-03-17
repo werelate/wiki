@@ -1688,10 +1688,13 @@ END;
 	 * @return string HTML
 	 */
 	public function getSearchResultsHtml($searchServerQuery) {
-		global $wgOut, $wgScriptPath, $http_response_header;
+		global $wgOut, $wgScriptPath, $http_response_header, $wgUser;
 
 		// send the query to the search server
 //wfDebug("searchServerQuery=$searchServerQuery\n");
+        if (!$wgUser->isLoggedIn()) {
+            return array('', "<p><font color=\"red\">You must be signed in to search.</font></p>");
+        }
 		$responseString = file_get_contents($searchServerQuery);
 		if (!$responseString) {
 			list($version, $status_code, $msg) = explode(' ', $http_response_header[0], 3);
