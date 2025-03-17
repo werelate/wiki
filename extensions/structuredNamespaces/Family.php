@@ -174,6 +174,7 @@ class Family extends StructuredData {
                                                  'deathdate', 'deathplace', 'burialdate', 'burialplace', 'child_of_family');
 
    private $isMerging;
+  private static $dataValidated = false;
    
 	/**
      * Construct a new family object
@@ -479,7 +480,7 @@ END;
             
       // add data quality issue messages (only on current version of the page - otherwise, the logic to remove verified issues is more complex)
       $revision = Revision::newFromId($parser->pRevisionId);
-      if ( $revision && $revision->isCurrent() ) {
+      if ( $revision && $revision->isCurrent() && !self::$dataValidated ) {
    	    $issues = DQHandler::getUnverifiedIssues($revision->getText(), $parser->getTitle(), "family", "all");  // include messages for children
         $result .= DQHandler::addQuestionableInfoIssues($issues, "family");
       }
@@ -751,7 +752,7 @@ END;
 
 		$result .= $tm->getTipTexts();
 
-		$result .= '<h2>Family History</h2>';
+		$result .= '<h2>Narrative</h2>';
 
 		return $result;
 	}
@@ -946,6 +947,7 @@ END;
 			$wives = StructuredData::getTitlesAsArray($this->xml->wife);
 			$children = StructuredData::getTitlesAsArray($this->xml->child);
 	    $issues = DQHandler::getUnverifiedIssues($textbox1, $this->title, "family", "none");     // added Jul 2023 as part of refactoring
+      self::$dataValidated = true;
 			return (!DQHandler::hasSevereIssues($issues) &&                                            // added Jul 2023 as part of refactoring
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($husbands)) &&
 					  ($this->isGedcomPage || !StructuredData::titlesMissingId($wives)) &&

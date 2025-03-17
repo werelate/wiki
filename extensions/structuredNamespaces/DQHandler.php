@@ -39,9 +39,15 @@ abstract class DQHandler {
 
   /**
    * Determine whether an issue (found by a batch job) is still outstanding (not fixed)
+   * NOTE: This is only done if the user is logged in, to prevent calls to the java server for bots. Issues are NOT displayed for users not logged in. 
    */
   function determineIssueStatus($title, $tagName, $category, $issueDesc) {
+    global $wgUser;
 
+    if (!$wgUser->isLoggedIn()) {
+      return true;
+    }
+    
     // See if the issue exists on the page itself
  	  $structuredContent = self::getStructuredContent(self::getpageContent($title), $tagName);
     $issues = self::getIssues($tagName, $structuredContent, $title->getText(), "none");
@@ -79,110 +85,115 @@ abstract class DQHandler {
   /**
    * Get the list of Data Quality issues (not verified) for a person or family, including issues in relation to other family members
    * Note that similar logic exists in werelate-gedcom/Person.java.
+   * NOTE: This is only done if the user is logged in, to prevent calls to the java server for bots. Issues are NOT displayed for users not logged in. 
    */
   function getUnverifiedIssues($pageContent, $title, $tagName, $scope="none") {
+    global $wgUser;
     $issues = array();
-    
-    // Get issues on the page itself
- 	  $structuredContent = self::getStructuredContent($pageContent, $tagName);
-    $namedIssues = self::getIssues($tagName, $structuredContent, $title->getText(), $scope);
-    
-    // Once retrieved, copy to a new table using a numeric index rather than named keys. Easier to manage in the remaining code (especially when removing verified issues).
-    // While copying, drop the last entry, which is the status of retrieval.
-    for ( $i=0; $i<sizeof($namedIssues)-1; $i++ ) {
-      $issues[$i] = $namedIssues['issue ' . ($i+1)];
-    }
-    
-    // If this is a Person page, get issues in relation to the parents' Family page(s). (This also determines a Person's birth year range based on dates of parents and siblings.)
-    if ( $tagName == "person" ) {
-      $remainingContent = $structuredContent;
-      while ( strpos($remainingContent, '<child_of_family') !== false ) {
-        $parentInfo = self::getParentInfo($remainingContent);
-        if ( $parentInfo['content'] != "" ) {
-          // Get issues specific to this child. This is done due to inconsistent handling of special characters between PHP and Java (see note in determineIssueStatus). 
-          $namedIssues = self::getIssues("family", $parentInfo['content'], $parentInfo['titlestring'], $title->getText());          
-          // Append new issues to existing issues, dropping the last entry (status of retrieval)
-          $numIssues = sizeof($issues);
-          for ($i=0; $i<sizeof($namedIssues)-1; $i++) {
-            $issues[$numIssues+$i] = $namedIssues['issue ' . ($i+1)];
-          }
 
-          // Refine the Person's latest birth year based on what was determined from dates of parents and siblings.
-          self::$latestBirth = self::minVal(self::$latestBirth, self::$cLatestBirth);
-        }
-        $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
+    if ($wgUser->isLoggedIn()) {
+      // Get issues on the page itself
+   	  $structuredContent = self::getStructuredContent($pageContent, $tagName);
+      $namedIssues = self::getIssues($tagName, $structuredContent, $title->getText(), $scope);
+      
+      // Once retrieved, copy to a new table using a numeric index rather than named keys. Easier to manage in the remaining code (especially when removing verified issues).
+      // While copying, drop the last entry, which is the status of retrieval.
+      for ( $i=0; $i<sizeof($namedIssues)-1; $i++ ) {
+        $issues[$i] = $namedIssues['issue ' . ($i+1)];
       }
-      // If the person might be living, refine their birth year range based on dates of marriages, spouses, and children.
-      $livingCutoff = (int)date("Y") - self::$usualLongestLife;
-      if ( self::$isDeadOrExempt == 0 && (self::$latestBirth == null || self::$latestBirth > $livingCutoff) ) {
-        $gender = self::getGender($structuredContent);
-        if ( $gender == 'M' || $gender == 'F' ) {
-          $remainingContent = $structuredContent;
-          while ( strpos($remainingContent, '<spouse_of_family') !== false && 
-                (self::$latestBirth == null || self::$latestBirth > $livingCutoff) ) {
-            $marriageInfo = self::getMarriageInfo($remainingContent);
-            if ( $marriageInfo['content'] != "" ) {
-              // Get birth year range based on dates of marriages, spouses, and children. 
-              self::getIssues("family", $marriageInfo['content'], $marriageInfo['titlestring'], "none"); 
-                   
-              // Refine the Person's latest birth year based on what was determined from dates of marriages, spouses, and children.
-              if ( $gender == 'M' ) {
-                self::$latestBirth = self::minVal(self::$latestBirth, self::$hLatestBirth);
-              }
-              else {
-                self::$latestBirth = self::minVal(self::$latestBirth, self::$wLatestBirth);
-              }
+      
+      // If this is a Person page, get issues in relation to the parents' Family page(s). (This also determines a Person's birth year range based on dates of parents and siblings.)
+      if ( $tagName == "person" ) {
+        $remainingContent = $structuredContent;
+        while ( strpos($remainingContent, '<child_of_family') !== false ) {
+          $parentInfo = self::getParentInfo($remainingContent);
+          if ( $parentInfo['content'] != "" ) {
+            // Get issues specific to this child. This is done due to inconsistent handling of special characters between PHP and Java (see note in determineIssueStatus). 
+            $namedIssues = self::getIssues("family", $parentInfo['content'], $parentInfo['titlestring'], $title->getText());          
+            // Append new issues to existing issues, dropping the last entry (status of retrieval)
+            $numIssues = sizeof($issues);
+            for ($i=0; $i<sizeof($namedIssues)-1; $i++) {
+              $issues[$numIssues+$i] = $namedIssues['issue ' . ($i+1)];
             }
-            $remainingContent = substr($remainingContent, strpos($remainingContent, '<spouse_of_family')+17);
+  
+            // Refine the Person's latest birth year based on what was determined from dates of parents and siblings.
+            self::$latestBirth = self::minVal(self::$latestBirth, self::$cLatestBirth);
+          }
+          $remainingContent = substr($remainingContent, strpos($remainingContent, '<child_of_family')+16);
+        }
+        // If the person might be living, refine their birth year range based on dates of marriages, spouses, and children.
+        $livingCutoff = (int)date("Y") - self::$usualLongestLife;
+        if ( self::$isDeadOrExempt == 0 && (self::$latestBirth == null || self::$latestBirth > $livingCutoff) ) {
+          $gender = self::getGender($structuredContent);
+          if ( $gender == 'M' || $gender == 'F' ) {
+            $remainingContent = $structuredContent;
+            while ( strpos($remainingContent, '<spouse_of_family') !== false && 
+                  (self::$latestBirth == null || self::$latestBirth > $livingCutoff) ) {
+              $marriageInfo = self::getMarriageInfo($remainingContent);
+              if ( $marriageInfo['content'] != "" ) {
+                // Get birth year range based on dates of marriages, spouses, and children. 
+                self::getIssues("family", $marriageInfo['content'], $marriageInfo['titlestring'], "none"); 
+                     
+                // Refine the Person's latest birth year based on what was determined from dates of marriages, spouses, and children.
+                if ( $gender == 'M' ) {
+                  self::$latestBirth = self::minVal(self::$latestBirth, self::$hLatestBirth);
+                }
+                else {
+                  self::$latestBirth = self::minVal(self::$latestBirth, self::$wLatestBirth);
+                }
+              }
+              $remainingContent = substr($remainingContent, strpos($remainingContent, '<spouse_of_family')+17);
+            }
+          }
+        }
+        
+        // Create issue if the person is considered living or potentially living. 
+        // Due to the wording of the messsages and the number of assumptions made in determining earliest and latest birth year, 
+        // the person is considered living only if that could be determined from the Person page.
+        if ( self::$isDeadOrExempt == 0 ) {
+          $numIssues = sizeof($issues);
+          if ( self::$earliestBirth != null && self::$earliestBirth > $livingCutoff ) {
+            $issues[$numIssues][0] = self::$CONSIDERED_LIVING[0];
+            $issues[$numIssues][1] = self::$CONSIDERED_LIVING[1];
+            $issues[$numIssues][2] = "Person";
+            $issues[$numIssues][3] = $title->getText();
+            $issues[$numIssues][4] = self::$CONSIDERED_LIVING[2];
+          }
+          else {
+            if ( self::$latestBirth != null && self::$latestBirth > $livingCutoff ) {
+              $issues[$numIssues][0] = self::$POTENTIALLY_LIVING[0];
+              $issues[$numIssues][1] = self::$POTENTIALLY_LIVING[1];
+              $issues[$numIssues][2] = "Person";
+              $issues[$numIssues][3] = $title->getText();
+              $issues[$numIssues][4] = self::$POTENTIALLY_LIVING[2];
+            }
           }
         }
       }
       
-      // Create issue if the person is considered living or potentially living. 
-      // Due to the wording of the messsages and the number of assumptions made in determining earliest and latest birth year, 
-      // the person is considered living only if that could be determined from the Person page.
-      if ( self::$isDeadOrExempt == 0 ) {
-        $numIssues = sizeof($issues);
-        if ( self::$earliestBirth != null && self::$earliestBirth > $livingCutoff ) {
-          $issues[$numIssues][0] = self::$CONSIDERED_LIVING[0];
-          $issues[$numIssues][1] = self::$CONSIDERED_LIVING[1];
-          $issues[$numIssues][2] = "Person";
-          $issues[$numIssues][3] = $title->getText();
-          $issues[$numIssues][4] = self::$CONSIDERED_LIVING[2];
-        }
-        else {
-          if ( self::$latestBirth != null && self::$latestBirth > $livingCutoff ) {
-            $issues[$numIssues][0] = self::$POTENTIALLY_LIVING[0];
-            $issues[$numIssues][1] = self::$POTENTIALLY_LIVING[1];
-            $issues[$numIssues][2] = "Person";
-            $issues[$numIssues][3] = $title->getText();
-            $issues[$numIssues][4] = self::$POTENTIALLY_LIVING[2];
+      // Remove verified anomalies
+      // Note that for a Family page, this will only remove the anomalies whose templates are on the Family or Family Talk page.
+      self::removeVerifiedIssues($title, $issues, $tagName);
+      
+      // If this is a Family page, remove verified anomalies for each of the children on the page, based on templates on their Person and/or Person Talk pages.
+      // Work through the array from the end to the beginning so that no entries are skipped when entries are removed. 
+      // The routine is called once for each child, and the index is adjusted after each call, in case more than one entry was removed from the array.
+      // Note that due to the difference between Java and PHP in handling certain special characters, this will not work for pages whose
+      // title includes those special characters. Therefore, their anomalies will be displayed even if they have been verified.
+      if ( $tagName == "family" ) {
+        $childTitleString = "";
+        for ( $i=sizeof($issues)-1; $i>=0; $i-- ) {
+          if ( $issues[$i][3] != $childTitleString ) {
+            $childTitleString = $issues[$i][3];
+            self::removeVerifiedIssues(Title::newFromText($childTitleString, NS_PERSON), $issues, "person");
+            if ( $i > sizeof($issues)-1 ) {  
+              $i = sizeof($issues);          // note: the "for" loop will immediately reduce $1 by 1
+            }
           }
         }
       }
     }
-    
-    // Remove verified anomalies
-    // Note that for a Family page, this will only remove the anomalies whose templates are on the Family or Family Talk page.
-    self::removeVerifiedIssues($title, $issues, $tagName);
-    
-    // If this is a Family page, remove verified anomalies for each of the children on the page, based on templates on their Person and/or Person Talk pages.
-    // Work through the array from the end to the beginning so that no entries are skipped when entries are removed. 
-    // The routine is called once for each child, and the index is adjusted after each call, in case more than one entry was removed from the array.
-    // Note that due to the difference between Java and PHP in handling certain special characters, this will not work for pages whose
-    // title includes those special characters. Therefore, their anomalies will be displayed even if they have been verified.
-    if ( $tagName == "family" ) {
-      $childTitleString = "";
-      for ( $i=sizeof($issues)-1; $i>=0; $i-- ) {
-        if ( $issues[$i][3] != $childTitleString ) {
-          $childTitleString = $issues[$i][3];
-          self::removeVerifiedIssues(Title::newFromText($childTitleString, NS_PERSON), $issues, "person");
-          if ( $i > sizeof($issues)-1 ) {  
-            $i = sizeof($issues);          // note: the "for" loop will immediately reduce $1 by 1
-          }
-        }
-      }
-    }
+      
     return $issues;
   }
 
