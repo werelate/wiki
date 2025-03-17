@@ -1404,7 +1404,7 @@ END;
 
 		$result .= $tm->getTipTexts();
 
-		$result .= '<h2>Personal History</h2>';
+		$result .= '<h2>Narrative</h2>';
 
 		return $result;
 	}

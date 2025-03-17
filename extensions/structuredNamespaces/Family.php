@@ -752,7 +752,7 @@ END;
 
 		$result .= $tm->getTipTexts();
 
-		$result .= '<h2>Family History</h2>';
+		$result .= '<h2>Narrative</h2>';
 
 		return $result;
 	}
