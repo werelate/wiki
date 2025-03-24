@@ -724,8 +724,9 @@ class SkinTemplate extends Skin {
 					);
 				}
         else {
-   // WERELATE: if user is not allowed to delete the page but can edit it, add an action to request delete of the page  (added Jan 2021 by Janet Bjorndahl)
-		      if ( $this->mTitle->userCanEdit() ) {
+   // WERELATE: if user is not allowed to delete the page but is logged in and can edit it, add an action to request delete of the page 
+   //           (added Jan 2021, changed to require login Mar 2025 by Janet Bjorndahl)
+		      if ( $this->loggedin && $this->mTitle->userCanEdit() ) {
             $t = Title::makeTitle( NS_SPECIAL, 'RequestDelete' );
 		        $content_actions['requestdelete'] = array(
 			        'class' => false,
