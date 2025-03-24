@@ -393,8 +393,8 @@ function wrAbortNewAccount($user=NULL, &$abortError) {
 function wrAddContentActions(&$template, &$content_actions) {
 	global $wgRequest;
 
-   // if this is a family tree namespace and the user is logged in and the page exists, then add an action for add to / remove from tree
-   if ($template->mTitle->getArticleId() && ($template->mTitle->getNamespace() == NS_PERSON || $template->mTitle->getNamespace() == NS_FAMILY)) {
+   if ($template->mUser->isLoggedIn() && $template->mTitle->getArticleId() &&     // login requirement added Mar 2025 by Janet Bjorndahl
+         ($template->mTitle->getNamespace() == NS_PERSON || $template->mTitle->getNamespace() == NS_FAMILY)) {
 		$t = Title::makeTitle( NS_SPECIAL, 'ShowPedigree' );
 		$content_actions['pedigree'] = array(
 			'class' => false,
@@ -416,7 +416,8 @@ function wrAddContentActions(&$template, &$content_actions) {
 		);
   	}
 
-   if ($template->mTitle->getArticleId() && ($template->mTitle->getNamespace() == NS_PERSON || $template->mTitle->getNamespace() == NS_FAMILY)) {
+   if ($template->mUser->isLoggedIn() && $template->mTitle->getArticleId() &&      // login requirement added Mar 2025 by Janet Bjorndahl
+         ($template->mTitle->getNamespace() == NS_PERSON || $template->mTitle->getNamespace() == NS_FAMILY)) {
 		$t = Title::makeTitle( NS_SPECIAL, 'Search' );
 		if ($template->mTitle->getNamespace() == NS_PERSON) {
 			$ns = 'Person';
@@ -457,6 +458,7 @@ function wrAddContentActions(&$template, &$content_actions) {
 		}
    }
    	
+   // if this is a family tree namespace and the user is logged in and the page exists, then add an action for add to / remove from tree
    if ($template->mUser->isLoggedIn() && $template->mTitle->getArticleId() 
    	&& FamilyTreeUtil::isTreePage($template->mTitle->getNamespace(), $template->mTitle->getDBkey())) {
 	  	// add tree +/- button
