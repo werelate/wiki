@@ -380,7 +380,8 @@ class ESINHandler extends StructuredData {
          $refText .= preg_replace('#<a href="([^"]*)"[^>]*>([^<]*)</a>#', '[[$1|$2]]',
                                  $wgCite->ref(null, array('name' => $cite), $parser)); 
       }
-      if (!$refText && $addCitationNeeded && !isset($nameEvent['no_citation_needed']) && !($nameEvent['type'] == 'Ancestral File Number')) {
+      if (!$refText && $addCitationNeeded && !isset($nameEvent['no_citation_needed']) && 
+            !($nameEvent['type'] == 'Ancestral File Number') && !($nameEvent['type'] == 'Reference Number')) {
          $refText = '<span class="redlinks"><tt><sup>[[Citation needed|?]]</sup></tt></span>';
       }
       return $refText;
