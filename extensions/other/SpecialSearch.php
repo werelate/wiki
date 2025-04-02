@@ -1692,9 +1692,9 @@ END;
 
 		// send the query to the search server
 //wfDebug("searchServerQuery=$searchServerQuery\n");
-        if (!$wgUser->isLoggedIn()) {
-            return array('', "<p><font color=\"red\">You must be signed in to search.</font></p>");
-        }
+//        if (!$wgUser->isLoggedIn()) {
+//            return array('', "<p><font color=\"red\">You must be signed in to search.</font></p>");
+//        }
 		$responseString = file_get_contents($searchServerQuery);
 		if (!$responseString) {
 			list($version, $status_code, $msg) = explode(' ', $http_response_header[0], 3);
