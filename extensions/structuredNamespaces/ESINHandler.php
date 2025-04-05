@@ -480,7 +480,8 @@ END;
     if ( isset($xml->event_fact) ) {
       $i=0;
       foreach ($xml->event_fact as $eventFact) {
-        if ( isset($eventFact['date']) && $dateKey = DateHandler::getDateKey((string)$eventFact['date'], true) ) {
+        if ( $this->massageEvent($eventFact) &&     // A few event types need to be changed or suppressed due to changes in WeRelate (added Apr 2025 by Janet Bjorndahl)
+              isset($eventFact['date']) && $dateKey = DateHandler::getDateKey((string)$eventFact['date'], true) ) {
           $sortp[$i]['data'] = $eventFact;
           if ( $typekey = @self::$PERSON_EVENT_TYPES[(string)$eventFact['type']] ) {
             $sortp[$i]['typekey'] = $typekey;
@@ -593,7 +594,8 @@ END;
       $start = sizeof($sorta);
       $i = $start;
       foreach ($xml->event_fact as $eventFact) {
-        if ( !isset($eventFact['date']) || !($dateKey = DateHandler::getDateKey((string)$eventFact['date'], true)) ) {
+        if ( $this->massageEvent($eventFact) &&     // A few event types need to be changed or suppressed due to changes in WeRelate (added Apr 2025 by Janet Bjorndahl)
+              (!isset($eventFact['date']) || !($dateKey = DateHandler::getDateKey((string)$eventFact['date'], true))) ) {
           $sorta[$i]['data'] = $eventFact;
           if ( $typekey = @self::$PERSON_EVENT_TYPES[(string)$eventFact['type']] ) {
             $sorta[$i]['typekey'] = $typekey;
@@ -612,6 +614,24 @@ END;
       $sortedEvents[] = $sort['data'];
     }
     return $sortedEvents;
+  }
+  
+  private function massageEvent(&$event) {
+    // Massage or suppress an event as appropriate based on changes in WeRelate event types or conventions.
+    // Returns whether or not to keep the event.
+     
+    // Keep Soc Sec No fact as Residence only if a place is identified. Otherwise, drop it.
+    if ($event['type'] == "Soc Sec No") {
+      if ($event['place']) {
+        $event['type'] = "Residence";
+        $event['desc'] = "";
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    return true; 
   }
  
   // "Insert sort" - this preserves the original order of items with equivalent keys
@@ -1100,6 +1120,10 @@ END;
     $prevDate = '';
     
 		if (isset($eventFact)) {
+      if ( !$this->massageEvent($eventFact) ) {     // A few event types need to be changed or suppressed due to changes in WeRelate (added Apr 2025 by Janet Bjorndahl)
+        return "";
+      }
+
 			$typeString = htmlspecialchars((string)$eventFact['type']);
 			$date = htmlspecialchars((string)$eventFact['date']);
       // If the date passes date editing but is not in standard format, replace it with the properly formated version

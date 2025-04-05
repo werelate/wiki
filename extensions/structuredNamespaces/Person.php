@@ -180,6 +180,7 @@ class Person extends StructuredData {
 	);
 
   // Estate Inventory and Estate Settlement moved from African American sub-list to main list Nov 2021 by Janet Bjorndahl
+  // Soc Sec No removed Apr 2025 by Janet Bjorndahl
 	protected static $OTHER_EVENT_TYPES = array(
 	'Alt Birth', 'Alt Burial', 'Alt Christening', 'Alt Death', 
 	'Adoption', 'Ancestral File Number', 'Baptism',
@@ -187,7 +188,8 @@ class Person extends StructuredData {
 	'Emigration', 'Employment', 'Estate Inventory', 'Estate Settlement', 
   'Excommunication', 'First Communion', 'Funeral', 'Graduation', 'Illness', 'Immigration', 'Living', 'Medical', 'Military',
 	'Mission', 'Namesake', 'Nationality', 'Naturalization', 'Obituary', 'Occupation', 'Ordination', 'Pension', 'Physical Description',
-	'Probate', 'Property', 'Reference Number', 'Religion', 'Residence', 'Retirement', 'Soc Sec No', 'Stillborn', 'Title (nobility)', 'Will',
+	'Probate', 'Property', 'Reference Number', 'Religion', 'Residence', 'Retirement', 'Stillborn', 'Title (nobility)', 'Will',
+//	'Probate', 'Property', 'Reference Number', 'Religion', 'Residence', 'Retirement', 'Soc Sec No', 'Stillborn', 'Title (nobility)', 'Will',
 	'=African American', 
 	':Distribution List',
 	':Emancipation',
