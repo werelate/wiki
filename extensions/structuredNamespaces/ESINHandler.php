@@ -631,6 +631,20 @@ END;
         return false;
       }
     }
+     
+    // Keep Ancestral File Number fact as Reference Number if a validly-formated ancestral file number is present. Otherwise, drop it.
+    if ($event['type'] == "Ancestral File Number") {
+      $matches = array();
+      if ($event['desc'] && preg_match("/[A-Za-z0-9]+-[A-Za-z0-9]+/", $event['desc'], $matches)) {
+        $event['type'] = "Reference Number";
+        $event['desc'] = "{{AFN|" . strtoupper($matches[0]) . "}}";
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+
     return true; 
   }
  
