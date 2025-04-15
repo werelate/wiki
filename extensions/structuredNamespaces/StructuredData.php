@@ -903,7 +903,16 @@ abstract class StructuredData {
 		$fullname = trim($prefix . ' ' . $given . ' ' . ($addSlashes ? '/' : '') . $surname . ($addSlashes ? '/' : '') . $suffix);
 //		$fullname = trim((string)@$name['title_prefix'] . ' ' . (string)@$name['given'] . ' ' . 
 //								($addSlashes ? '/' : '') . (string)@$name['surname'] . ($addSlashes ? '/' : '') . $suffix);
-		return $fullname ? $fullname : (string)@$name['title'];
+
+    // If nothing in name fields, return the title without the title number (added Apr 2025 by Janet Bjorndahl)
+    if ( !$fullname ) {
+      $title = (string)@$name['title'];
+      if ( $title ) {
+        $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
+      }
+    } 
+		return $fullname;
+//		return $fullname ? $fullname : (string)@$name['title'];
 	}
 	
 	/**

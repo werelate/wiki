@@ -220,7 +220,6 @@ class SDImage extends StructuredData {
    protected function getFamilyMember($member) {
       $title = (string)$member['title'];
       $fullname = StructuredData::getFullname($member);
-      if (!$fullname) $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
       $link = "[[Person:$title|$fullname]]";
       // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB; 2nd parm changed Apr 2024
       $beginYear = DateHandler::getYear((string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'], 'Birth', true);

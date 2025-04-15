@@ -371,7 +371,6 @@ class Person extends StructuredData {
       if (isset($member)) {
          $title = (string)$member['title'];
          $fullname = StructuredData::getFullname($member);
-         if (!$fullname) $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
          $link = "[[Person:$title|$fullname]]";
          $birthDate = (string)$member['birthdate'] ? (string)$member['birthdate'] : (string)$member['chrdate'];
          $beginYear = DateHandler::getYear($birthDate, 'Birth', true);        // changed to DateHandler function Oct 2020 by Janet Bjorndahl; 3rd parm added Mar 2021 JB 
