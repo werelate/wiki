@@ -204,7 +204,6 @@ class ESINHandler extends StructuredData {
    public static function getPersonSummary($p) {
       $title = (string)$p['title'];
       $fullname = StructuredData::getFullname($p);
-      if (!$fullname) $fullname = trim(preg_replace('/\(\d+\)\s*$/', '', $title));
       $birthLabel = '&nbsp;';
       $deathLabel = '&nbsp;';
       $birthDate = $birthPlace = $deathDate = $deathPlace = '';
