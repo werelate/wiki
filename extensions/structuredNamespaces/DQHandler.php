@@ -26,7 +26,8 @@ abstract class DQHandler {
    private static $DATA_QUALITY_EDIT_MESSAGE = array(
       "Invalid date(s)" => "Invalid date(s). Dates should be in \"<i>D MMM YYYY</i>\" format (ie 5 Jan 1900) with optional modifiers (eg, bef, aft).",
       "Considered living" => "This person was born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be added to WeRelate.",
-      "Potentially living" => "This person may have been born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be added to WeRelate."
+      "Potentially living" => "This person may have been born/christened less than 110 years ago and does not have a death/burial date.  Living people cannot be added to WeRelate.",
+      "Missing name" => "Missing name. If the name is known, please enter it. If not, save your edits and rename the page to <i>Unknown</i>."
    );
    
    private static $usualLongestLife = 110;

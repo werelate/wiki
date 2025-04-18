@@ -81,8 +81,8 @@ class DQStats {
     if ( $row = $dbr->fetchObject( $res ) ) {
 //      if ( substr($row->dqs_date,8,2) > "10" ) {
 //        $earliest_day = substr($row->dqs_date,0,8) . (substr($row->dqs_date,8,1) - 1) . substr($row->dqs_date,9,1);  // report last 10 days (within current month)
-      if ( substr($row->dqs_date,8,2) > "05" ) {
-        $earliest_day = substr($row->dqs_date,0,8) . (str_pad(substr($row->dqs_date,8,2) - 5,2,"0",STR_PAD_LEFT));  // report last 5 days (within current month)
+      if ( substr($row->dqs_date,8,2) > "03" ) {
+        $earliest_day = substr($row->dqs_date,0,8) . (str_pad(substr($row->dqs_date,8,2) - 3,2,"0",STR_PAD_LEFT));  // report last 3 days (within current month)
       }
       else {
         $earliest_day = substr($row->dqs_date,0,8) . "00";
@@ -99,7 +99,7 @@ class DQStats {
     // Pages impacted
     $wgOut->addHTML('<h2>Number and Percentage of Pages Impacted by Errors and/or Anomalies</h2>');
     $wgOut->addHTML('This section shows the number of pages that have at least one error and/or anomaly, compared to the total number of pages in WeRelate.');
-    $wgOut->addHTML('<br>Note: Incomplete information (e.g., missing gender) is NOT included in these counts.');
+    $wgOut->addHTML('<br>Note: Incomplete information (e.g., missing gender or name) is NOT included in these counts.');
     $select = 'SELECT a.dqs_date, b.dqs_issue_desc, a.dqs_count as pages_impacted, b.dqs_count as total_pages
                  FROM dq_stats a INNER JOIN dq_stats b ON a.dqs_job_id = b.dqs_job_id
                    AND a.dqs_category = "Impact" AND b.dqs_category = "Growth" 
@@ -118,7 +118,7 @@ class DQStats {
     // Current month (daily)
  		$res = $dbr->query( $select . $dailyCond . $order, $fname );
 		if ( $dbr->numRows( $res ) ) {
-      $wgOut->addHTML('<h3>Current Month (last 5 days)</h3>');
+      $wgOut->addHTML('<h3>Current Month (last 3 days)</h3>');
   		$wgOut->addHTML( "\n<table border=1 id=\"current_impact_stats\">" );
       $wgOut->addHTML( "<tr><td>As of</td><td>Person pages impacted</td><td>Total person pages</td><td>Percentage</td>
                   <td>Family pages impacted</td><td>Total family pages</td><td>Percentage</td></tr>" );
@@ -148,8 +148,9 @@ class DQStats {
     // Counts of issues by category
     $wgOut->addHTML('<h2>Number of Issues by Category</h2>');
     $wgOut->addHTML('This section shows the total number of issues by category. If a page has more than one issue, each is counted separately.');
-    $wgOut->addHTML('<br>Note: "Incomplete" includes more than just missing gender (see section "Number of Issues by Issue Description"), but for now, the Data Quality Issues list includes only missing gender in this category.');
-    $wgOut->addHTML('<br>Note: "Total issues" is the sum of errors, anomalies and all the types of incomplete information listed in section "Number of Issues by Issue Description".');
+/*    $wgOut->addHTML('<br>Note: "Incomplete" includes more than just missing gender (see section "Number of Issues by Issue Description"), but for now, the Data Quality Issues list includes only missing gender in this category.'); 
+    $wgOut->addHTML('<br>Note: "Total issues" is the sum of errors, anomalies and all the types of incomplete information listed in section "Number of Issues by Issue Description".'); */
+    $wgOut->addHTML('<br>Note: "Total issues" is the sum of errors, anomalies, and incomplete information.');
     $select = 'SELECT a.dqs_date, a.error_count, b.anomaly_count, c.incomplete_count FROM 
               (SELECT dqs_job_id, dqs_date, SUM(dqs_count) AS error_count FROM dq_stats WHERE dqs_category = "Error" GROUP BY dqs_job_id, dqs_date) a
               INNER JOIN (SELECT dqs_job_id, SUM(dqs_count) AS anomaly_count FROM dq_stats WHERE dqs_category = "Anomaly" GROUP BY dqs_job_id) b ON a.dqs_job_id = b.dqs_job_id
@@ -190,13 +191,15 @@ class DQStats {
     $wgOut->addHTML('This section shows the number of issues by issue type. The order is issue type and then date for easy tracking of trends by issue type.');
     $select = 'SELECT dqs_date, dqs_category, dqs_issue_desc, SUM(dqs_count) AS count
                  FROM dq_stats a '; 
+/*    
     if ( $wgUser->isLoggedIn() && in_array( 'sysop', $wgUser->getGroups()) ) {
       $issueScope = 'WHERE dqs_category IN ("Anomaly", "Error", "Incomplete", "Living") AND ';      // For now (Aug 2022), display counts of considered or potentially living people only to admins
       $wgOut->addHTML('<br>Note that the category "Living" is displayed only to WeRelate admins, until the backlog of possibly living persons is cleaned up. If you would like to help, please contact DataAnalyst.');
     }      
     else {
-      $issueScope = 'WHERE dqs_category IN ("Anomaly", "Error", "Incomplete") AND ';
-    }
+*/    
+      $issueScope = 'WHERE dqs_category IN ("Anomaly", "Error", "Incomplete", "Living") AND ';    // Living counts displayed for all as of Apr 2025
+//    }
     $group = ' GROUP BY dqs_category, dqs_issue_desc, dqs_date, dqs_job_id ';  // group by dqs_job_id needed in case stats produced more than once in a day
     $order = ' ORDER BY dqs_category, dqs_issue_desc, dqs_date DESC ';
     
