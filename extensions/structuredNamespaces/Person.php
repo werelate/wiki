@@ -1058,12 +1058,15 @@ END;
 			$sources = htmlspecialchars((string)$name['sources']);
 			$notes = htmlspecialchars((string)$name['notes']);
 		}
-    if (StructuredData::isUnknownNameValue($given)) {                      // added Nov 2020 by Janet Bjorndahl
+    $given = StructuredData::editNameValue($given);              // added Apr 2025 by Janet Bjorndahl
+    $surname = StructuredData::editNameValue($surname);          // added Apr 2025 by Janet Bjorndahl
+    if (StructuredData::isUnknownNameValue($given)) {            // added Nov 2020 by Janet Bjorndahl
       $givenStyle = ' style="background-color:#fdd;"';
     }
-    if (StructuredData::isUnknownNameValue($surname)) {                    // added Nov 2020 by Janet Bjorndahl
+    if (StructuredData::isUnknownNameValue($surname)) {          // added Nov 2020 by Janet Bjorndahl
       $surnameStyle = ' style="background-color:#fdd;"';
     }
+
 		$result = '<tr>';
 		if ($nameNum == 0) {
 			$result .= "<td><span style=\"display:$display\">Primary name</span></td>";
@@ -1464,18 +1467,18 @@ END;
 
 		$primaryNameFound = false;
 		for ($i = 0; $i == 0 || $request->getVal("alt_name$i"); $i++) {
-			$given = $request->getVal("given$i");
-			$surname = $request->getVal("surname$i");
+			$given = StructuredData::editNameValue($request->getVal("given$i"));      // editNameValue added Apr 2025 by Janet Bjorndahl
+			$surname = StructuredData::editNameValue($request->getVal("surname$i"));  // editNameValue added Apr 2025 by Janet Bjorndahl
 			$titlePrefix = $request->getVal("title_prefix$i");
 			$titleSuffix = $request->getVal("title_suffix$i");
 			$sources = $wgESINHandler->mapSIN($request->getVal("name_sources$i"));
 			$notes = $wgESINHandler->mapSIN($request->getVal("name_notes$i"));
 			if (!StructuredData::isEmpty($given) ||
-			!StructuredData::isEmpty($surname) ||
-			!StructuredData::isEmpty($titlePrefix) ||
-			!StructuredData::isEmpty($titleSuffix) ||
-			!StructuredData::isEmpty($sources) ||
-			!StructuredData::isEmpty($notes)) {
+			    !StructuredData::isEmpty($surname) ||
+			    !StructuredData::isEmpty($titlePrefix) ||
+			    !StructuredData::isEmpty($titleSuffix) ||
+			    !StructuredData::isEmpty($sources) ||
+			    !StructuredData::isEmpty($notes)) {
 				$type = ($i == 0 ? '' : $request->getVal("alt_name$i"));
 				if (!$primaryNameFound && ($i == 0 || $type == PERSON::$ALT_NAME_TAG)) {
 					$primaryNameFound = true;
