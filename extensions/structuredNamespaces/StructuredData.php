@@ -516,35 +516,54 @@ abstract class StructuredData {
 //      }
 //		return $result;
 	}
-
-   // name should be in title case but might not be                                                       // changed to address when not title case Apr 2022 JB
-  private static function isUnknownName($name) {
-    $charsMeaningUnknown = array('?','_','-');
+  
+  // Trims the name and blanks out values clearly indicating an unknown name. 
+  public static function editNameValue($name) {              
+    $name = trim($name);
     $lowerName = strtolower($name);
-    return !$name || $lowerName == 'unknown' || $lowerName == 'unk' ||
-            $lowerName == 'n.n.' || $lowerName == 'n.n' || $lowerName == 'nn' || $lowerName == 'nn.' || $lowerName == 'n n' ||
-            $lowerName == 'fnu' || $lowerName == 'lnu' || $lowerName == 'father' || $lowerName == 'mother' ||
-            trim(str_replace($charsMeaningUnknown,'',$name)) == '';                                              // this condition added Nov 2020 by Janet Bjorndahl
+    $charsMeaningUnknown = array('?','_','-');
+    if ($name == '' || trim(str_replace($charsMeaningUnknown,'',$name)) == '' || $lowerName == 'unknown') {
+      $name = '';
+    }
+    return $name;
   }
-   
-  public static function isUnknownNameValue($name) {                                                             // function added Nov 2020 by Janet Bjorndahl
-    return self::isUnknownName($name) && trim($name) != '';
+
+  // These values indicating an unknown name are left for the user to fix (in case there is a typo).
+  public static function isUnknownNameValue($name) {
+    $lowerName = strtolower(trim($name));
+    if ($lowerName == 'unk' ||
+            $lowerName == 'n.n.' || $lowerName == 'n.n' || $lowerName == 'nn' || $lowerName == 'nn.' || $lowerName == 'n n' ||
+            $lowerName == 'fnu' || $lowerName == 'lnu' || $lowerName == 'father' || $lowerName == 'mother') {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
   
   public static function hasUnknownNameValues($xml) {                                                            // function added Nov 2020 by Janet Bjorndahl
     if (isset($xml->name)) {
-      if (self::isUnknownNameValue($xml->name['given']) || self::isUnknownNameValue($xml->name['surname'])) {
+      if (StructuredData::isUnknownNameValue($xml->name['given']) || StructuredData::isUnknownNameValue($xml->name['surname'])) {
         return true;
       }
     }
     if (isset($xml->alt_name)) {
       foreach ($xml->alt_name as $name) {
-        if (self::isUnknownNameValue($name['given']) || self::isUnknownNameValue($name['surname'])) {
+        if (StructuredData::isUnknownNameValue($name['given']) || StructuredData::isUnknownNameValue($name['surname'])) {
           return true;
         }
       }
     }
-  return false;
+    return false;
+  }
+
+  private static function isUnknownName($name) {
+    if (StructuredData::editNameValue($name) == '' || StructuredData::isUnknownNameValue($name)) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
 	public static function constructName($gn, $sn) {
@@ -893,7 +912,10 @@ abstract class StructuredData {
 		if ($suffix) {
 			$suffix = ', ' . $suffix;
 		}
-   // Replace blanks in given name or surname with underscores - but only if there is other data (and thus we don't want to return the page title instead).
+    $given = StructuredData::editNameValue($given);        // added Apr 2025 by Janet Bjorndahl
+    $surname = StructuredData::editNameValue($surname);    // added Apr 2025 by Janet Bjorndahl
+
+    // Replace blanks in given name or surname with underscores - but only if there is other data (and thus we don't want to return the page title instead).
     if ( !$given && ($surname || $prefix || $suffix ) ) {
       $given = '_____';
     }
