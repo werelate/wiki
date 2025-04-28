@@ -209,7 +209,7 @@ class SearchForm {
   	const CACHE_EXP_TIME = 1800;
 	const THUMB_WIDTH = 96;
    const THUMB_HEIGHT = 96;
-   const THROTTLE_SECONDS = 2;
+   const THROTTLE_SECONDS = 10;
 
 	public static $NAMESPACE_OPTIONS_NAME = array(  // list reordered (moved Place higher) Sep 2020 by Janet Bjorndahl
 		'All' => 'All',
