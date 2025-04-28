@@ -4,6 +4,7 @@
  */
 require_once("$IP/extensions/gedcom/GedcomUtil.php");
 require_once("$IP/extensions/Mobile_Detect.php");
+require_once("$IP/extensions/other/TimeSinceLastRequest.php");
 
 # Register with MediaWiki as an extension
 $wgExtensionFunctions[] = "wfSpecialSearchSetup";
@@ -208,6 +209,7 @@ class SearchForm {
   	const CACHE_EXP_TIME = 1800;
 	const THUMB_WIDTH = 96;
    const THUMB_HEIGHT = 96;
+   const THROTTLE_SECONDS = 10;
 
 	public static $NAMESPACE_OPTIONS_NAME = array(  // list reordered (moved Place higher) Sep 2020 by Janet Bjorndahl
 		'All' => 'All',
@@ -1690,11 +1692,19 @@ END;
 	public function getSearchResultsHtml($searchServerQuery) {
 		global $wgOut, $wgScriptPath, $http_response_header, $wgUser;
 
+    // Bot control. If a user isn't logged in and submits searches more frequently than every X seconds, 
+    // the searches are rejected. This effectively shuts down searches from bots (after the first one)
+    // while allowing searches from human users not logged in.
+    if (!$wgUser->isLoggedIn()) {
+    // The next line is alternate code to prevent any searching from users not logged in.    
+//      return array('', "<p><font color=\"red\">You must be signed in to search.</font></p>");
+      if (TimeSinceLastRequest::getSecondsBetween("search", true) < self::THROTTLE_SECONDS) {
+        return array('', "<p><font color=\"red\">You may only submit one search every " . self::THROTTLE_SECONDS . " seconds when not logged in.</font></p>");
+      }
+    }
+          
 		// send the query to the search server
 //wfDebug("searchServerQuery=$searchServerQuery\n");
-        if (!$wgUser->isLoggedIn()) {
-            return array('', "<p><font color=\"red\">You must be signed in to search.</font></p>");
-        }
 		$responseString = file_get_contents($searchServerQuery);
 		if (!$responseString) {
 			list($version, $status_code, $msg) = explode(' ', $http_response_header[0], 3);
