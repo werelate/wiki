@@ -3,6 +3,16 @@
  * @package MediaWiki
    @subpackage other
  */
+  
+/* The purpose of this code was to determine the length of time (in seconds) between requests from
+   either the same IP address or the same range of IP addresses, so that requests too close together
+   could be rejected. However, it relies on caching IP addresses in memory, and this overwhelmed
+   the wiki server (due to bots). 
+   
+   As of May 2025, this class is not being used. If it is used again, the EXP_TIME should be
+   shortened to the minimum number of seconds required. However, it is not clear if this would
+   have an impact on other memory caching. - Janet Bjorndahl
+*/    
 require_once('includes/memcached-client.php');
 
 class TimeSinceLastRequest {
