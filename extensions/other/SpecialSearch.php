@@ -1703,7 +1703,7 @@ END;
     // If this approach is tried again, the default retention should be changed to be 1 second longer than THROTTLE_SECONDS.
 //      if (TimeSinceLastRequest::getSecondsBetween("search", true) < self::THROTTLE_SECONDS) {
 //        return array('', "<p><font color=\"red\">You may only submit one search every " . self::THROTTLE_SECONDS . " seconds when not logged in.</font></p>");
-      }
+//      }
     }
           
 		// send the query to the search server
