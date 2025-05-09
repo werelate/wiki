@@ -1692,14 +1692,17 @@ END;
 	public function getSearchResultsHtml($searchServerQuery) {
 		global $wgOut, $wgScriptPath, $http_response_header, $wgUser;
 
-    // Bot control. If a user isn't logged in and submits searches more frequently than every X seconds, 
-    // the searches are rejected. This effectively shuts down searches from bots (after the first one)
-    // while allowing searches from human users not logged in.
+    // Bot activity overwhelms the search server. Therefore, users are not allowed to search unless they are logged in. 
     if (!$wgUser->isLoggedIn()) {
-    // The next line is alternate code to prevent any searching from users not logged in.    
-//      return array('', "<p><font color=\"red\">You must be signed in to search.</font></p>");
-      if (TimeSinceLastRequest::getSecondsBetween("search", true) < self::THROTTLE_SECONDS) {
-        return array('', "<p><font color=\"red\">You may only submit one search every " . self::THROTTLE_SECONDS . " seconds when not logged in.</font></p>");
+      return array('', "<p><font color=\"red\">You must be signed in to search.</font></p>");
+      
+    // An alternate approach was attempted. It rejected searches submitted within X seconds of a search from the same IP address range. 
+    // The intent was to effectively shut down searches from bots (after the first one) while allowing searches from human users not logged in.
+    // However, it relied on caching IP addresses, which overwhelmed the wiki server. 
+    // The default retention was used for IP addresses, which may have been part of the problem. 
+    // If this approach is tried again, the default retention should be changed to be 1 second longer than THROTTLE_SECONDS.
+//      if (TimeSinceLastRequest::getSecondsBetween("search", true) < self::THROTTLE_SECONDS) {
+//        return array('', "<p><font color=\"red\">You may only submit one search every " . self::THROTTLE_SECONDS . " seconds when not logged in.</font></p>");
       }
     }
           
