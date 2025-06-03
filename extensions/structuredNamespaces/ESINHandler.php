@@ -1272,8 +1272,11 @@ END;
 		if (isset($otherEventFacts)) {
 			$i = count($stdEventTypes);
 			foreach ($otherEventFacts as $otherEventFact) {
-				$result .= $this->addEventFactInput($i, $otherEventFact, '', $otherEventTypes, $tm);
-				$i++;
+        $eventFactInp = $this->addEventFactInput($i, $otherEventFact, '', $otherEventTypes, $tm);
+        if ($eventFactInp <> "") {
+				  $result .= $eventFactInp;
+				  $i++;
+        }
 			}
 		}
 		$result .= '</table><div class="addESINLink"><a href="javascript:void(0);" onClick="addEventFact(\''.implode(',',$otherEventTypes).'\'); return preventDefaultAction(event);">Add event/fact</a></div>';
