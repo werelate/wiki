@@ -543,7 +543,9 @@ END;
           $marriageNum++;
           $marriageTo = substr($eventFact['desc'], strpos($eventFact['desc'],'['));
         }
-        if ( !isset($eventFact['date']) || !($dateKey = DateHandler::getDateKey((string)$eventFact['date'], true)) ) {
+        // The template NotToBeConfusedWith used on a Family page doesn't display correctly (and is not particularly relevant) on a Person page, so exclude it.
+        if ( (!isset($eventFact['date']) || !($dateKey = DateHandler::getDateKey((string)$eventFact['date'], true))) && substr($eventFact['desc'], 0, 21) != "{{NotToBeConfusedWith" ) 
+        {
           $sortf[$i]['data'] = $eventFact;
           $sortf[$i]['num'] = $marriageNum;                                   
           if ( $typekey = @self::$FAMILY_EVENT_TYPES[(string)$eventFact['type']] ) {
