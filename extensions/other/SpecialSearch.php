@@ -94,6 +94,57 @@ function wfSpecialSearch( $par=NULL, $specialPage ) {
 <div style="margin: -23px 0 16px 0;">
 <iframe src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=werelate_widgets_+aug19&widget=records_carousel&width=728&height=90&onSitePlacement=Search+People_728x90_records&tr_ifid=werelate_252927986&firstName=$firstName&lastName=$lastName&tr_device=$device&size=728x90" frameborder="0" scrolling="no" width="728" height="90"></iframe></div>
 END;
+	    
+$variant = rand(0, 1);
+
+$common = [
+    'width:728px; height:90px; display:block; text-decoration:none; font-family:sans-serif;',
+    'border-radius:8px; position:relative; overflow:hidden;',                 // rounded corners
+    'box-sizing:border-box;'                                                  // ensure inner padding obeys height
+];
+
+if ($variant === 0) {         // BLUE
+    $mhAd = <<<HTML
+<a href="/wiki/WeRelate:Donate"
+   style="background:#eef6fe; border:2px solid #0078d4; {$common[0]} {$common[1]} {$common[2]}">
+  <div style="padding:8px 160px 8px 12px;">
+    <h2 style="margin:0; font-size:19px; color:#034a96;">
+      Support Open Genealogy
+    </h2>
+    <p style="margin:5px 0 0; font-size:14px; color:#333;">
+      A gift of <strong>\$5&nbsp;per&nbsp;month</strong> covers our server costs and removes ads for you.
+      Prefer a one-time gift? <strong>\$29</strong> keeps the lights on for a full year.
+      Thank you for your support!
+    </p>
+  </div>
+  <div style="position:absolute; right:15px; top:50%; transform:translateY(-50%);">
+    <button style="background:#0078d4; color:#fff; border:none; padding:12px 22px; font-size:14px; cursor:pointer; border-radius:6px;">
+      Donate&nbsp;Today
+    </button>
+  </div>
+</a>
+HTML;
+} else {                      // YELLOW
+    $mhAd = <<<HTML
+<a href="/wiki/WeRelate:Donate"
+   style="background:#fffbea; border:2px solid #f6c700; {$common[0]} {$common[1]} {$common[2]}">
+  <div style="padding:8px 160px 8px 12px;">
+    <h2 style="margin:0; font-size:19px; color:#3a3000;">
+      We need your help
+    </h2>
+    <p style="margin:5px 0 0; font-size:14px; color:#4d4d4d;">
+      After 20&nbsp;years of relying on ad revenue, declining ads mean your support matters more than ever.
+      Monthly donors give us stability, but any amount helps.
+    </p>
+  </div>
+  <div style="position:absolute; right:15px; top:50%; transform:translateY(-50%);">
+    <button style="background:#f6c700; color:#3a3000; border:none; padding:12px 22px; font-size:14px; cursor:pointer; border-radius:6px;">
+      Give&nbsp;Now
+    </button>
+  </div>
+</a>
+HTML;
+}
          }
 		 list ($sideText, $results) = $searchForm->getSearchResultsHtml($searchServerQuery);
       }
