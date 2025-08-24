@@ -1101,14 +1101,18 @@ END;
                                        $chrdate='', $chrplace='', $burdate='', $burplace='') {
       // standardize places
       $placeTitles = array();
-      if ($birthplace && mb_strpos($birthplace, '|') === false) $placeTitles[] = $birthplace;
-      if ($deathplace && mb_strpos($deathplace, '|') === false) $placeTitles[] = $deathplace;
+//      if ($birthplace && mb_strpos($birthplace, '|') === false) $placeTitles[] = $birthplace;
+//      if ($deathplace && mb_strpos($deathplace, '|') === false) $placeTitles[] = $deathplace;
+      if ($birthplace) $placeTitles[] = $birthplace;
+      if ($deathplace) $placeTitles[] = $deathplace;
       if ($placeTitles) {
          $correctedTitles = PlaceSearcher::correctPlaceTitles($placeTitles);
          $correctedPlace = @$correctedTitles[$birthplace];
-         if ($correctedPlace) $birthplace = strcasecmp($birthplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $birthplace;
+//         if ($correctedPlace) $birthplace = strcasecmp($birthplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $birthplace;
+         if ($correctedPlace) $birthplace = $correctedPlace;
          $correctedPlace = @$correctedTitles[$deathplace];
-         if ($correctedPlace) $deathplace = strcasecmp($deathplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $deathplace;
+//         if ($correctedPlace) $deathplace = strcasecmp($deathplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $deathplace;
+         if ($correctedPlace) $deathplace = $correctedPlace;
       }
 
 		$result = "<person>\n";

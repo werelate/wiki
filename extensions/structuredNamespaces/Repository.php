@@ -239,13 +239,15 @@ END;
    }
 
 	private function correctPlaceTitle($place) {
-		if ($place && mb_strpos($place, '|') === false) {
+//		if ($place && mb_strpos($place, '|') === false) {
+		if ($place) {
 			$titles = array();
 			$titles[] = $place;
 		   $correctedPlaces = PlaceSearcher::correctPlaceTitles($titles);
 			$correctedPlace = @$correctedPlaces[$place];
 			if ($correctedPlace) {
-				$place = strcasecmp($place,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $place;
+//				$place = strcasecmp($place,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $place;
+				$place = $correctedPlace;
 			}
 		}
 		return $place;

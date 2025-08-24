@@ -398,7 +398,8 @@ class UserPage extends StructuredData {
     protected function formatPlace($value) {
 		$correctedPlace = @$this->correctedPlaceTitles[$value];
 		if ($correctedPlace) {
-			$value = strcasecmp($value,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $value;
+//			$value = strcasecmp($value,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $value;
+			$value = $correctedPlace;
 		}
 		$escapedValue =& StructuredData::escapeXml($value);
       return "<place>$escapedValue</place>";
@@ -421,7 +422,8 @@ class UserPage extends StructuredData {
 			$placesToCorrect = array();
    		for ($i = 0; $request->getVal("researching_id$i"); $i++) {
    		   $place = trim($request->getVal("researching_place$i"));
-				if ($place && mb_strpos($place, '|') === false) {
+//				if ($place && mb_strpos($place, '|') === false) {
+				if ($place) {
    		   	$placesToCorrect[] = $place;
 				}
    		}

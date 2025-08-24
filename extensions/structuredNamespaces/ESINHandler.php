@@ -1523,10 +1523,11 @@ END;
       $date = $formatedDate;
     }
 
-		$place = $request->getVal("place$num");
+    $place = $request->getVal("place$num");
 		$correctedPlace = @$correctedPlaceTitles[$place];
 		if ($correctedPlace) {
-			$place = strcasecmp($place,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $place;
+      $place = $correctedPlace;
+//			$place = strcasecmp($place,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $place;
 		}
 		$desc = $request->getVal("desc$num");
 		$sources = $this->mapSIN($request->getVal("sources$num"));
@@ -1561,14 +1562,15 @@ END;
 	}
 
 	private static function correctPlaceTitles($request, $stdEventFacts) {
-		$titles = array();
+		$titles = array(); 
 		for ($i = 0; $i < count($stdEventFacts) || $request->getVal("event_fact$i"); $i++) {
 			$place = $request->getVal("place$i");
-			if ($place && mb_strpos($place, '|') === false) {
+      if ($place) {
+//			if ($place && mb_strpos($place, '|') === false) {    // Don't exclude places with display names (changed Aug 2025 by Janet Bjorndahl)
 				$titles[] = $place;
 			}
 		}
-		return PlaceSearcher::correctPlaceTitles($titles);
+    return PlaceSearcher::correctPlaceTitles($titles);
 	}
 
 	private static function correctSourceTitle($titleString, $ns) {
