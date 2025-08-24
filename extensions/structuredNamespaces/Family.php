@@ -504,11 +504,13 @@ END;
                                       $pageids = NULL, $husbandTitle='', $wifeTitle='', $childTitle='') {
       // standardize marriage place
       $placeTitles = array();
-      if ($marriageplace && mb_strpos($marriageplace, '|') === false) $placeTitles[] = $marriageplace;
+//      if ($marriageplace && mb_strpos($marriageplace, '|') === false) $placeTitles[] = $marriageplace;
+      if ($marriageplace) $placeTitles[] = $marriageplace;
       if ($placeTitles) {
          $correctedTitles = PlaceSearcher::correctPlaceTitles($placeTitles);
          $correctedPlace = @$correctedTitles[$marriageplace];
-         if ($correctedPlace) $marriageplace = strcasecmp($marriageplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $marriageplace;
+//         if ($correctedPlace) $marriageplace = strcasecmp($marriageplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $marriageplace;
+         if ($correctedPlace) $marriageplace = $correctedPlace;
       }
 
 		$result = "<family>\n";
