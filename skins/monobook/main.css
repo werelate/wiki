@@ -3725,6 +3725,11 @@ div.exhibit-pedigree-lens-padding {
    margin-right: 17px;
 }
 
+/* wr-indent-help (indents an entire transclusion) - added Sep 2025 by Janet Bjorndahl */
+.wr-indent-help {
+   margin-left: 25px;
+}
+
 /* wr-infobox-dataquality - added May 2023 by Janet Bjorndahl */
 .wr-infobox-dataquality {
    min-height: 20px;
