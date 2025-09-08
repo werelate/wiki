@@ -271,6 +271,7 @@ $wgNamespacesWithSubpages[NS_SOURCE]=true;
 $wgNamespacesWithSubpages[NS_MYSOURCE]=true;
 $wgNamespacesWithSubpages[NS_TRANSCRIPT]=true;
 $wgNamespacesWithSubpages[NS_PROJECT]=true;
+$wgNamespacesWithSubpages[NS_HELP]=true;
 
 $wgExtraNamespaces =
 	array(	NS_GIVEN_NAME => "Givenname",
