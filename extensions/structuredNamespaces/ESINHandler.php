@@ -272,7 +272,7 @@ class ESINHandler extends StructuredData {
    private function showEventsSection() {
       $result = '';
       if ($this->eventText) {
-         $result = "<div class=\"h2like\">Facts and Events</div>\n".$this->eventText;
+         $result = "<div class=\"h2like\">Events and Facts</div>\n".$this->eventText;  // changed label Sep 2025 for consistency
          $this->eventText = '';
       }
       return $result;
