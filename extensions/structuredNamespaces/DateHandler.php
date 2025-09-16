@@ -14,8 +14,8 @@ abstract class DateHandler {
                                         'mrt'=>'Mar','mei'=>'May','okt'=>'Oct',
                                         'januari'=>'Jan','februari'=>'Feb','maart'=>'Mar','juni'=>'Jun','juli'=>'Jul','augustus'=>'Aug','oktober'=>'Oct',
                                         // additional for French (accented and unaccented)
-                                        'fév'=>'Feb','avr'=>'Apr','mai'=>'May','aoû'=>'Aug','déc'=>'Dec',
-                                        'fev'=>'Feb','aou'=>'Aug',
+                                        'janv'=>'Jan','fév'=>'Feb','févr'=>'Feb','avr'=>'Apr','mai'=>'May','juil'=>'Jul','aoû'=>'Aug','déc'=>'Dec',
+                                        'fev'=>'Feb','fevr'=>'Feb','aou'=>'Aug',
                                         'janvier'=>'Jan','février'=>'Feb','mars'=>'Mar','avril'=>'Apr','juin'=>'Jun',
                                         'juillet'=>'Jul','août'=>'Aug','septembre'=>'Sep','octobre'=>'Oct','novembre'=>'Nov','décembre'=>'Dec',
                                         'fevrier'=>'Feb','aout'=>'Aug','decembre'=>'Dec',
@@ -30,8 +30,13 @@ abstract class DateHandler {
                                         // additional for Norwegian
                                         'des'=>'Dec','desember'=>'Dec',
                                         // additional for Portuguese
-                                        'janeiro'=>'Jan', 'fevereiro'=>'Feb', 'março'=>'Mar', 'maio'=>'May', 'junho'=>'Jun', 'julho'=>'Jul',
-                                        'set'=>'Sep', 'setembro'=>'Sep', 'out'=>'Oct', 'outubro'=>'Oct', 'novembro'=>'Nov', 'dezembro'=>'Dec'
+                                        'set'=>'Sep','out'=>'Oct',
+                                        'janeiro'=>'Jan','fevereiro'=>'Feb','março'=>'Mar','maio'=>'May','junho'=>'Jun','julho'=>'Jul',
+                                        'setembro'=>'Sep','outubro'=>'Oct','novembro'=>'Nov','dezembro'=>'Dec',
+                                        // additional for Italian
+                                        'gen'=>'Jan','mag'=>'May','giu'=>'Jun','lug'=>'Jul','ott'=>'Oct',
+                                        'gennaio'=>'Jan','febbraio'=>'Feb','aprile'=>'Apr','maggio'=>'May', 'giugno'=>'Jun', 'luglio'=>'Jul',
+                                        'settembre'=>'Sep','ottobre'=>'Oct','dicembre'=>'Dec'
                                         );
                                         
   private static $MONTHS = array('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec');                                        
@@ -475,6 +480,9 @@ abstract class DateHandler {
         return $parsedDate;
     }
 
+    // Convert long dashes (em-dashes, en-dashes) to hyphens
+    $date = preg_replace('#(\xe2\x80\x94)|(\xe2\x80\x93)#', '-', $date);
+     
     // Convert valid numeric dates to GEDCOM format (dd mmm yyyy) before continuing with parsing. 
     // This is somewhat inefficient because of having to reparse these dates, but it was the easiest way to add this code, and these dates are not common.
      
