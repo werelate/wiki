@@ -249,8 +249,9 @@ abstract class DQHandler {
   /**
    * Create the WikiText to display issues on a Person or Family page as "Questionable Information"
    */
-  function addQuestionableInfoIssues($issues, $tagname) {
-  
+  function addQuestionableInfoIssues($ns, $titleString, $issues, $tagname, $allowVerify = false) {
+    global $wrHostName, $wrProtocol;
+   
     // Remove issues other than errors and anomalies (e.g., missing data), so they don't cause the "questionable information" heading to display.
     // Check the array from the end to the beginning so that no entries are skipped when entries are removed.
     for ( $i=sizeof($issues)-1; $i>=0; $i-- ) {
@@ -264,7 +265,7 @@ abstract class DQHandler {
     // Display errors first, then anomalies (as warnings)
     $classes = "wr-infobox wr-infobox-dataquality" . ($tagname=="person" ? " wr-infobox-dataquality-person" : "");
     if ( sizeof($issues) > 0 ) {
-      $result = "\n<div class=\"$classes\"><span class=large-attn>Questionable information</span> identified by WeRelate automation\n<table>";
+      $result .= "\n<div class=\"$classes\"><span class=large-attn>Questionable information</span> identified by WeRelate automation\n<table>";
       for ( $i=0; $i<sizeof($issues); $i++ ) {
         if ( $issues[$i][0] == "Error" ) {
           $result .= "<tr><td>To fix:</td><td>" . 
@@ -272,11 +273,26 @@ abstract class DQHandler {
               $issues[$i][1] . "</td></tr>";
         }
       }
+      $title = Title::makeTitle($ns, $titleString);
+      $DBTitle = $title->getDBkey();
       for ( $i=0; $i<sizeof($issues); $i++ ) {
         if ( $issues[$i][0] == "Anomaly" ) {
+          $template = '';
+          foreach ( array_keys(DQHandler::$DATA_QUALITY_TEMPLATES) as $partialIssueDesc ) {
+            if ( substr($issues[$i][1], 0, strlen($partialIssueDesc)) == $partialIssueDesc ) {
+              $template = urlencode(DQHandler::$DATA_QUALITY_TEMPLATES[$partialIssueDesc]);
+              break;  
+            }
+          }
           $result .= "<tr><td>To check:</td><td>" . 
               (($tagname == "family" && $issues[$i][2] == "Person") ? "[[Person:" . $issues[$i][3] . "|" . $issues[$i][3] . "]]" : "") . "</td><td>" .
-              $issues[$i][1] . "</td></tr>";
+              $issues[$i][1] . "</td><td>";
+          // Templates that go on Person Talk page can't be added when displaying a Family page (code hasn't checked for sources on the Person page)    
+          if ( $template != '' && $allowVerify && !($tagname == "family" && $issues[$i][2] == "Person") ) {
+            $result .= "<span class=\"plainlinks\">[$wrProtocol://$wrHostName/wiki/Special:AddTemplateToPage?type=verify&ns=$ns&titlestring=" . urlencode($DBTitle) .
+                "&template=$template&desc=".urlencode($issues[$i][1]) . " Mark as verified]</span>";
+          }
+          $result .= "</td></tr>";
         }
       }
       $result .= "</table></div>";

@@ -794,7 +794,11 @@ END;
       $revision = Revision::newFromId($parser->pRevisionId);
       if ( $revision && $revision->isCurrent() && !self::$dataValidated ) {
  	      $issues = DQHandler::getUnverifiedIssues($revision->getText(), $parser->getTitle(), "person");
-        $result .= DQHandler::addQuestionableInfoIssues($issues, "person");
+        $allowVerify = false;
+        if ( isset($this->xml->source_citation) || isset($this->xml->note) || isset($this->xml->image) ) {
+          $allowVerify = true;    // allow the user to verify issues only if there is at least one source, note or image on the page
+        }
+        $result .= DQHandler::addQuestionableInfoIssues(NS_PERSON, $this->titleString, $issues, "person", $allowVerify);
       }
 
 			// add categories
@@ -806,7 +810,6 @@ END;
 			$places = ESINHandler::getPlaces($this->xml);
          
 			$result .= StructuredData::addCategories($surnames, $places, false);
-
 		}
 		return $result;
 	}

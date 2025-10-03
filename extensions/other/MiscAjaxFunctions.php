@@ -39,9 +39,9 @@ function wfRetrieveSource() {
   return $json;
 }
 
-// Add a template to a talk page to indicate that an anomaly has been verified, and update the DQ table accordingly. Created May 2022 by Janet Bjorndahl
+// AJAX function to call reusable function to add a verified template to a talk page. Created May 2022 by Janet Bjorndahl
 function wfAddVerifiedTemplate() {
-  global $wgRequest, $wgUser;
+  global $wgRequest;
   
   $namespace = $wgRequest->getVal('ns');
   $titleString = $wgRequest->getVal('title');
@@ -49,8 +49,7 @@ function wfAddVerifiedTemplate() {
   $pageId = $wgRequest->getVal('pid'); 
   $callback = $wgRequest->getVal('callback');
   $desc = urldecode($wgRequest->getVal('desc'));
-  $comments = urldecode($wgRequest->getVal('comments'));
-  $addWatches = $wgUser->getOption( 'watchdefault' );
+  $comments = $wgRequest->getVal('comments');
 
   $pageTitle = Title::newFromText($titleString, $namespace);
   // Check to see if page renamed/merged since list was displayed; if so, get new title (added Aug 2022 by JB)
@@ -61,6 +60,17 @@ function wfAddVerifiedTemplate() {
       $pageTitle = $redirectTitle;
     }
   }
+  $success = markAsVerified($pageTitle, $pageId, $templateName, $desc, $comments);
+  if ($callback) {
+    return $callback.'(' . $success . ');';
+  }
+}
+
+// Add a template to a talk page to indicate that an anomaly has been verified, and update the DQ table accordingly. Split from above Sep 2025
+function markAsVerified($pageTitle, $pageId, $templateName, $desc, $comments) {
+  global $wgUser;
+
+  $addWatches = $wgUser->getOption( 'watchdefault' );
 	$article = new Article($pageTitle->getTalkPage(), 0);
   $success = false;
 	if ( $wgUser->isLoggedIn() && $article ) {
@@ -69,7 +79,7 @@ function wfAddVerifiedTemplate() {
 			$targetTalkContents = rtrim($targetTalkContents) . "\n\n";
 		}
 		$success = $article->doEdit($targetTalkContents . '{{' . $templateName . '|' . date("j M Y") . '|[[User:' . $wgUser->getName() . '|' . $wgUser->getName() . ']]|' . 
-                $comments . '}}', "Add $templateName template");
+                urldecode($comments) . '}}', "Add $templateName template");
     if ($success) {
 		  if ($addWatches) {
    		  StructuredData::addWatch($wgUser, $article, true);
@@ -89,9 +99,7 @@ function wfAddVerifiedTemplate() {
       }
     }
 	}
-  if ($callback) {
-    return $callback.'(' . $success . ');';
-  }
+  return $success;
 }
 
 // Add a template to a talk page to indicate that the user has defered resolution of issues on this Person/Family page, and update the DQ table accordingly. Created May 2022 by Janet Bjorndahl

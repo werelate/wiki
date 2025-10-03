@@ -347,6 +347,7 @@ require_once("$IP/extensions/other/SpecialSearch.php");
 require_once("$IP/extensions/other/SpecialImportGedcom.php");
 require_once("$IP/extensions/other/SpecialNetwork.php");
 require_once("$IP/extensions/other/SpecialRequestDelete.php");  // added Jan 2021 by Janet Bjorndahl
+require_once("$IP/extensions/other/SpecialAddTemplateToPage.php");  // added Oct 2025 by Janet Bjorndahl
 require_once("$IP/extensions/other/SpecialEmail.php");
 require_once("$IP/extensions/other/SpecialUnsubscribe.php");
 require_once("$IP/extensions/other/SpecialCompare.php");
