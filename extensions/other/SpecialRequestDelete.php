@@ -55,7 +55,7 @@ function wfSpecialRequestDelete() {
 	  $formHtml = '<form method="post" action="/wiki/Special:RequestDelete">';
     $formHtml .= '<label for="reason">Reason page should be deleted (mandatory) </label><input class="input_long" type="text" id="reason" name="reason"/>';
     $formHtml .= ' <input type="submit" name="submit" value="Go"/>';
-    $formHtml .= ' <input type="hidden" name="pagetitle" value="' . $pageTitle . '"/>';
+    $formHtml .= ' <input type="hidden" name="pagetitle" value="' . Sanitizer::safeEncodeAttribute($pageTitle) . '"/>';
     $formHtml .= '</form>';
     $wgOut->addHTML($formHtml);
   }
