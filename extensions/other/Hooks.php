@@ -651,22 +651,23 @@ function wrValidateUser($user, &$errorMsg, $email) {
       $errorMsg = wfMsg('invalidusername');
       return false;
    }
-   if (mb_strpos($email, '@') !== false) {
-       $email = mb_strtolower($email);
-       foreach($bad_needles as $needle) {
-          if (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle) {
-             $errorMsg = wfMsg( 'emailrequired' );
-             return false;
-          }
-       }
-       foreach($needles as $needle) {
-          if (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle) {
-             return true;
-          }
-       }
-   }
-   $errorMsg = wfMsg( 'emailrequired' );
-   return false;
+   return true;
+//   if (mb_strpos($email, '@') !== false) {
+//       $email = mb_strtolower($email);
+//       foreach($bad_needles as $needle) {
+//          if (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle) {
+//             $errorMsg = wfMsg( 'emailrequired' );
+//             return false;
+//          }
+//       }
+//       foreach($needles as $needle) {
+//          if (mb_strlen($email) > mb_strlen($needle) && mb_substr($email, -mb_strlen($needle))===$needle) {
+//             return true;
+//          }
+//       }
+//   }
+//   $errorMsg = wfMsg( 'emailrequired' );
+//   return false;
 }
 
 function wrArticleSave(&$article, &$user, $text) {

@@ -482,7 +482,11 @@ END;
       $revision = Revision::newFromId($parser->pRevisionId);
       if ( $revision && $revision->isCurrent() && !self::$dataValidated ) {
    	    $issues = DQHandler::getUnverifiedIssues($revision->getText(), $parser->getTitle(), "family", "all");  // include messages for children
-        $result .= DQHandler::addQuestionableInfoIssues($issues, "family");
+        $allowVerify = false;
+        if ( isset($this->xml->source_citation) || isset($this->xml->note) || isset($this->xml->image) ) {
+          $allowVerify = true;    // allow the user to verify issues only if there is at least one source, note or image on the page
+        }
+        $result .= DQHandler::addQuestionableInfoIssues(NS_FAMILY, $this->titleString, $issues, "family", $allowVerify);
       }
       
 			// add categories
@@ -504,11 +508,13 @@ END;
                                       $pageids = NULL, $husbandTitle='', $wifeTitle='', $childTitle='') {
       // standardize marriage place
       $placeTitles = array();
-      if ($marriageplace && mb_strpos($marriageplace, '|') === false) $placeTitles[] = $marriageplace;
+//      if ($marriageplace && mb_strpos($marriageplace, '|') === false) $placeTitles[] = $marriageplace;
+      if ($marriageplace) $placeTitles[] = $marriageplace;
       if ($placeTitles) {
          $correctedTitles = PlaceSearcher::correctPlaceTitles($placeTitles);
          $correctedPlace = @$correctedTitles[$marriageplace];
-         if ($correctedPlace) $marriageplace = strcasecmp($marriageplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $marriageplace;
+//         if ($correctedPlace) $marriageplace = strcasecmp($marriageplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $marriageplace;
+         if ($correctedPlace) $marriageplace = $correctedPlace;
       }
 
 		$result = "<family>\n";

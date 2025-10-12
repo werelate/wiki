@@ -794,7 +794,11 @@ END;
       $revision = Revision::newFromId($parser->pRevisionId);
       if ( $revision && $revision->isCurrent() && !self::$dataValidated ) {
  	      $issues = DQHandler::getUnverifiedIssues($revision->getText(), $parser->getTitle(), "person");
-        $result .= DQHandler::addQuestionableInfoIssues($issues, "person");
+        $allowVerify = false;
+        if ( isset($this->xml->source_citation) || isset($this->xml->note) || isset($this->xml->image) ) {
+          $allowVerify = true;    // allow the user to verify issues only if there is at least one source, note or image on the page
+        }
+        $result .= DQHandler::addQuestionableInfoIssues(NS_PERSON, $this->titleString, $issues, "person", $allowVerify);
       }
 
 			// add categories
@@ -806,7 +810,6 @@ END;
 			$places = ESINHandler::getPlaces($this->xml);
          
 			$result .= StructuredData::addCategories($surnames, $places, false);
-
 		}
 		return $result;
 	}
@@ -1101,14 +1104,18 @@ END;
                                        $chrdate='', $chrplace='', $burdate='', $burplace='') {
       // standardize places
       $placeTitles = array();
-      if ($birthplace && mb_strpos($birthplace, '|') === false) $placeTitles[] = $birthplace;
-      if ($deathplace && mb_strpos($deathplace, '|') === false) $placeTitles[] = $deathplace;
+//      if ($birthplace && mb_strpos($birthplace, '|') === false) $placeTitles[] = $birthplace;
+//      if ($deathplace && mb_strpos($deathplace, '|') === false) $placeTitles[] = $deathplace;
+      if ($birthplace) $placeTitles[] = $birthplace;
+      if ($deathplace) $placeTitles[] = $deathplace;
       if ($placeTitles) {
          $correctedTitles = PlaceSearcher::correctPlaceTitles($placeTitles);
          $correctedPlace = @$correctedTitles[$birthplace];
-         if ($correctedPlace) $birthplace = strcasecmp($birthplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $birthplace;
+//         if ($correctedPlace) $birthplace = strcasecmp($birthplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $birthplace;
+         if ($correctedPlace) $birthplace = $correctedPlace;
          $correctedPlace = @$correctedTitles[$deathplace];
-         if ($correctedPlace) $deathplace = strcasecmp($deathplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $deathplace;
+//         if ($correctedPlace) $deathplace = strcasecmp($deathplace,$correctedPlace) == 0 ? $correctedPlace : $correctedPlace . '|' . $deathplace;
+         if ($correctedPlace) $deathplace = $correctedPlace;
       }
 
 		$result = "<person>\n";

@@ -135,11 +135,14 @@ class PlaceSearcher {
 
 		$hashResults = array();
 		if (count($titles) > 0) {
+       for ($i=0; $i<count($titles); $i++) {
+         $titles[$i] = str_replace("|", "^", $titles[$i]);    // temporarilary substitute ^ for pipe (|)
+       }
 		   $query = implode('|', $titles);
 			$searchResults = PlaceSearcher::getSearchResults($wgMemc, $query, $resultFunction);
 			foreach ($searchResults as $result) {
-				$title = $result['q'];
-				$hashResults[$title] = PlaceSearcher::$resultFunction($result);
+				$title = str_replace("^", "|", $result['q']);         // restore pipe (|) in lookup value
+				$hashResults[$title] = PlaceSearcher::$resultFunction(str_replace("^", "|", $result));  // restore pipe (|) in result
 			}
 		}
 		return $hashResults;
@@ -161,7 +164,8 @@ class PlaceSearcher {
 		$titles = preg_split('/[\n]+/', $text, -1, PREG_SPLIT_NO_EMPTY);
 		$lookupTitles = array();
 		foreach ($titles as $title) {
-			if (mb_strpos($title, '|') === false && !in_array($title, $lookupTitles)) {
+//			if (mb_strpos($title, '|') === false && !in_array($title, $lookupTitles)) {
+			if (!in_array($title, $lookupTitles)) {
 				$lookupTitles[] = $title;
 			}
 		}
