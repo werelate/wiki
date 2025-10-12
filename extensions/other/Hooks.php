@@ -66,6 +66,7 @@ function wfHooksSetup() {
    $wgParser->setHook('listsubpages', 'wrListSubpages');
    $wgParser->setHook('wr_ad', 'wrAd');
    $wgParser->setHook('mh_ad', 'mhAd');
+   $wgParser->setHook('person_count', 'wrPersonCount');
 }
 
 function wfGetWatchers($args) {
@@ -921,5 +922,34 @@ function wrCheckSpam($editPage, $textBox1, $section, &$hookError) {
       }
    }
 	return true;
+}
+
+function wrPersonCount($input, $argv, $parser) {
+   global $wgMemc;
+
+   // Try to get cached value first
+   $cacheKey = 'person_page_count';
+   $count = $wgMemc->get($cacheKey);
+
+   // If not cached, query database
+   if (!$count) {
+      $dbr =& wfGetDB(DB_SLAVE);
+      $count = $dbr->selectField(
+         'dq_stats',
+         'dqs_count',
+         array(
+            'dqs_job_id IN (SELECT MAX(dqs_job_id) FROM dq_stats)',
+            'dqs_issue_desc' => 'Person pages'
+         )
+      );
+
+      // Cache for 24 hours if successful
+      if ($count !== false) {
+         $wgMemc->set($cacheKey, $count, 86400);  // 24 hours = 86400 seconds
+      }
+   }
+
+   // Return formatted number or error message
+   return $count !== false ? number_format($count) : 'Error: Unable to retrieve person count';
 }
 ?>
