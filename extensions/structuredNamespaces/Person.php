@@ -463,11 +463,17 @@ class Person extends StructuredData {
                }
             }
             if (isset($familyXml->event_fact)) {
+               $marriageDate = null;
                foreach ($familyXml->event_fact as $eventFact) {
                   if ((string)$eventFact['type'] == 'Marriage') {
                      $marriageDate = DateHandler::formatDate((string)$eventFact['date'], 'Marriage');    // formatDate added Nov 2020 by Janet Bjorndahl; chged Apr 2024 JB
-                     $marriageKey = DateHandler::getDateKey($marriageDate, true);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
-                     $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span></div>";
+                     $marriageLabel = "m.";
+//                     $marriageKey = DateHandler::getDateKey($marriageDate, true);  // changed to DateHandler function Oct 2020 by Janet Bjorndahl
+//                     $marriage = "<div class=\"wr-infobox-event\">m. <span class=\"wr-infobox-date\">$marriageDate</span></div>";
+                  }
+                  elseif (substr((string)$eventFact['type'],0,9) == 'Marriage ' && $marriageDate == null) {  // proxy marriage event if no marriage event (use first found)
+                     $marriageDate = DateHandler::formatDate((string)$eventFact['date'], 'Marriage');        // (added Nov 2025 by Janet Bjorndahl)
+                     $marriageLabel = "m. " . strtolower(substr((string)$eventFact['type'], 9));
                   }
                   if (!$isParentsSiblings) {
                      $marriageDesc = (string)$eventFact['desc'];
@@ -480,6 +486,10 @@ class Person extends StructuredData {
                         'srcs' => (string)$eventFact['sources'], 'no_citation_needed' => true);
                   }
                }
+               if ($marriageDate != null) {
+                  $marriageKey = DateHandler::getDateKey($marriageDate, true);
+                  $marriage = "<div class=\"wr-infobox-event\">$marriageLabel <span class=\"wr-infobox-date\">$marriageDate</span></div>";
+               }      
             }
             // If there is a spouse but no family events, create a dummy event so that it shows up in the Facts and Events section.  Added Mar 2021 by Janet Bjorndahl
             else {
