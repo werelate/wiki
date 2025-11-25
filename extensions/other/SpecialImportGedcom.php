@@ -11,7 +11,7 @@ $wgExtensionFunctions[] = "wfSpecialImportGedcomSetup";
 
 function wfSpecialImportGedcomSetup() {
    global $wgMessageCache, $wgSpecialPages, $wgParser;
-   $wgMessageCache->addMessages( array( "importgedcom" => "Import GEDCOM" ) );
+   $wgMessageCache->addMessages( array( "importgedcom" => "Upload GEDCOM" ) );
    $wgSpecialPages['ImportGedcom'] = array('SpecialPage','ImportGedcom');
 }
 
@@ -175,14 +175,14 @@ class GedcomImport {
       global $wgUseCopyrightUpload;
 
       // set up page
-      $wgOut->setPagetitle('Import GEDCOM');
+      $wgOut->setPagetitle('Upload GEDCOM');
       $wgOut->setArticleRelated(false);
       $wgOut->setRobotpolicy('noindex,nofollow');
 
       $wgOut->addHTML( "<h2>You have a GEDCOM already in process</h2>\n" .
-           "<p>Before importing a new GEDCOM you need to wait for your earlier GEDCOM to finish importing</p>\n" );
+           "<p>Before uploading a new GEDCOM you need to wait for your earlier GEDCOM to finish importing.</p>\n" );
       if ($gedcomStatus == GedcomsPage::$USER_REVIEW) {
-         $msg = "<a href=\"/gedcom-review/?gedcomId=$gedcomId\" rel=\"nofollow\"><b>Click here</b></a> to review (or delete) your earlier GEDCOM";  // link changed Dec 2020 by Janet Bjorndahl
+         $msg = "<a href=\"/gedcom-review/?gedcomId=$gedcomId\" rel=\"nofollow\"><b>Click here</b></a> to review (or remove) your earlier GEDCOM.";  // link changed Dec 2020 by Janet Bjorndahl
       }
       else if ($gedcomStatus == GedcomsPage::$ADMIN_REVIEW) {
          $msg = "Please be patient; an Administrator should review your earlier GEDCOM and finalize the import within the next 24 hours";
@@ -310,7 +310,7 @@ class GedcomImport {
 		global $wgUseCopyrightUpload;
 
       // set up page
-      $wgOut->setPagetitle('Import GEDCOM');
+      $wgOut->setPagetitle('Upload GEDCOM');
       $wgOut->setArticleRelated(false);
       $wgOut->setRobotpolicy('noindex,nofollow');
 
@@ -366,7 +366,7 @@ END
 		$sourcefilename = 'GEDCOM filename';
       $importIntoTree = 'Import into tree';
       $newTreeName = 'Tree name';
-		$importGedcom = 'Import GEDCOM';
+		$importGedcom = 'Upload GEDCOM';
 
 		$titleObj = Title::makeTitle( NS_SPECIAL, 'ImportGedcom' );
 		$action = $titleObj->escapeLocalURL();
