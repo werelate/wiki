@@ -192,10 +192,16 @@ function mhAd($input, $argv, $parser) {
         $lastName = urlencode($value);
      }
    }
+   // TEMPORARY Black Friday ad - restore iframe below after promotion ends
    return <<< END
 <div style="margin: -23px 0 16px 0;">
-<iframe src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=werelate_widgets_+aug19&widget=records_carousel&width=728&height=90&onSitePlacement=Search+People_728x90_records&tr_ifid=werelate_252927986&firstName=$firstName&lastName=$lastName&tr_device=$device&size=728x90" frameborder="0" scrolling="no" width="728" height="90"></iframe></div>
+<a href="https://www.myheritage.com/dna?utm_source=partner_werelate&utm_medium=partner&utm_campaign=dnabf25&tr_funnel=mhdna&tr_country=us" target="_blank"><img src="/w/skins/common/images/US_Black Friday_v1_728x90.png" width="728" height="90" border="0" alt="MyHeritage DNA Black Friday Sale"/></a></div>
 END;
+   // ORIGINAL iframe - uncomment this and remove Black Friday ad above to restore
+//   return <<< END
+//<div style="margin: -23px 0 16px 0;">
+//<iframe src="https://www.myheritage.com/FP/partner-widget.php?partnerName=werelate&clientId=3401&campaignId=werelate_widgets_+aug19&widget=records_carousel&width=728&height=90&onSitePlacement=Search+People_728x90_records&tr_ifid=werelate_252927986&firstName=$firstName&lastName=$lastName&tr_device=$device&size=728x90" frameborder="0" scrolling="no" width="728" height="90"></iframe></div>
+//END;
 }
 
 /**
