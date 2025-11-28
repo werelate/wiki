@@ -40,33 +40,30 @@ class PlaceSearcher {
 	}
 
 	private static function postRequest($host, $port, $url, $query) {
-	   $timeout = 2;
-	   $contentString = 'q='.urlencode($query);
-	   $contentLength = strlen($contentString);
+	   $postData = 'q='.urlencode($query);
 
-	   $requestBody = "POST $url HTTP/1.0\r\nHost: $host\r\nContent-type: application/x-www-form-urlencoded\r\nContent-length: $contentLength\r\n\r\n$contentString";
+	   $ch = curl_init();
+	   curl_setopt_array($ch, [
+	      CURLOPT_URL => "http://{$host}:{$port}{$url}",
+	      CURLOPT_POST => true,
+	      CURLOPT_POSTFIELDS => $postData,
+	      CURLOPT_RETURNTRANSFER => true,
+	      CURLOPT_CONNECTTIMEOUT => 1,  // 1 second to establish connection
+	      CURLOPT_TIMEOUT => 2,          // 2 seconds total for entire request
+	      CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+	   ]);
 
-	   $sh = fsockopen($host, $port, $errno, $errstr, $timeout)
-	     or die("can't open socket to $host: $errno $errstr");
-	   fputs($sh, $requestBody);
-	   $response = '';
-	   while (!feof($sh)) {
-	      $response .= fread($sh, 16384);
+	   $responseBody = curl_exec($ch);
+	   $responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	   $error = curl_error($ch);
+	   curl_close($ch);
+
+	   if ($responseBody === false || $error) {
+	      // Return error code so caller can handle gracefully
+	      error_log("PlaceSearcher curl error: $error for $host:$port$url");
+	      return array(0, '');
 	   }
-	   fclose($sh) or die("can't close socket handle: $php_errormsg");
-	   list($responseHeaders, $responseBody) = explode("\r\n\r\n", $response,2);
-	   $responseHeaderLines = explode("\r\n", $responseHeaders);
-	   // first line of headers is the HTTP response code
-	   $httpResponseLine = array_shift($responseHeaderLines);
-	   if (preg_match('@^HTTP/[0-9]\.[0-9] ([0-9]{3})@', $httpResponseLine, $matches)) {
-	      $responseCode = $matches[1];
-	   }
-	   // put the rest of the headers into an array
-//	   $responseHeaderArray = array();
-//	   foreach ($responseHeaderLines as $headerLine) {
-//	      list ($header, $value) = explode(': ', $headerLine, 2);
-//	      $responseHeaderArray[$header] = $value;
-//	   }
+
 	   return array($responseCode, $responseBody);
 	}
 
