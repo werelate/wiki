@@ -43,8 +43,8 @@ function wfSpecialPlaceMap() {
 	      	
 		      // place map
 				$wgOut->addHTML('<H2>Map for ' . $sk->makeKnownLinkObj($revision->getTitle(), $revision->getTitle()->getText()) . '</H2>');
-				$wgOut->addHTML('<div id="placemap-trigger">Show map</div>');
-				$wgOut->addHTML('<div id="placemap" style="width: 760px; height: 520px; display: none"></div><br>');
+				$wgOut->addHTML('<div id="placemap-trigger" style="width:760px; height:520px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:18pt;">Show map</div>');
+				$wgOut->addHTML('<div id="placemap" style="width:760px; height:520px; display:none;"></div><br>');
 		      $mapData = SpecialPlaceMap::getContainedPlaceMapData($xml);
 		      if (!$mapData) {
 		      	$mapData = SpecialPlaceMap::getSelfMapData($revision->getTitle(), $xml);
@@ -97,7 +97,8 @@ class SpecialPlaceMap {
 			"      var latlnginst = document.getElementById('latlnginst');".
 			"      if (latlnginst) { latlnginst.style.display = 'block'; }".
 			"      var script = document.createElement('script');".
-			"      script.src = '//maps.googleapis.com/maps/api/js?key=$wgGoogleMapKey&callback=showPlaceMap';".
+			"      script.async = true;".
+			"      script.src = '//maps.googleapis.com/maps/api/js?key=$wgGoogleMapKey&loading=async&callback=showPlaceMap';".
 			"      document.head.appendChild(script);".
 			"    });".
 			"  }".
