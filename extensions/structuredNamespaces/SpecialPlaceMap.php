@@ -88,23 +88,18 @@ class SpecialPlaceMap {
 			"<script type=\"text/javascript\">/*<![CDATA[*/function getPlaceData() { return '<places>$mapData</places>'; }/*]]>*/</script>".
 			"<script type=\"text/javascript\" src=\"$wgScriptPath/placemap.10.js\"></script>".
 			"<script type=\"text/javascript\">/*<![CDATA[*/".
-			"console.log('placemap: script loaded, size=$size');".
+			"var defined_maps_api_key='$wgGoogleMapKey';".
 			"document.addEventListener('DOMContentLoaded', function() {".
-			"  console.log('placemap: DOMContentLoaded');".
 			"  var trigger = document.getElementById('placemap-trigger');".
-			"  console.log('placemap: trigger element=', trigger);".
 			"  if (trigger) {".
 			"    trigger.addEventListener('click', function() {".
-			"      console.log('placemap: click detected');".
 			"      trigger.style.display = 'none';".
 			"      document.getElementById('placemap').style.display = 'block';".
 			"      var latlnginst = document.getElementById('latlnginst');".
 			"      if (latlnginst) { latlnginst.style.display = 'block'; }".
 			"      var script = document.createElement('script');".
 			"      script.async = true;".
-			"      var url = '//maps.googleapis.com/maps/api/js?key=$wgGoogleMapKey&loading=async&callback=showPlaceMap';".
-			"      console.log('placemap: loading Maps API from:', url);".
-			"      script.src = url;".
+			"      script.src = '//maps.googleapis.com/maps/api/js?key=' + defined_maps_api_key + String.fromCharCode(38) + 'loading=async' + String.fromCharCode(38) + 'callback=showPlaceMap';".
 			"      document.head.appendChild(script);".
 			"    });".
 			"  }".
