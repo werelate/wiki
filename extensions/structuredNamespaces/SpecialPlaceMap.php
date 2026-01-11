@@ -43,13 +43,14 @@ function wfSpecialPlaceMap() {
 	      	
 		      // place map
 				$wgOut->addHTML('<H2>Map for ' . $sk->makeKnownLinkObj($revision->getTitle(), $revision->getTitle()->getText()) . '</H2>');
-				$wgOut->addHTML('<div id="placemap" style="width: 760px; height: 520px"></div><br>');
+				$wgOut->addHTML('<div id="placemap-trigger">Show map</div>');
+				$wgOut->addHTML('<div id="placemap" style="width: 760px; height: 520px; display: none"></div><br>');
 		      $mapData = SpecialPlaceMap::getContainedPlaceMapData($xml);
 		      if (!$mapData) {
 		      	$mapData = SpecialPlaceMap::getSelfMapData($revision->getTitle(), $xml);
 		      }
 		      $wgOut->addHTML(SpecialPlaceMap::getMapScripts(1, $mapData));
-		      $wgOut->addHTML('<div id="latlnginst" style="display: block">Click on the map to see the latitude and longitude at the cursor position.</div>');
+		      $wgOut->addHTML('<div id="latlnginst" style="display: none">Click on the map to see the latitude and longitude at the cursor position.</div>');
 		      $wgOut->addHTML('<div id="latlngbox" style="display: none">Clicked on Latitude: <span id="latbox"></span> Longitude: <span id="lngbox"></span></div><br>');
 		      $unmappedPlaces = SpecialPlaceMap::getUnmappedPlaces($sk, $xml);
 		      if ($unmappedPlaces) {
@@ -80,13 +81,28 @@ END;
 class SpecialPlaceMap {
 	public static function getMapScripts($size, $mapData) {
 		global $wgGoogleMapKey, $wgScriptPath;
-		
-      $mapData = str_replace("'", "\'", $mapData);
-		return 
+
+		$mapData = str_replace("'", "\'", $mapData);
+		return
 			"<script type=\"text/javascript\">/*<![CDATA[*/function getSize() { return $size; }/*]]>*/</script>".
 			"<script type=\"text/javascript\">/*<![CDATA[*/function getPlaceData() { return '<places>$mapData</places>'; }/*]]>*/</script>".
 			"<script type=\"text/javascript\" src=\"$wgScriptPath/placemap.10.js\"></script>".
-			"<script async src=\"//maps.googleapis.com/maps/api/js?key=$wgGoogleMapKey&callback=showPlaceMap\"></script>";
+			"<script type=\"text/javascript\">/*<![CDATA[*/".
+			"document.addEventListener('DOMContentLoaded', function() {".
+			"  var trigger = document.getElementById('placemap-trigger');".
+			"  if (trigger) {".
+			"    trigger.addEventListener('click', function() {".
+			"      trigger.style.display = 'none';".
+			"      document.getElementById('placemap').style.display = 'block';".
+			"      var latlnginst = document.getElementById('latlnginst');".
+			"      if (latlnginst) { latlnginst.style.display = 'block'; }".
+			"      var script = document.createElement('script');".
+			"      script.src = '//maps.googleapis.com/maps/api/js?key=$wgGoogleMapKey&callback=showPlaceMap';".
+			"      document.head.appendChild(script);".
+			"    });".
+			"  }".
+			"});".
+			"/*]]>*/</script>";
 	}
 	
    public static function getSelfMapData($title, $xml) {

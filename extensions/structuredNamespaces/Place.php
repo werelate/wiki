@@ -431,9 +431,10 @@ class Place extends StructuredData {
     }
     
     private function addMap() {
-    	global $wrHostName; 
-    	
-	   return '<div id="placemap"></div>' .
+    	global $wrHostName;
+
+	   return '<div id="placemap-trigger">Show map</div>' .
+				 '<div id="placemap" style="display:none"></div>' .
 				 '<div class="plainlinks">[http://'.$wrHostName.'/wiki/Special:PlaceMap?pagetitle=' . wfUrlEncode($this->titleString) . ' Larger map]</div>';
     }
 
