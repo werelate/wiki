@@ -21,7 +21,7 @@ More:
 * The wikidata project contains various scripts for parsing and batch-updating pages
 * The Family Tree Explorer is being deprecated; the source code is not available
 
-## DELETE WATCHLIST
+## Delete large watchlists manually
 
 1. comment out the auto-run of the indexer every 5 minutes
 
