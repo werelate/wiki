@@ -143,12 +143,12 @@ class ArticlePage extends StructuredData {
             $places = $this->getLV("Places", $this->xml->place, '', 'Place');
             $yearRange = $this->getLV("Year range", $this->xml->from_year, (string)$this->xml->to_year);
             if ($surnames || $places || $yearRange) {
-               $heading = 'Article Covers';
+		$heading = 'Article Covers';
+		$result = "<div class=\"wr-infobox wr-infobox-article\"><div class=\"wr-infobox-heading\">$heading</div><dl>{$surnames}{$places}{$yearRange}</dl></div>";
             }
-            else {
-               $heading = 'Share';
-            }
-            $result = "<div class=\"wr-infobox wr-infobox-article\"><div class=\"wr-infobox-heading\">$heading</div><dl>{$surnames}{$places}{$yearRange}</dl></div>";
+//            else {
+//               $heading = 'Share';
+//            }
             $result .= StructuredData::addCategories($this->xml->surname, $this->xml->place, true, $this->titleString, $this->ns);
          }
       }
