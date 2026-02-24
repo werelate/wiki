@@ -82,13 +82,13 @@ END;
 
    	$skin =& $wgUser->getSkin();
 
-      $ret = '<div class="myrelate-header">Profile &amp; Messages</div>';
+      $ret = '<div class="myrelate-header">User page &amp; Messages</div>';    // changed Feb 2026 by JB
       if ($profileRevision) {
       	$tip = wfMsgHTML('viewprofiletip');
-	      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), 'View your profile', '', '', '', '', " title=\"$tip\"") . ' (&nbsp;';
+	      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), 'View your User page', '', '', '', '', " title=\"$tip\"") . ' (&nbsp;';  // changed Feb 2026 by JB
       }
       $tip=wfMsgHTML('editprofiletip');
-      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), $profileRevision ? 'edit' : '<b>Create your profile</b>', "action=edit", '', '', '', " title=\"$tip\"");
+      $ret .= $skin->makeKnownLinkObj($wgUser->getUserPage(), $profileRevision ? 'edit' : '<b>Create your User page</b>', "action=edit", '', '', '', " title=\"$tip\"");  // changed Feb 2026 by JB
       if ($profileRevision) {
       	$ret .= '&nbsp;)';
       }
@@ -104,7 +104,7 @@ END;
 		}
       $ret .= $skin->makeKnownLinkObj($wgUser->getTalkPage(), "Read messages", '', '', '', '', " title=\"$tip\"") . $msgsText;
       $tip=wfMsgHTML('preferencestip');
-      $ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Preferences'), 'Edit preferences', '', '', '', '', " title=\"$tip\"");
+      $ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'Preferences'), 'Edit settings', '', '', '', '', " title=\"$tip\"");  // changed Feb 2026 by JB
       return $ret;
    }
 
@@ -112,7 +112,7 @@ END;
       global $wgUser;
 
    	$skin =& $wgUser->getSkin();
-      $ret = '<div class="myrelate-header">User Pages</div>';
+      $ret = '<div class="myrelate-header">User Subpages</div>';
 
       $dbr =& wfGetDB( DB_SLAVE );
 		$sql = 'select page_title from page where page_namespace='.NS_USER .
@@ -134,7 +134,7 @@ END;
 		   }
 		}
 		$tip = 'Add a new user page';
-		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'AddPage'), 'Add user page', "namespace=".NS_USER, '', '', '', " title=\"$tip\"");
+		$ret .= $skin->makeKnownLinkObj(Title::makeTitle(NS_SPECIAL, 'AddPage'), 'Add user subpage', "namespace=".NS_USER, '', '', '', " title=\"$tip\"");
 		return $ret;
    }
 
