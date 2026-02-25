@@ -110,10 +110,8 @@ function wrWatercoolerNotice( &$siteNotice ) {
 
    // Show the notice
    $watchUrl = $watercoolerTitle->getLocalURL('action=watch');
-   $pageUrl = $watercoolerTitle->getLocalURL();
    $notice = '<div class="usermessage">' .
-      'We accidentally removed your watch on the <a href="' . htmlspecialchars($pageUrl) . '">Watercooler</a>. ' .
-      'Please <a href="' . htmlspecialchars($watchUrl) . '">click here to re-watch it</a>.' .
+      'Watercooler watches were accidentally removed. <a href="' . htmlspecialchars($watchUrl) . '">Click here to re-watch</a>.' .
       '</div>';
 
    $siteNotice = $notice . $siteNotice;
