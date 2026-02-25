@@ -207,6 +207,9 @@ class AddPageForm {
 		   }
 		   else {
 		   	$nsTitle = "a $nsText";
+        if ($nsText=="User") {
+          $nsTitle .= " subpage";    // added Feb 2026 by Janet Bjorndahl
+        } 
 		   }
 	  	}
 	  	else {

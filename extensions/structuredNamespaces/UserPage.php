@@ -294,7 +294,7 @@ class UserPage extends StructuredData {
                $values[] = '[['.$t->getPrefixedText().'|'.$t->getText().']]';
              }
           }
-          $personalResearchPages = $this->getLV('User pages', $values);
+          $personalResearchPages = $this->getLV('User subpages', $values);    // changed Feb 2026 by Janet Bjorndahl
 
           $heading = ($surnames || $places || $yearRange ? 'Page Covers' : '');
           $result = "<div class=\"wr-infobox wr-infobox-userpage\"><div class=\"wr-infobox-heading\">$heading</div><dl>{$surnames}{$places}{$yearRange}{$familyTrees}{$researching}{$personalResearchPages}</dl></div>";

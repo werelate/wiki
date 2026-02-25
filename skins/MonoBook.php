@@ -313,7 +313,7 @@ END;
             'source' => 'Special:AddPage/Source',
             'transcript' => 'Special:AddPage/Transcript',
             'repository' => 'Special:AddPage/Repository',
-            'userpage' => 'Special:AddPage/User',
+            'usersubpage' => 'Special:AddPage/User',    // changed Feb 2026 by Janet Bjorndahl
             'otherpage' => 'Special:AddPage',
             '-importgedcom' => 'Special:ImportGedcom'
         ),
