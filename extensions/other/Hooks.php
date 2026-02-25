@@ -38,6 +38,7 @@ function wfHooksSetup() {
 	$wgHooks['UnwatchArticleComplete'][] = 'wrIndexPurgeArticle';
 	$wgHooks['ArticlePurge'][] = 'wrIndexArticle';
    $wgHooks['TitleMoveComplete'][] = 'wrMovePage';
+   $wgHooks['SiteNoticeAfter'][] = 'wrWatercoolerNotice';
 
    # Add new log types
    global $wgLogTypes, $wgLogNames, $wgLogHeaders, $wgLogActions;
@@ -76,6 +77,44 @@ function wfGetWatchers($args) {
    $limit = (isset($args['limit']) ? (int)$args['limit'] : false);
    $watchers = StructuredData::getWatchers($title, $offset, $limit);
    return join('',$watchers);
+}
+
+/**
+ * Show notice to users registered before Feb 1, 2026 who are not watching the Watercooler
+ */
+function wrWatercoolerNotice( &$siteNotice ) {
+   global $wgUser;
+
+   // Only for logged-in users
+   if (!$wgUser->isLoggedIn()) {
+      return true;
+   }
+
+   // Check registration date: before Feb 1, 2026 (TS_MW format)
+   $cutoffDate = '20260201000000';
+   $registrationDate = $wgUser->mRegistration;
+
+   // Skip if no registration date or registered on/after cutoff
+   if (!$registrationDate || $registrationDate >= $cutoffDate) {
+      return true;
+   }
+
+   // Check if watching Watercooler (NS_PROJECT = 4)
+   $watercoolerTitle = Title::makeTitle(NS_PROJECT, 'Watercooler');
+   if ($watercoolerTitle->userIsWatching()) {
+      return true;  // Already watching, no notice needed
+   }
+
+   // Show the notice
+   $watchUrl = $watercoolerTitle->getLocalURL('action=watch');
+   $pageUrl = $watercoolerTitle->getLocalURL();
+   $notice = '<div class="usermessage">' .
+      'We accidentally removed your watch on the <a href="' . htmlspecialchars($pageUrl) . '">Watercooler</a>. ' .
+      'Please <a href="' . htmlspecialchars($watchUrl) . '">click here to re-watch it</a>.' .
+      '</div>';
+
+   $siteNotice = $notice . $siteNotice;
+   return true;
 }
 
 /**
