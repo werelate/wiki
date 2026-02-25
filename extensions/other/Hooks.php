@@ -90,12 +90,15 @@ function wrWatercoolerNotice( &$siteNotice ) {
       return true;
    }
 
+   // Ensure user data is loaded before accessing mRegistration
+   $wgUser->loadFromDatabase();
+
    // Check registration date: before Feb 1, 2026 (TS_MW format)
    $cutoffDate = '20260201000000';
    $registrationDate = $wgUser->mRegistration;
 
-   // Skip if no registration date or registered on/after cutoff
-   if (!$registrationDate || $registrationDate >= $cutoffDate) {
+   // Skip if registered on/after cutoff (users with NULL registration date are old users who should see the notice)
+   if ($registrationDate && $registrationDate >= $cutoffDate) {
       return true;
    }
 
