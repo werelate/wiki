@@ -10,6 +10,7 @@
 body
 {
 	font: x-small sans-serif;
+	font-size: 11px;
 	color: #333;
 	padding: 0;
 	margin: 0;
@@ -61,7 +62,7 @@ body
    border: 1px solid #AAA;
 }
 #wr-searchbox .wr-searchbox-text {
-   font-size: 13px;
+   font-size: 14px;
    height: 18px;
    line-height: 18px;
    margin: 0;
@@ -86,11 +87,11 @@ body
 }
 #wr-searchbox .ezpz-hint {
    color: #999;
-   font-size: 13px;
+   font-size: 14px;
 }
 .inputHintOverlay {
    color: #999;
-   font-size: 13px;
+   font-size: 14px;
    padding-top: 5px;
    padding-left: 3px;
    z-index: 0 !important;
@@ -103,7 +104,7 @@ body
 
 #contentSub, #contentSub2
 {
-	font-size: 11px;
+	font-size: 12px;
 }
 
 span.subpages
@@ -111,15 +112,15 @@ span.subpages
 	display: block;
 }
 .wr-maintitle {
-   font-size: 22px;
+   font-size: 24px;
 }
 .firstHeadingPersonFamily {
-   font-size: 15px;
+   font-size: 16px;
    padding: 0;
 }
 .firstHeading
 {
-   font-size: 18px;
+   font-size: 20px;
    padding: 0;
 /*    margin-bottom: .1em; */
 }
@@ -133,7 +134,7 @@ span.subpages
 	margin: 2px 8px 2px 0;
 	padding: 4px 8px;
 	vertical-align: middle;
-   font-size: 11px;
+   font-size: 12px;
 }
 
 #siteNotice
@@ -268,7 +269,7 @@ span.subpages
 }
 #gsfn_search_widget .powered_by
 {
-   font-size: 9px;
+   font-size: 10px;
    text-align: right;
    margin-top: 8px;
 }
@@ -313,7 +314,7 @@ span.subpages
 
 #wr-navigation
 {
-	font-size: 13px;
+	font-size: 14px;
    height: 19px;
    line-height: 19px;
    padding:8px 0;
@@ -489,7 +490,7 @@ span.subpages
    line-height: 1;
 }
 #wr-watchers li {
-   font-size: 11px;
+   font-size: 12px;
    line-height: 1.3;
    color: #333;
    padding-left: 8px;
@@ -514,20 +515,20 @@ span.subpages
    margin-bottom: 0 !important;
    color: #333; 
    font-weight: normal;
-   font-size: 13px;
+   font-size: 14px;
    line-height: 1;
 }
 #page-list table {
   width: 100%;
   padding: 0;
   margin: -0.3em;
-  font-size: 13px;
+  font-size: 14px;
 }
 #page-list td-right {
   text-align: right;
 }  
 #listns, #listrows, #listjump {
-   font-size: 10px;
+   font-size: 11px;
    vertical-align: baseline; 
 }
 #listjump {
@@ -544,12 +545,12 @@ span.subpages
    white-space: nowrap;
 } 
 li.page-list-main {
-   font-size: 12px;
+   font-size: 13px;
    line-height: 1em;
    margin-top: 4px;
 }
 li.page-list-sub {
-   font-size: 11px;
+   font-size: 12px;
    line-height: 1em;
    margin-top: 2px;
 }
@@ -800,7 +801,7 @@ h2
 div.editsection
 {
 	margin-top: 1em;
-   font-size: 11px;
+   font-size: 12px;
 }
 
 h3, h4, h5, h6
@@ -942,7 +943,7 @@ code {
    font-family: "Lucida Console", Monaco, monospace;
    white-space: pre;
    margin: 0;
-   font-size: 11px;
+   font-size: 12px;
    line-height: 1.2;
 }
 pre
@@ -1753,19 +1754,19 @@ div.prev_next_links_bottom
 
 #rows {
    vertical-align: baseline;
-   font-size: 10px;
+   font-size: 11px;
 }
 
 #watch, #sort {
-   font-size: 10px;
+   font-size: 11px;
 }
 .sort_label {
-   font-size: 11px;
+   font-size: 12px;
    padding-right: 5px;
 }
 
 #talk_input {
-   font-size: 11px;
+   font-size: 12px;
    vertical-align: bottom;
 }
 
@@ -1933,7 +1934,7 @@ div.prefsectiontip
 }
 
 #matchButton input {
-   font-size: 15px;
+   font-size: 16px;
 }
 
 /********** SPECIAL: ShowPedigree **********/
@@ -2632,7 +2633,7 @@ span.fn-controlbar-logo
 	background-color: #ddd;
 	padding-left: 5px;
 	padding-bottom: 5px;
-	font-size: 12px;
+	font-size: 13px;
 	border: 1px solid black;
 }
 
@@ -2654,7 +2655,7 @@ span.fn-controlbar-logo
 	z-index: 100;
 	width: 100%;
 	padding: 5px 0;
-	font-size: 12px;
+	font-size: 13px;
 	border: 0px solid green;
 }
 
@@ -2962,7 +2963,7 @@ table.pf-popup
 	top: -40px;
 	background-color: #ddd;
 	padding: 10px;
-	font-size: 12px;
+	font-size: 13px;
 	border: 1px solid black;
 }
 a.pf-popup-button
@@ -3000,11 +3001,11 @@ div#imglicense
 	width: 100%;/*and again*/
 }
 .clickMenu .wr-menu-more {
-   font-size: 13px;
+   font-size: 14px;
    padding-right: 4px;
 }
 .clickMenu a {
-   font-size: 13px;
+   font-size: 14px;
 }
 .clickMenu div.outerbox
 {
@@ -3071,7 +3072,7 @@ div#imglicense
 }
 /* clickMenu li */
 .clickMenu li {
-   font-size: 9px;
+   font-size: 10px;
    margin: 0;
    color: #1111CC;
 	/*white-space: nowrap; does not really work in ie */
@@ -3127,7 +3128,7 @@ div#imglicense
 /* highlight edit on primary page; addsection on talk page */
 #wr-actionslist #actions-edit a,
 #wr-actionslist #actions-addsection a {
-   font-size: 17px;
+   font-size: 18px;
    line-height: 22px;
 }
 #wr-actionslist #actions-edit.istalk a {
@@ -3212,7 +3213,7 @@ html>body .innerbox
 
 /* exhibit */
 #wr-pedigreemap-sidebar {
-   font-size: 10px;
+   font-size: 11px;
 }
 .exhibit-lens {
    border: 1px solid #ddd;
@@ -3389,7 +3390,7 @@ div.exhibit-pedigree-lens-padding {
    cursor: pointer;
 }
 .wr-familytreelink-arrow {
-   font-size: 9px;
+   font-size: 10px;
    padding-left: 2px;
 }
 .wr-familytreelink-text:hover {
@@ -3431,18 +3432,18 @@ div.exhibit-pedigree-lens-padding {
    width: 100%;
    text-align:center;
    color: #7f7f7f;
-   font-size: 11px;
+   font-size: 12px;
    padding-bottom: 4px;
 }
 .wr-infobox-person .wr-infobox-content {
    margin: 4px 8px 4px 110px;
 }
 .wr-infobox-person .wr-infobox-fullname {
-   font-size: 22px;
+   font-size: 24px;
    padding: 6px 0;
 }
 .wr-infobox-person .wr-infobox-event {
-   font-size: 15px;
+   font-size: 16px;
    padding: 5px 0;
 }
 
@@ -3452,7 +3453,7 @@ div.exhibit-pedigree-lens-padding {
    float: right;
 }
 .wr-infobox-familybadges .addfamilylink {
-   font-size: 12px;
+   font-size: 13px;
    margin: 12px 4px;
    text-align: center;
 }
@@ -3468,34 +3469,34 @@ div.exhibit-pedigree-lens-padding {
 }
 .wr-infobox-familybadge .wr-infobox-heading {
    text-align: center;
-   font-size: 14px;
+   font-size: 15px;
    padding: 4px 12px 2px;
 }
 .wr-infobox-familybadge .wr-infobox-warning {
    width: 100%;
    text-align: center;
-   font-size: 11px;
+   font-size: 12px;
    color: red;
 }
 .wr-infobox-familybadge .wr-infobox-editlink {
-   font-size: 10px;
+   font-size: 11px;
    text-align: center;
 }
 .wr-infobox-familybadge .wr-infobox-fullname {
-   font-size: 13px;
+   font-size: 14px;
 }
 .wr-infobox-familybadge .wr-infobox-yearrange {
    display: block;
-   font-size: 11px;
+   font-size: 12px;
 }
 .wr-infobox-familybadge .wr-infobox-label {
    font-family: "Lucida Console", Monaco, monospace;
-   font-size: 11px;
+   font-size: 12px;
 }
 .wr-infobox-familybadge .wr-infobox-event {
    margin: -4px 8px 4px;
    text-align: center;
-   font-size: 11px;
+   font-size: 12px;
 }
 .wr-infobox-familybadge li {
    margin-top: 8px;
@@ -3540,11 +3541,11 @@ div.exhibit-pedigree-lens-padding {
 }
 .wr-infobox-family .wr-infobox-spouses .wr-infobox-parents {
    padding-left: 32px;
-   font-size: 9px;
+   font-size: 10px;
    margin-top: -2px;
 }
 .wr-infobox-family .wr-infobox-spouses .wr-infobox-fullname {
-   font-size: 20px;
+   font-size: 22px;
    padding: 5px 0;
 }
 .wr-infobox-family .wr-infobox-event {
@@ -3552,7 +3553,7 @@ div.exhibit-pedigree-lens-padding {
    text-align: center;
 }
 .wr-infobox-family .wr-infobox-spouses .wr-infobox-event {
-   font-size: 13px;
+   font-size: 14px;
    padding: 4px 0;
    margin: 0 0 0 16px;
    text-align: left;
@@ -3560,13 +3561,13 @@ div.exhibit-pedigree-lens-padding {
 .wr-infobox-family .wr-infobox-heading {
    border-top: 1px solid #ddd;
    padding: 8px 10px 4px;
-   font-size: 9px;
+   font-size: 10px;
 }
 .wr-infobox-family .wr-infobox-wrapper {
    margin: 0 8px 8px;
 }
 .wr-infobox-family .addspouselink {
-   font-size: 18px;
+   font-size: 20px;
    margin-left: 8px;
 }
 /* wr-infobox-source , wr-infobox-mysource , wr-infobox-repository */
@@ -3579,7 +3580,7 @@ div.exhibit-pedigree-lens-padding {
 .wr-infobox-source .wr-infobox-heading,
 .wr-infobox-mysource .wr-infobox-heading,
 .wr-infobox-repository .wr-infobox-heading {
-   font-size: 11px;
+   font-size: 12px;
    margin-top: 8px;
    margin-left: 8px;
    margin-bottom: 2px;
@@ -3592,7 +3593,7 @@ div.exhibit-pedigree-lens-padding {
 .wr-infobox-source .wr-infobox-title,
 .wr-infobox-mysource .wr-infobox-title,
 .wr-infobox-repository .wr-infobox-title {
-   font-size: 16px;
+   font-size: 17px;
 }
 .wr-infobox-source table,
 .wr-infobox-mysource table,
@@ -3655,20 +3656,20 @@ div.exhibit-pedigree-lens-padding {
 .wr-infobox-imagepage .wr-infobox-heading,
 .wr-infobox-containedplaces .wr-infobox-heading {
    text-align: center;
-   font-size: 15px;
+   font-size: 16px;
    margin-bottom: 6px;
    color: #ED5800;
 }
 .wr-infobox-imagepage .wr-infobox-fullname {
-   font-size: 13px;
+   font-size: 14px;
 }
 .wr-infobox-imagepage .wr-infobox-yearrange {
    display: block;
-   font-size: 11px;
+   font-size: 12px;
    padding-left: 8px;
 }
 .wr-infobox-userpage dd dd {
-   font-size: 11px;
+   font-size: 12px;
    line-height: 1;
 }
 .wr-infobox-userpage dd dt {
@@ -3686,7 +3687,7 @@ div.exhibit-pedigree-lens-padding {
    float: right;
    margin: 2px;
    text-align: center;
-   font-size: 11px;
+   font-size: 12px;
 }
 .wr-infobox-map {
    clear: right;
@@ -3700,13 +3701,13 @@ div.exhibit-pedigree-lens-padding {
    margin: 4px 208px 4px 8px;
 }
 .wr-infobox-place .wr-infobox-title {
-   font-size: 18px;
+   font-size: 20px;
 }
 .wr-infobox-place .wr-infobox-label {
    width: 90px;
 }
 .wr-infobox-place .wr-infobox-note {
-   font-size: 9px;
+   font-size: 10px;
    font-style: oblique;
 }
 .wr-infobox-place td {
@@ -3783,7 +3784,7 @@ div.exhibit-pedigree-lens-padding {
    position: absolute;
    left: 0;
    width: 28px;
-   font-size: 9px;
+   font-size: 10px;
    color: #444;
    border-top: 1px solid #ddd;
    line-height: 1;
@@ -3828,17 +3829,17 @@ div.exhibit-pedigree-lens-padding {
 }
 .wr-infotable-children .wr-infotable-place {
    display: block;
-   font-size: 11px;
+   font-size: 12px;
 }
 .wr-infotable-children th {
-   font-size: 9px;
+   font-size: 10px;
    text-align: left;
    font-weight: normal;
    padding-top: 0;
    padding-bottom: 0;
 }
 .addchildlink {
-   font-size: 12px;
+   font-size: 13px;
    margin: -5px 8px 8px;
 }
 
@@ -3882,7 +3883,7 @@ ol.references p {
 /* table input */
 #name_input .n_select {
    width: 130px;
-   font-size: 11px;
+   font-size: 12px;
 }
 #name_input .n_presuf {
    width: 70px;
@@ -3897,11 +3898,11 @@ ol.references p {
    width: 8px;
    padding-left: 6px;
    padding-right: 0;
-   font-size: 14px;
+   font-size: 15px;
 }
 #name_input .n_ref {
    width: 55px;
-   font-size: 12px;
+   font-size: 13px;
    padding: 3px 1px 2px;
 }
 #name_input .ezpz-hint {
@@ -3930,7 +3931,7 @@ ol.references p {
 /* event-fact input */
 #event_fact_input .ef_select {
    width: 140px;
-   font-size: 11px;
+   font-size: 12px;
 }
 #event_fact_input .ef_date {
    width: 105px;
@@ -3943,13 +3944,13 @@ ol.references p {
 }
 #event_fact_input .ef_ref a {
    width: 8px;
-   font-size: 14px;
+   font-size: 15px;
    padding-right: 4px;
 }
 #event_fact_input .ef_ref input {
    width: 55px;
    padding: 1px;
-   font-size: 12px;
+   font-size: 13px;
 }
 #event_fact_input .ef_ref {
    text-align: right;
@@ -3960,10 +3961,10 @@ ol.references p {
    color: #999;
 }
 #event_fact_input .ef_ref .jTip {
-   font-size: 10px;
+   font-size: 11px;
 }
 #event_fact_input .sin_heading {
-   font-size: 10px;
+   font-size: 11px;
    font-weight: bold;
    margin-top: -6px;
    margin-bottom: -2px;
@@ -3989,7 +3990,7 @@ ol.references p {
    width: 443px;
 }
 #source_input .s_quality {
-   font-size: 10px;
+   font-size: 11px;
 }
 #source_input .s_page {
    width: 443px;
@@ -4024,10 +4025,10 @@ ol.references p {
 
 /* search sidebar */
 #wr-search-sidebar {
-   font-size: 11px;
+   font-size: 12px;
 }
 #wr-search-sidebar input {
-   font-size: 11px;
+   font-size: 12px;
    padding: 0;
    margin: 0;
 }
@@ -4043,7 +4044,7 @@ ol.references p {
 
 /* wr-openclose */
 .wr-openclose {
-   font-size: 10px;
+   font-size: 11px;
    padding-right: 3px;
    line-height: 19px;
    vertical-align: middle;
@@ -4087,7 +4088,7 @@ ol.references p {
   position: relative;
 }
 #cluetip-close {
-   font-size: 12px;
+   font-size: 13px;
 }
 #cluetip-waitimage {
   width: 43px;
@@ -4173,7 +4174,7 @@ ol.references p {
 -------------------------------------- */
 .jTip {
    margin-left: 2px;
-   font-size: 10px;
+   font-size: 11px;
    font-weight: normal;
    vertical-align: top;
 }
@@ -4195,7 +4196,7 @@ ol.references p {
 .cluetip-jtip h3#cluetip-title,
 .cluetip-image h3#cluetip-title {
   padding: 2px 5px;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: normal;
   background-color: #ccc;
   color: #333;
@@ -4333,7 +4334,7 @@ ol.references p {
 }
 
 .ui-dialog {
-   font-size: 12px;
+   font-size: 13px;
 }
 
 /*** multiselect ***/
@@ -4626,7 +4627,7 @@ classes should alter those!
 }
 .morelikethis {
    line-height: 1.2em;
-   font-size: 11px;
+   font-size: 12px;
 }
 .morelikethis ul {
    margin-left: 8px;
