@@ -4589,6 +4589,7 @@ classes should alter those!
 
 #myGrid {
     background: none repeat scroll 0 0 white;
+    font-size: 12px;
     border: 1px solid gray;
     outline: 0 none;
 }
@@ -4612,6 +4613,7 @@ classes should alter those!
 
 #myGrid .cell-title {
         font-weight: bold;
+        font-size: 13px;
 }
 #myGrid .cell-title a {
    color: #1111CC !important;
