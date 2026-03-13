@@ -1,3 +1,5 @@
+/* Cloned from list.js. Much of the code is exactly the same - no attempt was made to reuse existing code. */
+
 // Set global variables
 		var dataView;
 		var grid;
