@@ -39,7 +39,7 @@ function wfSpecialListPages($par) {
    $wgOut->addScript("<link href=\"$wgScriptPath/skins/common/jquery.multiselect.css\" rel=\"stylesheet\" type=\"text/css\"/>");
    $wgOut->addScript("<script src=\"$wgScriptPath/jquery.loadmask.min.js\"></script>");
    $wgOut->addScript("<script src=\"$wgScriptPath/jquery.multiselect.min.js\"></script>");
-   $wgOut->addScript("<script src=\"$wgScriptPath/list.3.js\"></script>");
+   $wgOut->addScript("<script src=\"$wgScriptPath/list.4.js\"></script>");
 
    $wgOut->addHTML(<<< END
 <div class="listPagesForm" style="width:835px;">
