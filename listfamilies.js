@@ -7,13 +7,10 @@
 
 // Set up SlickGrid display columns
 		var columns = [
-			{id:"linkedName", name:"Name", field:"linkedName", cssClass:"cell-title", width:150, sortable: true},
-			{id:"gender", name:"Gdr", field:"gender", width:25},
-			{id:"birthDate", name:"Birth Date", field:"birthDate", sortable: true},
-			{id:"birthPlace", name:"Birth Place", field:"birthPlace", width:120, sortable: true},
-			{id:"deathDate", name:"Death Date", field:"deathDate", sortable: true},
-			{id:"deathPlace", name:"Death Place", field:"deathPlace", width: 120, sortable: true},
-         {id:"trees", name:"Tree(s)", field:"trees", width:80, sortable: true}
+			{id:"linkedName", name:"Name", field:"linkedName", cssClass:"cell-title", width:280, sortable: true},
+			{id:"marriageDate", name:"Marriage Date", field:"marriageDate", sortable: true},
+			{id:"marriagePlace", name:"Marriage Place", field:"marriagePlace", width:120, sortable: true},
+         {id:"trees", name:"Tree(s)", field:"trees", width:65, sortable: true}
 		];
 
 // Set SlickGrid options
@@ -51,7 +48,7 @@
 			}
 			else {
 			var searchWords = getWords(searchString);
-			var searchFields = ["name","birthPlace","deathPlace", "birthDate", "deathDate"];
+			var searchFields = ["name", "marriagePlace","marriagePlace"];
          var searchFieldsLength = searchFields.length;
 			if (searchWords){
 				// Go through each of the words in the search string
@@ -92,12 +89,9 @@ function initialSort(){
 	function comparer(a,b) {
 		if (sortcol === "linkedName"){
 			var x = a["name"], y = b["name"];
-	}
-		else if (sortcol === "birthDate"){
-			var x = a["birthDateKey"], y = b["birthDateKey"];
 		}
-		else if (sortcol === "deathDate"){
-			var x = a["deathDateKey"], y = b["deathDateKey"];
+		else if (sortcol === "marriageDate"){
+			var x = a["marriageDateKey"], y = b["marriageDateKey"];
 		}
 		else {
 			var x = a[sortcol], y = b[sortcol];
@@ -110,10 +104,10 @@ function initialSort(){
 		var rowCount = dataView.getLength();
 		var content;
 		if (rowCount === 1){
-			content = '<b>' + rowCount.toString() + '</b> person found'
+			content = '<b>' + rowCount.toString() + '</b> family found'
 		}
 		else {
-			content = '<b>' + rowCount.toString() + '</b> people found'
+			content = '<b>' + rowCount.toString() + '</b> families found'
 		}
 		$("#rowCount").html(content);
 	}
@@ -169,7 +163,7 @@ function initialSort(){
 		// Masks the div, and puts up a loading image
 		$("#myGrid").mask("Loading...");
 // need the www so we pick up the sign-in cookie
-		var jsonURL = '/w/index.php?action=ajax&rs=wfGetWatchlist&user=' + user + '&callback=?';
+		var jsonURL = '/w/index.php?action=ajax&rs=wfGetWatchlist&user=' + user + '&namespace=Family&callback=?';
 		$.getJSON(jsonURL,function(json){
 	var items = [];
 	// Go through each item and put it into the data object
@@ -179,17 +173,13 @@ function initialSort(){
 				d["id"] = "id_" + key;
 				d["title"] = val.title;
 				// This is used for searching, not display
-// surname and given name may be missing; default to "" like other fields
-				d["name"] = (val.surname||"") + ", " + (val.given||"");
-				d["linkedName"] = '<a href="/wiki/Person:' + val.title + '">' + (val.surname||"") + ', ' + (val.given||"") + '</a>'||"";
-				d["gender"] = val.gender||"";
-				d["birthDate"] = val.birthDate||"";
-				d["birthDateKey"] = getDateKey(val.birthDate||"");
-				d["birthPlace"] = val.birthPlace||"";
-				d["deathDate"] = val.deathDate||"";
-				d["deathDateKey"] = getDateKey(val.deathDate||"");
-				d["deathPlace"] = val.deathPlace||"";
-                d["trees"] = val.trees||"";
+				// surname and given name may be missing; default to "" like other fields
+				d["name"] = (val.husbandSurname||"") + ", " + (val.husbandGiven||"") + " and " + (val.wifeSurname||"") + ", " + (val.wifeGiven||"");
+				d["linkedName"] = '<a href="/wiki/Family:' + val.title + '">' + d["name"] + '</a>'||"";
+				d["marriageDate"] = val.marriageDate||"";
+				d["marriageDateKey"] = getDateKey(val.marriageDate||"");
+				d["marriagePlace"] = val.marriagePlace||"";
+            d["trees"] = val.trees||"";
 			});
 
 
