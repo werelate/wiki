@@ -301,6 +301,7 @@ END;
         ),
         'list' => array(
             'people' => ($wgUser->isLoggedIn() ? 'Special:ListPages/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
+            'families' => ($wgUser->isLoggedIn() ? 'Special:ListFamilies/' . urlencode($wgUser->getName()) : 'Special:Userlogin'),
             'contributions' => ($wgUser->isLoggedIn() ? 'Special:Contributions/' . urlencode($wgUser->getName()) : 'Special:Userlogin')
         ),
         'add' => array(

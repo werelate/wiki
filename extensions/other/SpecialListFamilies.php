@@ -6,15 +6,15 @@
  */
 
 # Register with MediaWiki as an extension
-$wgExtensionFunctions[] = "wfSpecialListSetup";
+$wgExtensionFunctions[] = "wfSpecialListFamiliesSetup";
 
-function wfSpecialListSetup() {
+function wfSpecialListFamiliesSetup() {
    global $wgMessageCache, $wgSpecialPages, $wgParser;
-   $wgMessageCache->addMessages( array( "list" => "List" ) );
-   $wgSpecialPages['ListPages'] = array('SpecialPage','ListPages');
+   $wgMessageCache->addMessages( array( "listfamilies" => "ListFamilies" ) );
+   $wgSpecialPages['ListFamilies'] = array('SpecialPage','ListFamilies');
 }
 
-function wfSpecialListPages($par) {
+function wfSpecialListFamilies($par) {
    global $wgOut, $wgUser, $wgScriptPath;
 
 
@@ -26,7 +26,7 @@ function wfSpecialListPages($par) {
    $userName = (!$par || ($wgUser->isLoggedIn() && $par == $wgUser->getName()) ? 'your' : "$par's");
 
    // set up page
-	$wgOut->setPagetitle('List People');
+	$wgOut->setPagetitle('List Families');
    $wgOut->setSubtitle("&nbsp; in $userName watchlist");
    $wgOut->setArticleRelated(false);
    $wgOut->setRobotpolicy('noindex,nofollow');
@@ -39,7 +39,7 @@ function wfSpecialListPages($par) {
    $wgOut->addScript("<link href=\"$wgScriptPath/skins/common/jquery.multiselect.css\" rel=\"stylesheet\" type=\"text/css\"/>");
    $wgOut->addScript("<script src=\"$wgScriptPath/jquery.loadmask.min.js\"></script>");
    $wgOut->addScript("<script src=\"$wgScriptPath/jquery.multiselect.min.js\"></script>");
-   $wgOut->addScript("<script src=\"$wgScriptPath/list.3.js\"></script>");
+   $wgOut->addScript("<script src=\"$wgScriptPath/listfamilies.1.js\"></script>");
 
    $wgOut->addHTML(<<< END
 <div class="listPagesForm" style="width:835px;">
