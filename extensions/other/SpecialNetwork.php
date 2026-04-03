@@ -221,7 +221,7 @@ class SpecialNetwork {
 		$out .= '</table>';
 
 		$form = $this->getForm($this->from);
-		$users = 'user=' . wfUrlEncode($this->username) . 'relateduser=' . wfUrlEncode($this->otherUsername);
+		$users = 'user=' . wfUrlEncode($this->username) . '&relateduser=' . wfUrlEncode($this->otherUsername);
 		$out2 = '<table style="background: inherit;" width="100%" cellpadding="0" cellspacing="0" border="0">';
 		$out2 .= '<tr valign="top"><td align="left">' . $form;
 		if ( isset($dbr) && $dbr && ($n == $this->maxPerPage) && ($s = $dbr->fetchObject( $res )) ) {
