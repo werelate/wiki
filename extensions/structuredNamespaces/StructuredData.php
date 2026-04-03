@@ -1438,10 +1438,13 @@ abstract class StructuredData {
           $ns === NS_IMAGE  || $ns === NS_FAMILY || $ns === NS_TRANSCRIPT) {
          foreach ($wrStdSurnames as $surname) {
             $places = array();
-            foreach ($wrStdPlaces as $place) {
-               $link = '/wiki/Special:Search?ecp=e&sort=title&rows=200&cv=true&s='.urlencode($surname).'&p='.urlencode($place);
-               $placeLevels = explode(',',$place);
-               $places[] = '<a href="'.$link.'">'.htmlspecialchars($placeLevels[0]).'</a>';
+            foreach ($wrStdPlaces as $p) {
+               $place = explode('^',$p);                          // for User pages only: a surname might be appended after the place, separated by ^
+               if (sizeof($place)<=1 || $place[1]==$surname) {    // Include a place only if it was for this surname or not associated with any surname (for User pages)
+                  $link = '/wiki/Special:Search?ecp=e&sort=title&rows=200&cv=true&s='.urlencode($surname).'&p='.urlencode($place[0]);
+                  $placeLevels = explode(',',$place[0]);
+                  $places[] = '<a href="'.$link.'">'.htmlspecialchars($placeLevels[0]).'</a>';
+               }
             }
             $link = '/wiki/Special:Search?ecp=e&sort=title&rows=200&cv=true&s='.urlencode($surname);
             $a = '<a href="'.$link.'">'.htmlspecialchars($surname).'</a>';
