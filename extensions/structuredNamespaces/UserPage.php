@@ -115,6 +115,7 @@ class UserPage extends StructuredData {
 
 	protected function formatResearchLinks($value, $dummy) {
 		$surname = StructuredData::standardizeNameCase((string)$value['surname'], false);
+
 		$fields = explode('|',(string)$value['place']);
       $titleText = trim($fields[0]);
       $t = Title::newFromText($titleText, NS_PLACE);
@@ -305,16 +306,13 @@ class UserPage extends StructuredData {
    		   $result .= StructuredData::addCategories($this->xml->surname, $this->xml->place);
    		 }
    		 else {
-   			$surnames = array();
- 		      $places = array();
-   		   foreach ($this->xml->researching as $researching) {
-   				$surnames[] = (string)$researching['surname'];
-   		      if (isset($researching['place'])) {
-	             	// If a place is associated with a specific surname, tag it as such for preparing browse facets. (added Apr 2026 by JB)
-						$places[] = (string)$researching['place'] . (isset($researching['surname']) ? "^" . $researching['surname'] : "");
-					}
-   		   }              
- 			   $result .= StructuredData::addCategories($surnames, $places);
+   		    foreach ($this->xml->researching as $researching) {
+   			    $surnames = array();
+     		       $places = array();
+   		       $surnames[] = (string)$researching['surname'];
+   		       $places[] = (string)$researching['place'];
+   			    $result .= StructuredData::addCategories($surnames, $places);
+   		    }
    		 }
 		 }
 		 return $result;
