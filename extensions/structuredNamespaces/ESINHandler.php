@@ -44,13 +44,14 @@ class ESINHandler extends StructuredData {
 	);
       
   // Event type arrays added (to support event sorting) Oct 2020 by Janet Bjorndahl 
+  // Reference Number moved to the very end (as per request from Cos1776) Apr 2026
   private static $PERSON_EVENT_TYPES = array('Birth'=>'0010', 'Alt Birth'=>'0020', 'Christening'=>'0030',  'Alt Christening'=>'0040', 
       'During Life With Date'=>'0050', 'During Life Without Date'=>'0219', 'Death'=>'0220', 'Alt Death'=>'0230',
       'Obituary'=>'0240', 'Funeral'=>'0250', 'Cremation'=>'0260', 'Burial'=>'0270', 'Alt Burial'=>'0280',
       'Estate Inventory'=>'0290', 'Probate'=>'0300', 'Estate Settlement'=>'0310',
       'Ancestral File Number'=>'1010', 'Caste'=>'1020', 'Cause of Death'=>'1030', 'Citizenship'=>'1040',
       'DNA'=>'1050', 'Namesake'=>'1060', 'Nationality'=>'1070', 'Other'=>'1080', 'Physical Description'=>'1090',
-      'Reference Number'=>'1100', 'Religion'=>'1110', 'Soc Sec No'=>'1120', 'Title (nobility)'=>'1130');
+      'Religion'=>'1110', 'Soc Sec No'=>'1120', 'Title (nobility)'=>'1130', 'Reference Number'=>'1200');
   private static $FAMILY_EVENT_TYPES = array('Engagement'=>'0060', 'Marriage Banns'=>'0070', 'Marriage Bond'=>'0080', 'Marriage Contract'=>'0090',
       'Marriage License'=>'0100', 'Marriage Notice'=>'0110', 'Marriage Settlement'=>'0120', 'Marriage'=>'0130',
       'Alt Marriage'=>'0140', 'Census'=>'0150', 'Residence'=>'0160', 'Other'=>'0170', 'Separation'=>'0180',
