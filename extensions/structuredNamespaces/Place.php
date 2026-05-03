@@ -171,6 +171,36 @@ class Place extends StructuredData {
 			return $titleString;
 		}
 	}
+
+	/**
+	 * Sort places using locale-aware collation so accented characters
+	 * are sorted inline with their unaccented equivalents
+	 * @param array $places array to be sorted in place
+	 */
+	private static function sortPlacesLocaleAware(&$places) {
+		// Try to use Collator from intl extension if available
+		if (class_exists('Collator')) {
+			$collator = new Collator('en_US');
+			if ($collator) {
+				$collator->sort($places);
+				return;
+			}
+		}
+
+		// Fallback: use custom comparison with accent removal
+		usort($places, function($a, $b) {
+			// Extract place name (before the first |)
+			$aName = explode('|', $a)[0];
+			$bName = explode('|', $b)[0];
+
+			// Remove accents for comparison
+			$aClean = StructuredData::removeAccents($aName);
+			$bClean = StructuredData::removeAccents($bName);
+
+			// Case-insensitive comparison
+			return strcasecmp($aClean, $bClean);
+		});
+	}
 	
 	private static function getPlaceLevel($titleString) {
 		if (StructuredData::endsWith($titleString, ", United States") ||
@@ -395,7 +425,7 @@ class Place extends StructuredData {
 //       sort($places, SORT_STRING);
        $result = array();
        foreach ($containedPlaceTypes as $containedPlaceType => $places) {
-            sort($places, SORT_STRING);
+            Place::sortPlacesLocaleAware($places);
             $containedPlaceType = mb_strtoupper(mb_substr($containedPlaceType, 0, 1)) . mb_substr($containedPlaceType, 1);
             $result[] = "<dt>$containedPlaceType";
             foreach ($places as $place) {
