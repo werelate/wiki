@@ -465,10 +465,6 @@ class Source extends StructuredData {
       parent::__construct('source', $titleString, NS_SOURCE);
    }
 
-//   protected function formatAltName($value, $dummy) {
-//      return $value;
-//   }
-
 	protected function formatPlain($value, $dummy) {
 		return (string)$value;
 	}
@@ -613,6 +609,16 @@ $result
 END;
    }
 
+   protected function getAltTitles() {
+      $result = $this->getLV("Alt titles", $this->xml->alternate_title);
+      if (!$result) return '';
+      return <<<END
+<table>
+$result
+</table>
+END;
+   }
+
    protected function getCoverage() {
       $result = '';
       $type = (string)$this->xml->source_type;
@@ -660,7 +666,7 @@ $result
 END;
    }
 
-   public function getCitationText($makeLink=false, $altTitle=null) {
+   public function getCitationText($makeLink=false) {
       $result = '';
       $type = '';
       if (isset($this->xml->source_type)) {
@@ -801,6 +807,7 @@ END;
       if (isset($this->xml)) {
          // add infobox
          $titleAuthor = $this->getTitleAuthor();
+         $altTitles = $this->getAltTitles(); 
          $coverage = $this->getCoverage();
          $publicationInfo = $this->getPublicationInfo();
          $citation = $this->getCitation();
@@ -814,6 +821,7 @@ END;
 $searchGoogle
 $searchWorldcat
 $titleAuthor
+$altTitles
 $coverage
 $publicationInfo
 $citation
@@ -891,6 +899,7 @@ END;
 		$authors = '';
 		$sourceTitle = '';
 		$subtitle = '';
+    $alternateTitles = '';
 		$publisher = '';
 		$dateIssued = '';
 		$placeIssued = '';
@@ -927,6 +936,9 @@ END;
          	$sourceTitle = htmlspecialchars($this->titleString);
          }
          $subtitle = htmlspecialchars((string)$this->xml->subtitle);
+         foreach ($this->xml->alternate_title as $alternateTitle) {
+           $alternateTitles .= htmlspecialchars((string)$alternateTitle) . "\n";
+         }
          $publisher = htmlspecialchars((string)$this->xml->publisher);
          if (!$publisher) {
          	$publisher = htmlspecialchars((string)$this->xml->publication_info);
@@ -997,6 +1009,7 @@ END;
 			.   "<td align=left><textarea tabindex=\"1\" name=\"authors\" rows=\"3\" cols=\"60\">$authors</textarea></td></tr>"
          . "<tr id=\"source_title_row\"><td align=right>Title:</td><td align=left><input tabindex=\"1\" name=\"source_title\" value=\"$sourceTitle\" size=\"60\"/></td></tr>"
          . "<tr id=\"subtitle_row\"><td align=right>Subtitle:</td><td align=left><input tabindex=\"1\" name=\"subtitle\" value=\"$subtitle\" size=\"60\"/></td></tr>"
+      	 . "<tr><td align=right>Alternate titles:<br/><i>one per line</i></td><td align=left><textarea tabindex=\"1\" name=\"alternate_titles\" rows=\"3\" cols=\"60\">$alternateTitles</textarea></td></tr>"
          . "<tr id=\"publisher_row\"><td align=right>Publisher:</td><td align=left><input tabindex=\"1\" name=\"publisher\" value=\"$publisher\" size=\"60\"/></td></tr>"
          . "<tr id=\"date_issued_row\"><td align=right>Date issued:</td><td align=left><input tabindex=\"1\" name=\"date_issued\" value=\"$dateIssued\" size=\"20\"/></td></tr>"
          . "<tr id=\"place_issued_row\"><td align=right>Place issued:</td><td align=left><input tabindex=\"1\" name=\"place_issued\" value=\"$placeIssued\" size=\"60\"/></td></tr>"
@@ -1049,6 +1062,11 @@ END;
       return $result;
    }
 
+   protected function formatAltTitle($value) {
+		$escapedValue =& StructuredData::escapeXml($value);
+      return "<alternate_title>$escapedValue</alternate_title>";
+   }
+   
    protected function formatAuthor($value) {
 		$escapedValue =& StructuredData::escapeXml($value);
       return "<author>$escapedValue</author>";
@@ -1091,6 +1109,7 @@ END;
       	. $this->addSingleLineFieldToXml($request->getVal('source_title', ''), 'source_title')
       	. (!$sourceType || in_array($sourceType, array('Book', 'Article', 'Government / Church records', 'Manuscript collection', 'Website', 'Miscellaneous', 'MySource'))
       		? $this->addSingleLineFieldToXml($request->getVal('subtitle', ''), 'subtitle') : '')
+        .  $this->addMultiLineFieldToXml($request->getVal('alternate_titles', ''), 'formatAltTitle')
       	. (!$sourceType || in_array($sourceType, array('Book', 'Article', 'Government / Church records', 'Periodical', 'Manuscript collection', 'Miscellaneous', 'MySource'))
       		? $this->addSingleLineFieldToXml($request->getVal('publisher', ''), 'publisher') : '')
       	. (!$sourceType || in_array($sourceType, array('Book', 'Article', 'Government / Church records', 'Manuscript collection', 'Miscellaneous', 'MySource'))

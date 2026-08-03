@@ -1354,6 +1354,7 @@ class SearchForm {
          . $this->formatValue('Children', SearchForm::removeId(@$hl['ChildTitle'][0]))
          . $this->formatValue('Author', @$hl['AuthorStored'][0])
          . $this->formatValue('Title', @$hl['SourceTitleStored'][0])
+  			 . $this->formatValue('AKA', @$hl['AltTitleStored'][0])
          . $this->formatValue('Surnames', @$hl['SurnameStored'][0])
          . $this->formatValue('Places', @$hl['PlaceStored'][0])
          . (@$hl['SourceSubjectStored'][0] ? $this->formatValue('Subject', @$hl['SourceSubjectStored'][0] . (@$doc['SourceSubSubject'] ? ' - ' . @$doc['SourceSubSubject'] : '')) : '')
@@ -1424,7 +1425,7 @@ class SearchForm {
           $output .= '<p></p><p><font size=+1>Your search did not match any documents.</font></p>';
       }
       else {
-	      // display prev..next naviagtion
+	      // display prev..next navigation
 			if ($start > 0) {
 			   $prevStart = $start - $this->rows;
 			   if ($prevStart < 0) {
