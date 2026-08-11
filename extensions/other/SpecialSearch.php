@@ -1147,14 +1147,22 @@ class SearchForm {
       return $result;
 	}
 
-   private function prepareValue($v, $max = 90) {
+private function prepareValue($v, $max = 90) {
 		if (mb_strlen($v) > $max) {
 			$pos = mb_strpos($v, '</b>');
 			if ($pos !== false && $pos+4 > $max) {
 				$v = '...' . mb_substr($v, mb_strlen($v)-$max+3);
 			}
 			else {
-				$v = mb_substr($v, 0, $max-3) . '...';
+        // Want the max number of characters, replacing the last 3 with "...".
+        // However, if this cuts the string off in the middle of "</b>" (end highlighting), 
+        // increase the number of characters kept so that "</b>" is kept in its entirety. 
+        $adj = -3;
+        $pos = mb_strpos(mb_substr($v, $max-6, 6), '</b>');
+        if ($pos !== false) {
+          $adj += $pos + 1;
+        }
+				$v = mb_substr($v, 0, $max+$adj) . '...';
 			}
 		}
 		$v = str_replace(array('&lt;b&gt;','&lt;/b&gt;'), array('<b>','</b>'), htmlspecialchars($v));
