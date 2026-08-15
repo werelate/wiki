@@ -135,6 +135,9 @@ li#f-disclaimer,
    height: auto;
    border: none;
 }
+.printonly {
+   display: block;
+}
 
 /* WERELATE - left-align family infoboxes */
 .wr-infobox-person, .wr-infobox-family {

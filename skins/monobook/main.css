@@ -43,7 +43,7 @@ body
 #wr-titlearea
 {
    clear: both;
-   height: 74px;
+   min-height: 74px;
    padding-left: 12px;
    border-left: 1px solid #ccc;
 }
@@ -51,6 +51,18 @@ body
 #wr-title
 {
    padding: 8px 4px 2px 0;
+}
+
+.wr-lastmod
+{
+   font-size: small;
+   color: #666;
+}
+
+/* shown only when printing (see commonPrint.css) */
+.printonly
+{
+   display: none;
 }
 
 #wr-searchbox
