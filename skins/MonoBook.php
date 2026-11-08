@@ -469,10 +469,10 @@ END;
          ?>
             <div id="wr-title">
                 <h1 class="<?php echo $firstHeadingClass; ?>"><?php if ($overrideTitle) { echo $overrideTitle; } else { $this->data['displaytitle']!=""?$this->text('title'):$this->html('title'); } ?></h1>
-                <?php if (!$overrideTitle && $this->data['notspecialpage'] && $wgArticle) {
+                <?php if (!$overrideTitle && $this->data['notspecialpage'] && $wgArticle && $wgArticle->getRevIdFetched() != 0) {
                     $timestamp = $wgArticle->getTimestamp();
                     if ($timestamp) {
-                        $formattedDate = date('j M Y', strtotime($timestamp));
+                        $formattedDate = date('H:i, j M Y', strtotime($timestamp));
                         echo '<div class="noprint wr-lastmod">Last modified ' . $formattedDate . '</div>';
                     }
                 } ?>
@@ -811,7 +811,7 @@ EOL;
 		<?php if (!$overrideTitle && $this->data['notspecialpage'] && $wgArticle) {
 			$timestamp = $wgArticle->getTimestamp();
 			if ($timestamp) {
-				$formattedDate = date('j M Y', strtotime($timestamp));
+				$formattedDate = date('H:i, j M Y', strtotime($timestamp));
 				echo '<div class="printonly wr-lastmod">Last modified ' . $formattedDate . '</div>';
 			}
 		} ?>
