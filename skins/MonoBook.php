@@ -336,9 +336,11 @@ END;
             'reviewneeded' => 'Category:Review_needed',
             'gedcomreview' => 'Special:Gedcoms',
             'speedydelete' => 'Category:Speedy_Delete',
+            'duplicatereview' => 'Category:Duplicates',
+            'names' => 'Special:Names',
             'nameslog' => 'Special:NamesLog',
-            'browseall' => 'Special:Browse',
-            'comparepages' => 'Special:Compare',
+//            'browseall' => 'Special:Browse',
+//            'comparepages' => 'Special:Compare',
             'specialpages' => 'Special:Specialpages'
         ),
   );

@@ -6,7 +6,7 @@ $wgExtensionFunctions[] = "wfSpecialNamesLogSetup";
 function wfSpecialNamesLogSetup() {
 	global $wgMessageCache, $wgSpecialPages;
 	
-	$wgMessageCache->addMessages( array( "nameslog" => "Names Log" ) );
+	$wgMessageCache->addMessages( array( "nameslog" => "Variant names log" ) );
 	$wgSpecialPages['NamesLog'] = array('SpecialPage','NamesLog');
 }
 
@@ -81,7 +81,9 @@ class NamesLog extends QueryPage {
  * constructor
  */
 function wfSpecialNamesLog($par, $specialPage) {
-
+	global $wgOut;
+	$wgOut->setPageTitle('Variant Names Log');
+ 
 	list( $limit, $offset ) = wfCheckLimits();
 
 	if ( $par ) {
