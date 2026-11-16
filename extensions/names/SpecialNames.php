@@ -9,7 +9,7 @@ $wgExtensionFunctions[] = "wfSpecialNamesSetup";
 function wfSpecialNamesSetup() {
 	global $wgMessageCache, $wgSpecialPages;
 	
-	$wgMessageCache->addMessages( array( "names" => "Names" ) );
+	$wgMessageCache->addMessages( array( "names" => "Variant names" ) );
 	$wgSpecialPages['Names'] = array('SpecialPage','Names');
 }
 
@@ -27,7 +27,7 @@ function wfSpecialNames() {
 	// read query parameters into variables
 	$namesForm->readQueryParms();
 
-	$wgOut->setPageTitle('Variant names');
+	$wgOut->setPageTitle('Variant Names');
 	$wgOut->addScript("<link href=\"$wgScriptPath/skins/common/jquery.customInput.css\" rel=\"stylesheet\" type=\"text/css\"/>");
 	$wgOut->addScript("<script src=\"$wgScriptPath/jquery.customInput.js\"></script>");
 	$type = $namesForm->type;
