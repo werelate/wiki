@@ -14,7 +14,7 @@ class GedcomExporter {
 		"Annulment" => "ANUL",
 		"Baptism" => "BAPM",
 		"Bar Mitzvah" => "BARM",
-		"Bat Mitzvah" => "BATM",
+		"Bat Mitzvah" => "BASM",      // changed 17 Nov 2026: The GEDCOM standard tag is BASM for Bas Mitzvah
 		"Blessing" => "BLES",
 		"Birth" => "BIRT",
 		"Alt Birth" => "BIRT",
@@ -33,6 +33,7 @@ class GedcomExporter {
 		"Degree" => "_DEG",
 		"Divorce" => "DIV",
 		"Divorce Filing" => "DIVF",
+    "DNA" => "_DNA",
 		"Education" => "EDUC",
 		"Emigration" => "EMIG",
 		"Engagement" => "ENGA",
@@ -57,12 +58,13 @@ class GedcomExporter {
 		"Physical Description" => "DSCR",
 		"Probate" => "PROB",
 		"Property" => "PROP",
-		"Reference Number" => "REFN",
+		"Reference Number" => "IDNO",
 		"Religion" => "RELI",
 		"Residence" => "RESI",
 		"Retirement" => "RETI",
 		"Separation" => "_SEPARATED",
 		"Soc Sec No" => "SSN",
+    "Title (nobility)" => "TITL",
 		"Will" => "WILL"
 	);
 
