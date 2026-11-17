@@ -340,7 +340,7 @@ END;
             'names' => 'Special:Names',
             'nameslog' => 'Special:NamesLog',
 //            'browseall' => 'Special:Browse',
-//            'comparepages' => 'Special:Compare',
+            'comparepages' => 'Special:Compare',
             'specialpages' => 'Special:Specialpages'
         ),
   );
